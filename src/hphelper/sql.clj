@@ -8,9 +8,9 @@
 
 (defn query 
   "Performs the query against the defined database, and logs the query"
-  [& query]
-  (log/trace "Performing Query: " str)
-  (jdb/query db query))
+  [& quer]
+  (log/trace "Performing Query: " quer)
+  (jdb/query db quer))
 
 (defn get-result
   "Shorthand to return the first value of a single-result query"

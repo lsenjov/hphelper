@@ -5,18 +5,18 @@
     )
   )
 
-(defn random-stats
+(defn- random-stats
   "Creates a map of the 6 stats with random values"
   []
   (let [stats ["Violence" "Management" "Subterfuge" "Wetware" "Software" "Hardware"]]
     (reduce (fn [x y] (merge x {y (int (Math/ceil (* (Math/random) 20)))})) {} stats)))
 
-(defn calc-primary-stats
+(defn- calc-primary-stats
   "Checks a record for existing primary stats, randomly fills in empty stats"
   [charRec]
   (assoc-in charRec [:priStats] (merge (random-stats) (charRec :priStats))))
 
-(defn calc-clone-degredation
+(defn- calc-clone-degredation
   "Calculates clone degredation in a character record, deriving from stats"
   [charRec]
   (assert (charRec :priStats) "Can't derive without stats")
@@ -24,7 +24,7 @@
             [:secStats "Clone Degredation"] 
             (int (- 5 (Math/ceil (/ ((charRec :priStats) "Wetware") 5))))))
 
-(defn calc-program-group-size
+(defn- calc-program-group-size
   "Calculates program group size in a character record, derived from stats"
   [charRec]
   (assert (charRec :priStats) "Can't derive without stats")
@@ -32,7 +32,7 @@
             [:secStats "Program Group Size"]
             (int (inc (Math/ceil (/ ((charRec :priStats) "Management") 5))))))
 
-(defn create-societies
+(defn- create-societies
   "Adds program group socities to the record from the database"
   [charRec]
   (assert (-> charRec (:secStats) (get "Program Group Size")) "No program group size to work off!")
@@ -44,7 +44,7 @@
     charRec
     (recur (assoc-in charRec ["Program Group"] (clojure.set/union #{} (charRec "Program Group") #{(sql/get-random-society)})))))
 
-(defn create-public-standing
+(defn- create-public-standing
   "Checks remaining access, and if more than specified has a chance to give the character a good public standing."
   [charRec minimumAccess]
   (if (and 
@@ -56,7 +56,7 @@
     charRec ;; Don't do anything, just return the record
     ))
 
-(defn calc-access-remaining
+(defn- calc-access-remaining
   "Calculates remaining access"
   [charRec]
   (- 100
@@ -69,12 +69,12 @@
                 (count (charRec "Drawbacks"))
                 0))))))
 
-(defn set-remaining-access
+(defn- set-remaining-access
   "Sets the access remaining in the character record"
   [charRec]
   (assoc charRec "Access Remaining" (calc-access-remaining charRec)))
 
-(defn create-drawbacks
+(defn- create-drawbacks
   "Checks minimum access.
   If not enough, adds a drawback up to three and adds access.
   If above minimum access, has a small chance of adding another drawback"
@@ -89,7 +89,7 @@
         (recur newCharRec minimumAccess))
       charRec)))
 
-(defn create-mutation
+(defn- create-mutation
   "Creates a mutation at the specified power level."
   [charRec powerLevel]
   (if (charRec :mutation)
