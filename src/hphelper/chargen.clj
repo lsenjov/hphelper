@@ -44,18 +44,6 @@
     charRec
     (recur (assoc-in charRec ["Program Group"] (clojure.set/union #{} (charRec "Program Group") #{(sql/get-random-society)})))))
 
-(defn- create-public-standing
-  "Checks remaining access, and if more than specified has a chance to give the character a good public standing."
-  [charRec minimumAccess]
-  (if (and 
-        (> (calc-access-remaining charRec) minimumAccess)
-        (not (charRec "Public Standing"))
-        (> 0.5 (Math/random)))
-    (assoc-in charRec ["Public Standing"] 
-              (+ (int (Math/ceil (* (Math/random) 5))) 5)) ;; Creates a public standing between 6 and 10
-    charRec ;; Don't do anything, just return the record
-    ))
-
 (defn- calc-access-remaining
   "Calculates remaining access"
   [charRec]
@@ -68,6 +56,18 @@
               (if (charRec "Drawbacks")
                 (count (charRec "Drawbacks"))
                 0))))))
+
+(defn- create-public-standing
+  "Checks remaining access, and if more than specified has a chance to give the character a good public standing."
+  [charRec minimumAccess]
+  (if (and 
+        (> (calc-access-remaining charRec) minimumAccess)
+        (not (charRec "Public Standing"))
+        (> 0.5 (Math/random)))
+    (assoc-in charRec ["Public Standing"] 
+              (+ (int (Math/ceil (* (Math/random) 5))) 5)) ;; Creates a public standing between 6 and 10
+    charRec ;; Don't do anything, just return the record
+    ))
 
 (defn- set-remaining-access
   "Sets the access remaining in the character record"
@@ -97,6 +97,14 @@
     (let [mut (sql/get-random-mutation)]
       (assoc charRec :mutation {:description (str (mut :name) ": " (mut :desc)) :power powerLevel}))))
 
+(defn- check-name
+  "Makes sure the character has a name, even if it is unnamed"
+  ([{nam :name :as charRec}]
+   (if nam
+     charRec
+     (assoc-in charRec [:name]
+               (sql/get-random-name)))))
+
 (defn create-character
   "Fills in the missing spots in a character record.
   If no record is given, creates a completely random character sheet"
@@ -110,6 +118,7 @@
                  (create-drawbacks 30)
                  (create-mutation 10)
                  (set-remaining-access)
+                 (check-name)
                  )
    )
   )

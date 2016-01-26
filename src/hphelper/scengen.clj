@@ -2,7 +2,9 @@
   (:require [clojure.core.typed :as t]
             [hphelper.sql :as sql]
             [hiccup.core :refer :all]
-    )
+            [hphelper.chargen :as cg]
+            )
+  (:gen-class)
   )
 
 (defn- get-crisis-id-list
@@ -29,19 +31,112 @@
             (map add-crisis-desc crisises)))
 
 (defn- select-crisises
-  "Determines or fills in the crisises to be visited"
+  "If given a vector of crisis id integers, adds full crisis maps to the record, then fills remaining spots up to 3 crisises.
+  If the :crisises key is empty, adds the key with three randomly selected crisises"
   [{crisises :crisises :as crisRec}]
   (if (nil? crisises)
     (recur (assoc-in crisRec [:crisises] #{}))
     (if (vector? crisises)
       (recur (assoc-in crisRec [:crisises]
                        (remove nil? (set (map (fn [id] (first (sql/query "SELECT * FROM `crisis` WHERE `c_id` = ?;" id)))
-                                    crisises)))))
+                                              crisises)))))
       (if (< (count crisises) 3)
         (recur (assoc-in crisRec [:crisises]
                          (set (remove nil? (conj crisises (sql/get-random-row "crisis" "c_id"))))))
         crisRec
         ))))
+
+(defn- select-service-group-directives
+  "Adds service group directives to scenario record associated with the current queries"
+  ([{crisises :crisises :as crisRec}]
+   (assoc-in crisRec [:directives]
+             (apply concat (map (fn [crisNum] (sql/query "SELECT * FROM `sgm` WHERE `c_id` = ?;" crisNum))
+                                (get-crisis-id-list crisRec))))))
+
+(defn- select-service-group-directives-unused
+  "Adds directives to service groups without one"
+  ([{directives :directives :as crisRec}]
+   (assoc-in crisRec [:directives]
+             (concat directives
+                     (map (comp sql/get-random-item
+                                (fn [sgNum] 
+                                  (sql/query "SELECT * FROM `sgm` WHERE `sg_id` = ? AND `c_id` IS NULL;" sgNum)))
+                          (remove (set (map :sg_id directives)) ;; Removing used sgs from all sgs
+                                  (map :sg_id
+                                       (sql/query "SELECT `sg_id` FROM `sg`;"))))))))
+
+(defn- select-secret-society-missions
+  "Adds secret society directives to scenario record associated with the current crisises"
+  ([{crisises :crisises :as crisRec}]
+   (assoc-in crisRec [:societies]
+             (apply concat (map (fn [crisNum] (sql/query "SELECT * FROM `ssm` WHERE `c_id` = ?;" crisNum))
+                                (get-crisis-id-list crisRec))))))
+
+(defn- select-secret-society-missions-unused
+  "Adds directives to service groups without one"
+  ([{societies :societies :as crisRec}]
+   (assert societies)
+   (assoc-in crisRec [:societies]
+             (concat societies
+                     (map (comp sql/get-random-item
+                                (fn [ssNum] 
+                                  (sql/query "SELECT * FROM `ssm` WHERE `ss_id` = ? AND `c_id` IS NULL;" ssNum)))
+                          (remove (set (map :ss_id societies)) ;; Removing used sss from all sgs
+                                  (map :ss_id
+                                       (sql/query "SELECT `ss_id` FROM `ss`;"))))))))
+
+(defn- create-single-minion-list
+  "Given a service group record, creates a minion list under a :minions keyword"
+  ([{sgNum :sg_id :as sgRec}]
+   (assoc-in sgRec [:minions]
+             (set (map (fn [skill] (sql/get-random-item (sql/query "SELECT `minion`.* FROM `minion`, `minion_skill`
+                                                               WHERE `sg_id` = ? 
+                                                               AND `minion`.`minion_id` IN
+                                                               (SELECT `minion_id`
+                                                               FROM `minion_skill`
+                                                               WHERE `skills_id` = ?);"
+                                                               sgNum
+                                                               skill))) ;; Grabs a minion with the skill from the service group
+                       (map :skills_id (sql/query "SELECT `skills_id`
+                                                  FROM `sg_skill`
+                                                  WHERE `sg_id` = ?;"
+                                                  sgNum)))))))
+
+(defn- add-additional-minions
+  "Given a service group record, adds random minions till minimum minions have been reached,
+  or till tries remaining is 0"
+  ([minMinions triesRemaining {sgNum :sg_id minions :minions :as sgRec}]
+   (if (and (< (count minions) minMinions)
+            (> triesRemaining 0))
+     (recur 
+       minMinions
+       (dec triesRemaining)
+       (assoc-in sgRec [:minions]
+                 (conj minions 
+                       (sql/get-random-item (sql/query "SELECT * FROM `minion` WHERE `sg_id` = ?;" 
+                                                   sgNum)))))
+     sgRec)))
+
+(defn- sort-minion-list
+  "Given a minion record, converts minions to a vector then sorts it by cost"
+  ([{minions :minions :as sgRec}]
+   (assoc-in sgRec [:minions]
+             (sort-by :minion_name (into [] minions)))))
+
+(defn- select-minion-lists
+  ([scenRec]
+   (assoc-in scenRec [:minions]
+             (map (comp sort-minion-list
+                        (partial add-additional-minions 10 10) ;; Want at least 10 minions on each list
+                        (partial create-single-minion-list))
+                  (sql/query "SELECT * FROM `sg`;")))))
+
+(defn add-character
+  "Adds a high programmer character to the record under :hps"
+  ([{hps :hps :as scenRec} {nam :name :as character}]
+   (assert nam "Character is unnamed and unfinished")
+   (assoc-in scenRec [:hps]
+             (concat '() hps (list character)))))
 
 (defn create-scenario
   "Creates a generated scenario"
@@ -50,4 +145,15 @@
    (-> scen
        (select-crisises)
        (add-crisis-descriptions)
+       (select-service-group-directives)
+       (select-service-group-directives-unused)
+       (select-secret-society-missions)
+       (select-secret-society-missions-unused)
+       (select-minion-lists)
+       (add-character (cg/create-character))
+       (add-character (cg/create-character))
+       (add-character (cg/create-character))
+       (add-character (cg/create-character))
        )))
+
+(create-scenario)
