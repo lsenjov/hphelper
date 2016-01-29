@@ -12,7 +12,7 @@
 (defroutes app-routes
   (GET "/char/" [] (cgen/html-print-sheet (cgen/create-character)))
   (GET "/scen/" [] (sgen/html-select-page))
-  (POST "/scen/" {params :params} (str params))
+  (POST "/scen/" {params :params} (str (sgen/from-select-to-scenmap params)))
   (route/not-found "Not Found"))
 
 (def app

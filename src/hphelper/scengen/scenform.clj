@@ -59,4 +59,35 @@
     )
   )
 
+(defn- assoc-player-name
+  "Checks the map for the player's name, and if exists associates it in the player's index"
+  [playerId params]
+  (let [pKey (keyword (str "name_" playerId))
+        pName (params pKey)]
+    (if (> (count pName) 0) ;; If the name exists, put it into the player
+      (assoc-in params [:players playerId :name] pName) ;; Creates a new hashmap if none exist
+      params)))
+
+(defn- assoc-player
+  "Given a player ID, checks the map for all items pertinent to the player and re-orders the map"
+  [playerId params]
+  (->> params
+      (assoc-player-name playerId)
+      ))
+
+(defn- assoc-all-players
+  "Associates all 6 possible players"
+  [params]
+  (let [pIds (range 6)]
+    (-> params
+        ((apply comp (map partial (repeat assoc-player) pIds))) ;; Composes 6 assoc-player functions together, one for each possible player
+        ))
+  )
+
 ;; This is the conversion from the form params to a usable scenario generator map
+(defn from-select-to-scenmap
+  "Converts the form input to a scenario form for use by the generator"
+  [params]
+  (-> params
+      (assoc-all-players)
+      ))
