@@ -1,4 +1,4 @@
-(ns hphelper.sql
+(ns hphelper.shared.sql
   (:require [clojure.java.jdbc :as jdb]
             [clojure.tools.logging :as log]))
 
@@ -57,8 +57,19 @@
   (get-random-row "mutations" "id"))
 
 (defn get-random-name
-  "Gets a random name from the database."
-  ([] (let [nameMap (get-random-item (query "SELECT * FROM `name` WHERE `name_clearance` = 'U';"))]
-        (str (nameMap :name_first) "-" 
-             (nameMap :name_clearance) "-" 
-             (nameMap :name_zone)))))
+  "Gets a random name from the database.
+  If supplied with a collision set, tries up to five times to return a name not in that set."
+  ([]
+   (let [nameMap (get-random-item (query "SELECT * FROM `name` WHERE `name_clearance` = 'U';"))]
+     (str (nameMap :name_first) "-" 
+          (nameMap :name_clearance) "-" 
+          (nameMap :name_zone))))
+  ([collisionSet]
+   (get-random-name collisionSet 5))
+  ([collisionSet triesRemaining]
+   (let [tempName (get-random-name)]
+     (if (and (some #{tempName} collisionSet)
+              (> triesRemaining 0))
+       (recur collisionSet (dec triesRemaining))
+       tempName)))
+  )

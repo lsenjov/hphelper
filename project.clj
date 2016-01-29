@@ -6,6 +6,7 @@
                  ;; Web Server
                  [compojure "1.4.0"]
                  [ring/ring-defaults "0.1.5"]
+                 [ring/ring-anti-forgery "1.0.0"]
 
                  ;; Displaying HTML
                  [hiccup "1.0.5"]

@@ -4,13 +4,20 @@
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [clojure.tools.logging :as log]
             [clojure.data.json :as json]
-            [hphelper.chargen :as cgen]
+            [hphelper.chargen.generator :as cgen]
+            [hphelper.scengen.scenform :as sgen]
             )
   (:gen-class))
 
 (defroutes app-routes
-  (GET "/" [] (cgen/html-print-sheet (cgen/create-character)))
+  (GET "/char/" [] (cgen/html-print-sheet (cgen/create-character)))
+  (GET "/scen/" [] (sgen/html-select-page))
+  (POST "/scen/" {params :params} (str params))
   (route/not-found "Not Found"))
 
 (def app
-  (wrap-defaults app-routes site-defaults))
+  (-> app-routes
+      (wrap-defaults site-defaults)
+      ring.middleware.session/wrap-session
+      )
+  )

@@ -1,8 +1,8 @@
-(ns hphelper.scengen
+(ns hphelper.scengen.generator
   (:require [clojure.core.typed :as t]
-            [hphelper.sql :as sql]
+            [hphelper.shared.sql :as sql]
             [hiccup.core :refer :all]
-            [hphelper.chargen :as cg]
+            [hphelper.chargen.generator :as cg]
             )
   (:gen-class)
   )

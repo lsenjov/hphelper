@@ -1,6 +1,6 @@
-(ns hphelper.chargen
+(ns hphelper.chargen.generator
   (:require [clojure.core.typed :as t]
-            [hphelper.sql :as sql]
+            [hphelper.shared.sql :as sql]
             [hiccup.core :refer :all]
     )
   )
@@ -35,7 +35,6 @@
 (defn- create-societies
   "Adds program group socities to the record from the database"
   [charRec]
-  (assert (-> charRec (:secStats) (get "Program Group Size")) "No program group size to work off!")
   (assert (<= (count (charRec "Program Group")) 
               (-> charRec (:secStats) (get "Program Group Size")))
           "Secret society count greater than allowed")
@@ -49,12 +48,12 @@
   [charRec]
   (- 100
      (+ (reduce + (vals (charRec :priStats)))
-        (if (number? (charRec "Public Standing"))
-          (* 2 (charRec "Public Standing"))
+        (if (number? (charRec :publicStanding))
+          (* 2 (charRec :publicStanding))
           0)
         (- (* 10 ;; Reduces used amounts by 10 * drawbacks
-              (if (charRec "Drawbacks")
-                (count (charRec "Drawbacks"))
+              (if (charRec :drawbacks)
+                (count (charRec :drawbacks))
                 0))))))
 
 (defn- create-public-standing
@@ -62,9 +61,9 @@
   [charRec minimumAccess]
   (if (and 
         (> (calc-access-remaining charRec) minimumAccess)
-        (not (charRec "Public Standing"))
+        (not (charRec :publicStanding))
         (> 0.5 (Math/random)))
-    (assoc-in charRec ["Public Standing"] 
+    (assoc-in charRec [:publicStanding] 
               (+ (int (Math/ceil (* (Math/random) 5))) 5)) ;; Creates a public standing between 6 and 10
     charRec ;; Don't do anything, just return the record
     ))
@@ -72,19 +71,19 @@
 (defn- set-remaining-access
   "Sets the access remaining in the character record"
   [charRec]
-  (assoc charRec "Access Remaining" (calc-access-remaining charRec)))
+  (assoc charRec :accessRemaining (calc-access-remaining charRec)))
 
 (defn- create-drawbacks
   "Checks minimum access.
   If not enough, adds a drawback up to three and adds access.
   If above minimum access, has a small chance of adding another drawback"
   [charRec minimumAccess]
-  (if (>= (count (charRec "Drawbacks")) 3)
+  (if (>= (count (charRec :drawbacks)) 3)
     charRec ;; Already at 3 drawbacks
     (if (or (< (calc-access-remaining charRec) minimumAccess)
             (< (Math/random) 0.2)) ;; 1 in 5 chance of an extra drawback
-      (let [newCharRec (assoc-in charRec ["Drawbacks"] (clojure.set/union #{}
-                                                                          (charRec "Drawbacks")
+      (let [newCharRec (assoc-in charRec [:drawbacks] (clojure.set/union #{}
+                                                                          (charRec :drawbacks)
                                                                           #{(sql/get-random-drawback)}))]
         (recur newCharRec minimumAccess))
       charRec)))
@@ -175,8 +174,8 @@
   (html
     [:div
      "Public Standing: "
-     (if (charRec "Public Standing")
-       (charRec "Public Standing")
+     (if (charRec :publicStanding)
+       (charRec :publicStanding)
        "None")
      ]
     ))
@@ -184,10 +183,10 @@
 (defn html-print-drawbacks
   "Returns the drawbacks of a character in a readable format"
   [charRec]
-  (if (charRec "Drawbacks")
+  (if (charRec :drawbacks)
     (html [:div
               [:b "Drawbacks"][:br]
-               (for [drawback (charRec "Drawbacks")]
+               (for [drawback (charRec :drawbacks)]
                  (str drawback (html [:br])))
                ])
     ""))
@@ -209,7 +208,7 @@
   (html
     [:div
      [:b "Remaining Access: "]
-     (charRec "Access Remaining")
+     (charRec :accessRemaining)
      ]))
 
 (defn html-print-name
