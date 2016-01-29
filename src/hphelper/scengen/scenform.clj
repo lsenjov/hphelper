@@ -2,10 +2,13 @@
   (:require [hphelper.shared.sql :as sql]
             [hiccup.core :refer :all]
             [ring.util.anti-forgery :refer [anti-forgery-field]]
+            [hphelper.chargen.generator :as cgen]
             )
   (:gen-class)
   )
 
+
+;; This is the form presented to the player
 (defn- html-player-sheet
   "Generates an input form for a single player"
   [playerId]
@@ -18,7 +21,6 @@
          [:textarea {:rows "4" :name (str "messages_" playerId)}]
          ]))
 
-;; This is the form presented to the player
 (defn html-select-page
   "Generates a html page to select options for the creation of a scenario"
   []
@@ -42,6 +44,7 @@
         (anti-forgery-field)
         [:div "Random Seed:" [:input {:type "text" :name "seed"}] "(Numeric only, leave blank for random.)"]
         [:div "Sector Name:" [:input {:type "text" :name "s_seed"}] "(Leave blank for random)"]
+        [:div "Crisis Numbers:" (for [cField (range 3)] [:input {:type "text" :name (str "crisis_" cField) :pattern "[0-9]"}])]
         [:table
          [:tr
           (for [playerId (range 6)]
@@ -59,20 +62,48 @@
     )
   )
 
+
+;; This is the conversion from the form params to a usable scenario generator map
 (defn- assoc-player-name
   "Checks the map for the player's name, and if exists associates it in the player's index"
   [playerId params]
   (let [pKey (keyword (str "name_" playerId))
         pName (params pKey)]
     (if (> (count pName) 0) ;; If the name exists, put it into the player
-      (assoc-in params [:players playerId :name] pName) ;; Creates a new hashmap if none exist
+      (assoc-in params [:hps playerId :name] pName) ;; Creates a new hashmap if none exist
       params)))
+
+(defn- assoc-player-society
+  "Checks for a single secret society, and if exists associate as needed"
+  [playerId ssId params]
+  (let [ssKey (keyword (str "ss_" playerId "_" ssId))]
+    (if (contains? params ssKey)
+      (update-in params [:hps playerId "Program Group"] (partial clojure.set/union #{}) #{(sql/get-society ssId)})
+      params)))
+
+(defn- assoc-player-societies
+  "Checks for secret societies for a player, if they exist associate them as required"
+  [playerId params]
+  (let [societies (map :ss_id (sql/query "SELECT * FROM ss;"))]
+    ((apply comp 
+            (map partial
+                 (repeat assoc-player-society)
+                 (repeat playerId)
+                 societies)) 
+     params)))
+
+(defn- gen-character
+  "Creates the 6 characters from whatever details given"
+  [playerId params]
+  (update-in params [:hps playerId] cgen/create-character))
 
 (defn- assoc-player
   "Given a player ID, checks the map for all items pertinent to the player and re-orders the map"
   [playerId params]
   (->> params
       (assoc-player-name playerId)
+      (assoc-player-societies playerId)
+      (gen-character playerId)
       ))
 
 (defn- assoc-all-players
@@ -80,11 +111,13 @@
   [params]
   (let [pIds (range 6)]
     (-> params
-        ((apply comp (map partial (repeat assoc-player) pIds))) ;; Composes 6 assoc-player functions together, one for each possible player
+        ((apply comp 
+                (map partial 
+                     (repeat assoc-player) 
+                     pIds))) ;; Composes 6 assoc-player functions together, one for each possible player
         ))
   )
 
-;; This is the conversion from the form params to a usable scenario generator map
 (defn from-select-to-scenmap
   "Converts the form input to a scenario form for use by the generator"
   [params]

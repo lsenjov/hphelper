@@ -16,6 +16,16 @@
   [charRec]
   (assoc-in charRec [:priStats] (merge (random-stats) (charRec :priStats))))
 
+(defn- check-for-minimum-management
+  "If there is no management skill but there are societies picked, make sure management is at a minimum"
+  [charRec]
+  (if (and (not (-> charRec :priStats (get "Management")))
+           (-> charRec (get "Program Group"))) ;; If no management skill but an existing program group
+    (assoc-in charRec [:priStats "Management"]
+              (let [minimum (inc (* 5 (dec (dec (count (get charRec "Program Group"))))))]
+                (+ minimum (rand-int (- 20 minimum)))))
+    charRec))
+
 (defn- calc-clone-degredation
   "Calculates clone degredation in a character record, deriving from stats"
   [charRec]
@@ -37,7 +47,7 @@
   [charRec]
   (assert (<= (count (charRec "Program Group")) 
               (-> charRec (:secStats) (get "Program Group Size")))
-          "Secret society count greater than allowed")
+          (str "Secret society count greater than allowed. Management is:" (-> charRec :priStats (get "Management"))))
   (if (>= (-> charRec (get "Program Group") (count))
           (-> charRec (:secStats) (get "Program Group Size")))
     charRec
@@ -108,17 +118,21 @@
   "Fills in the missing spots in a character record.
   If no record is given, creates a completely random character sheet"
   ([] (create-character {}))
-  ([charRec] (-> charRec
-                 (calc-primary-stats)
-                 (calc-clone-degredation)
-                 (calc-program-group-size)
-                 (create-societies)
-                 (create-public-standing 30)
-                 (create-drawbacks 30)
-                 (create-mutation 10)
-                 (set-remaining-access)
-                 (check-name)
-                 )
+  ([charRec]
+   (if charRec ;; In case of nils
+     (-> charRec
+         (check-for-minimum-management)
+         (calc-primary-stats)
+         (calc-clone-degredation)
+         (calc-program-group-size)
+         (create-societies)
+         (create-public-standing 30)
+         (create-drawbacks 30)
+         (create-mutation 10)
+         (set-remaining-access)
+         (check-name)
+         )
+     (recur {}))
    )
   )
 

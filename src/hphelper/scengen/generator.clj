@@ -150,10 +150,6 @@
        (select-secret-society-missions)
        (select-secret-society-missions-unused)
        (select-minion-lists)
-       (add-character (cg/create-character))
-       (add-character (cg/create-character))
-       (add-character (cg/create-character))
-       (add-character (cg/create-character))
        )))
 
 (create-scenario)

@@ -46,6 +46,11 @@
   [] 
   (get-random-row "ss_skills" "ss_id"))
 
+(defn get-society
+  "Gets a secret society by id"
+  [ssId]
+  (first (query "SELECT * FROM ss_skills WHERE ss_id = ?;" ssId)))
+
 (defn get-random-drawback
   "Gets a random drawback from the database. Returns a string."
   []
