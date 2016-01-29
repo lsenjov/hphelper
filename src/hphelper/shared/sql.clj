@@ -1,6 +1,7 @@
 (ns hphelper.shared.sql
   (:require [clojure.java.jdbc :as jdb]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            ))
 
 (def db {:subprotocol "mysql"
          :subname "//127.0.0.1:3306/hphelper"

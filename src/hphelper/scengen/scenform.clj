@@ -3,6 +3,7 @@
             [hiccup.core :refer :all]
             [ring.util.anti-forgery :refer [anti-forgery-field]]
             [hphelper.chargen.generator :as cgen]
+            [clojure.tools.logging :as log]
             )
   (:gen-class)
   )
@@ -44,7 +45,10 @@
         (anti-forgery-field)
         [:div "Random Seed:" [:input {:type "text" :name "seed"}] "(Numeric only, leave blank for random.)"]
         [:div "Sector Name:" [:input {:type "text" :name "s_seed"}] "(Leave blank for random)"]
-        [:div "Crisis Numbers:" (for [cField (range 3)] [:input {:type "text" :name (str "crisis_" cField) :pattern "[0-9]"}])]
+        [:div "Crisis Numbers:" (for [cField (range 3)] 
+                                  [:input {:type "text" 
+                                           :name (str "crisis_" cField) 
+                                           :pattern "\\d*"}])]
         [:table
          [:tr
           (for [playerId (range 6)]
@@ -118,9 +122,19 @@
         ))
   )
 
+(defn- assoc-all-crisises
+  "Associates the crisises in the correct place"
+  [params]
+  (assoc-in params [:crisises] (into [] (map #(Integer/parseInt %) 
+                                             (remove nil? 
+                                                     (map (comp params keyword) 
+                                                          (map (partial str "crisis_") 
+                                                               (range 3))))))))
+
 (defn from-select-to-scenmap
   "Converts the form input to a scenario form for use by the generator"
   [params]
   (-> params
       (assoc-all-players)
+      (assoc-all-crisises)
       ))
