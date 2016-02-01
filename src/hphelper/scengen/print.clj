@@ -40,19 +40,20 @@
                       (fn [direc]
                         (assert direc "Direc is nil?!")
                         (assert (and (direc :sg_id) (direc :sgm_text)))
-                        [:span [:b (sql/get-sg-by-id (direc :sg_id)) ": "] (direc :sgm_text)]))
-                      (scenRec :directives))
+                        [:span [:b (sql/get-sg-by-id (direc :sg_id)) ": "] (direc :sgm_text)])
+                      (scenRec :directives)))
          ]))
 
 (defn- html-print-ssm-summary
   "Prints all the ssm for the GM to review"
   [scenRec]
   (html [:div
-   [:small [:b "Secret Society Missions: "]
-    (interpose " -- " (map
-                     (fn [ssm] (str (sql/get-ss-by-id (ssm :ss_id)) ": " (ssm :ssm_text)))
-                     (scenRec :societies)))
-    ]]))
+         [:b "Secret Society Missions: "]
+         [:small
+          (interpose " -- " (map
+                             (fn [ssm] [:span [:b (sql/get-ss-by-id (ssm :ss_id)) ": "] (ssm :ssm_text)])
+                             (scenRec :societies)))
+          ]]))
 
 (defn html-print-scenario
   "Prints a scenario in html format"
