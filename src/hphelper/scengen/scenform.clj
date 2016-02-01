@@ -15,6 +15,7 @@
   [playerId]
   (html [:div
          "Name:" [:input {:type "text" :name (str "name_" playerId)}] [:br]
+         "Print Character Sheet?" [:input {:type "checkbox" :name (str "charsheet_" playerId)}]
          (map (fn [society] (str (society :ss_name)
                                  (html [:input {:type "checkbox" :name (str "ss_" playerId "_" (society :ss_id))}])
                                  (html [:br])))
