@@ -8,6 +8,18 @@
   (:gen-class)
   )
 
+(def sectorIndicies
+  "The four sector indicies: Happiness, Compliance, Loyalty, and Security"
+  [:HI :CI :LI :SI])
+
+(defn create-base-indicies-list
+  "Combines the base indicies with sg indicies, and sets them all to 0"
+  []
+  (merge
+   (reduce merge (map (fn [k] {k 0}) sectorIndicies))
+   (reduce merge (map (fn [k] {k 0}) (map (comp keyword :sg_abbr)
+                                          (sql/query "SELECT sg_abbr FROM sg"))))))
+
 (defn- get-crisis-id-list
   "Taking a full crisis record, returns a collection of the crisis ids"
   [{crisises :crisises :as crisRec}]
