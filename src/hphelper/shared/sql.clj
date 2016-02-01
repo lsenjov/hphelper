@@ -7,6 +7,7 @@
          :subname "//127.0.0.1:3306/hphelper"
          :user "fc"})
 
+
 (defn get-random-item
   "Gets a random item from a collection. Returns nil if the collection is empty"
   ([collection]
@@ -14,11 +15,22 @@
      nil
      (nth collection (int (Math/floor (* (Math/random) (count collection))))))))
 
-(defn query 
+(defn query
   "Performs the query against the defined database, and logs the query"
   [& quer]
   (log/trace "Performing Query: " quer)
   (jdb/query db quer))
+
+(defn get-sg-by-id
+  "Gets service group by sg_id"
+  [sgId]
+  (assert (integer? sgId))
+  (:sg_name (first (query "SELECT sg_name FROM sg WHERE sg_id = ?;" sgId))))
+
+(defn get-ss-by-id
+  "Gets service group by sg_id"
+  [ssId]
+  (:ss_name (first (query "SELECT ss_name FROM ss WHERE ss_id = ?;" ssId))))
 
 (defn get-result
   "Shorthand to return the first value of a single-result query"
@@ -44,7 +56,7 @@
 
 (defn get-random-society
   "Gets a random secret society from the database. Returns a map."
-  [] 
+  []
   (get-random-row "ss_skills" "ss_id"))
 
 (defn get-society
@@ -67,8 +79,8 @@
   If supplied with a collision set, tries up to five times to return a name not in that set."
   ([]
    (let [nameMap (get-random-item (query "SELECT * FROM `name` WHERE `name_clearance` = 'U';"))]
-     (str (nameMap :name_first) "-" 
-          (nameMap :name_clearance) "-" 
+     (str (nameMap :name_first) "-"
+          (nameMap :name_clearance) "-"
           (nameMap :name_zone))))
   ([collisionSet]
    (get-random-name collisionSet 5))

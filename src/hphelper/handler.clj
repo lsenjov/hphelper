@@ -7,14 +7,19 @@
             [hphelper.chargen.generator :as cgen]
             [hphelper.scengen.scenform :as sform]
             [hphelper.scengen.generator :as sgen]
+            [hphelper.scengen.print :as sprint]
             )
   (:gen-class))
 
 (defroutes app-routes
   (GET "/char/" [] (cgen/html-print-sheet (cgen/create-character)))
   (GET "/scen/" [] (sform/html-select-page))
-  (POST "/scen/" {params :params} (str (into [] 
-                                             (:crisises (sgen/create-scenario (sform/from-select-to-scenmap params))))))
+  (POST "/scen/"
+        {params :params}
+        (-> params
+            (sform/from-select-to-scenmap)
+            (sgen/create-scenario)
+            (sprint/html-print-scenario)))
   (route/not-found "Not Found"))
 
 (def app

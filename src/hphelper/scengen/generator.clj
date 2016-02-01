@@ -39,11 +39,11 @@
     (recur (assoc-in crisRec [:crisises] #{}))
     (if (vector? crisises)
       (recur (assoc-in crisRec [:crisises]
-                       (remove nil? (set (map (fn [id] (first (sql/query "SELECT * FROM `crisis` WHERE `c_id` = ?;" id)))
-                                              crisises)))))
+                       (into #{} (remove nil? (set (map (fn [id] (first (sql/query "SELECT * FROM `crisis` WHERE `c_id` = ?;" id)))
+                                              crisises))))))
       (if (< (count crisises) 3)
         (recur (assoc-in crisRec [:crisises]
-                         (set (remove nil? (conj crisises (sql/get-random-row "crisis" "c_id"))))))
+                         (into #{} (remove nil? (conj crisises (sql/get-random-row "crisis" "c_id"))))))
         crisRec
         ))))
 
@@ -57,10 +57,11 @@
 (defn- select-service-group-directives-unused
   "Adds directives to service groups without one"
   ([{directives :directives :as crisRec}]
+   (log/trace "Directives before unused" directives)
    (assoc-in crisRec [:directives]
              (concat directives
                      (map (comp sql/get-random-item
-                                (fn [sgNum] 
+                                (fn [sgNum]
                                   (sql/query "SELECT * FROM `sgm` WHERE `sg_id` = ? AND `c_id` IS NULL;" sgNum)))
                           (remove (set (map :sg_id directives)) ;; Removing used sgs from all sgs
                                   (map :sg_id
@@ -79,8 +80,8 @@
    (assert societies)
    (assoc-in crisRec [:societies]
              (concat societies
-                     (map (comp sql/get-random-item
-                                (fn [ssNum] 
+                     (map (comp rand-nth
+                                (fn [ssNum]
                                   (sql/query "SELECT * FROM `ssm` WHERE `ss_id` = ? AND `c_id` IS NULL;" ssNum)))
                           (remove (set (map :ss_id societies)) ;; Removing used sss from all sgs
                                   (map :ss_id
@@ -91,7 +92,7 @@
   ([{sgNum :sg_id :as sgRec}]
    (assoc-in sgRec [:minions]
              (set (map (fn [skill] (sql/get-random-item (sql/query "SELECT `minion`.* FROM `minion`, `minion_skill`
-                                                               WHERE `sg_id` = ? 
+                                                               WHERE `sg_id` = ?
                                                                AND `minion`.`minion_id` IN
                                                                (SELECT `minion_id`
                                                                FROM `minion_skill`
@@ -109,12 +110,12 @@
   ([minMinions triesRemaining {sgNum :sg_id minions :minions :as sgRec}]
    (if (and (< (count minions) minMinions)
             (> triesRemaining 0))
-     (recur 
+     (recur
        minMinions
        (dec triesRemaining)
        (assoc-in sgRec [:minions]
-                 (conj minions 
-                       (sql/get-random-item (sql/query "SELECT * FROM `minion` WHERE `sg_id` = ?;" 
+                 (conj minions
+                       (sql/get-random-item (sql/query "SELECT * FROM `minion` WHERE `sg_id` = ?;"
                                                    sgNum)))))
      sgRec)))
 
@@ -153,4 +154,4 @@
        (select-minion-lists)
        )))
 
-(create-scenario)
+(keys (create-scenario))

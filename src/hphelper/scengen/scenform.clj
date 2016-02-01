@@ -45,9 +45,9 @@
         (anti-forgery-field)
         [:div "Random Seed:" [:input {:type "text" :name "seed"}] "(Numeric only, leave blank for random.)"]
         [:div "Sector Name:" [:input {:type "text" :name "s_seed"}] "(Leave blank for random)"]
-        [:div "Crisis Numbers:" (for [cField (range 3)] 
-                                  [:input {:type "text" 
-                                           :name (str "crisis_" cField) 
+        [:div "Crisis Numbers:" (for [cField (range 3)]
+                                  [:input {:type "text"
+                                           :name (str "crisis_" cField)
                                            :pattern "\\d*"}])]
         [:table
          [:tr
@@ -89,11 +89,11 @@
   "Checks for secret societies for a player, if they exist associate them as required"
   [playerId params]
   (let [societies (map :ss_id (sql/query "SELECT * FROM ss;"))]
-    ((apply comp 
+    ((apply comp
             (map partial
                  (repeat assoc-player-society)
                  (repeat playerId)
-                 societies)) 
+                 societies))
      params)))
 
 (defn- gen-character
@@ -115,9 +115,9 @@
   [params]
   (let [pIds (range 6)]
     (-> params
-        ((apply comp 
-                (map partial 
-                     (repeat assoc-player) 
+        ((apply comp
+                (map partial
+                     (repeat assoc-player)
                      pIds))) ;; Composes 6 assoc-player functions together, one for each possible player
         ))
   )
@@ -125,10 +125,10 @@
 (defn- assoc-all-crisises
   "Associates the crisises in the correct place"
   [params]
-  (assoc-in params [:crisises] (into [] (map #(Integer/parseInt %) 
-                                             (remove nil? 
-                                                     (map (comp params keyword) 
-                                                          (map (partial str "crisis_") 
+  (assoc-in params [:crisises] (into [] (map #(try (Integer/parseInt %) (catch NumberFormatException e nil))
+                                             (remove nil?
+                                                     (map (comp params keyword)
+                                                          (map (partial str "crisis_")
                                                                (range 3))))))))
 
 (defn from-select-to-scenmap
