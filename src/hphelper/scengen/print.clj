@@ -62,26 +62,36 @@
 
 (defn- html-print-player-sheet
   "Prints a single player sheet in a html format"
-  [player]
+  [scenRec player]
+  (log/trace "Printing player sheet for: " player)
   (html [:div
+         (if (player :printSheet)
+           [:div (cgen/html-print-sheet player)]
+           "")
          [:div [:h3 "Welcome " (player :name)]]
          ;; TODO Indicies
          ;; TODO News
          [:div [:b "Message summary follows:"]]
+         [:div (map html-print-single-society-mission
+                    (filter (fn [mission] 
+                              (some #{(mission :ss_id)}
+                                    (map :ss_id
+                                         (get player "Program Group"))))
+                            (scenRec :societies)))]
          ]
         ))
 
 (defn- html-print-player-sheets
   "Prints all the player's sheets, and possibly their character sheets, in a html format"
   [scenRec]
-  ;(map html-print-player-sheet (scenRec :hps))
+  (map (comp (partial html-print-player-sheet scenRec) second) (scenRec :hps))
   )
 
 (defn html-print-scenario
   "Prints a scenario in html format"
   [scenRec]
   (html [:div
-         [:div "DEBUG: " (str scenRec)]
+         ;[:div "DEBUG: " (str scenRec)] ;; Prints out the entire map for debugging
          (html-print-crisises scenRec)
          (html-print-directive-summary scenRec)
          (html-print-ssm-summary scenRec)
