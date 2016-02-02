@@ -233,6 +233,8 @@
        (select-secret-society-missions)
        (select-secret-society-missions-unused)
        (select-minion-lists)
+
+       ;; Creating Indicies
        (assoc-in [:indicies] (create-base-indicies-list))
        (load-crisis-indicies)
        (update-in [:indicies] fuzzify-indicies)

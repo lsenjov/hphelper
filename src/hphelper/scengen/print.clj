@@ -3,12 +3,30 @@
             [clojure.tools.logging :as log]
             [hphelper.shared.sql :as sql]
             [hphelper.chargen.generator :as cgen]
-            ;; These are just here for debugging, should not be referenced anywhere else
-            [hphelper.scengen.generator]
-            [hphelper.scengen.scenform]
+            [hphelper.scengen.generator :refer [sectorIndicies]]
             )
   (:gen-class)
   )
+
+(defn- html-print-single-index
+  "Prints a single index in html format"
+  [index]
+  (str (.substring (str (key index)) 1)
+       (if (> 0 (val index))
+         "&#8657;" ;; Up Arrow
+         (if (< 0 (val index))
+           "&#8659;" ;; Down Arrow
+           "&#8658;" ;; Right Arrow
+           ))
+       (Math/abs (val index))
+       " "))
+
+(defn- html-print-indicies
+  "Prints the indicies in html format"
+  [scenRec]
+  (concat (sort (map html-print-single-index (filter (partial some (into #{} sectorIndicies)) (:indicies scenRec))))
+          (sort (map html-print-single-index (remove (partial some (into #{} sectorIndicies)) (:indicies scenRec))))
+  ))
 
 (defn- html-print-crisis
   "Prints a single crisis in html format"
@@ -69,11 +87,11 @@
            [:div (cgen/html-print-sheet player)]
            "")
          [:div [:h3 "Welcome " (player :name)]]
-         ;; TODO Indicies
+         [:div (html-print-indicies scenRec)]
          ;; TODO News
          [:div [:b "Message summary follows:"]]
          [:div (map html-print-single-society-mission
-                    (filter (fn [mission] 
+                    (filter (fn [mission]
                               (some #{(mission :ss_id)}
                                     (map :ss_id
                                          (get player "Program Group"))))
@@ -92,6 +110,7 @@
   [scenRec]
   (html [:div
          ;[:div "DEBUG: " (str scenRec)] ;; Prints out the entire map for debugging
+         (html-print-indicies scenRec)
          (html-print-crisises scenRec)
          (html-print-directive-summary scenRec)
          (html-print-ssm-summary scenRec)
