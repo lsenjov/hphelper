@@ -12,13 +12,64 @@
   "The four sector indicies: Happiness, Compliance, Loyalty, and Security"
   [:HI :CI :LI :SI])
 
-(defn create-base-indicies-list
+(defn- create-base-indicies-list
   "Combines the base indicies with sg indicies, and sets them all to 0"
   []
   (merge
    (reduce merge (map (fn [k] {k 0}) sectorIndicies))
    (reduce merge (map (fn [k] {k 0}) (map (comp keyword :sg_abbr)
                                           (sql/query "SELECT sg_abbr FROM sg"))))))
+
+(defn- normalise-specific-indicies
+  "Averages the specified indicies in a map"
+  [choices indicies]
+  ;; Take the negative average of all the chosen indicies
+  (let [avg
+        (- (int (/ (reduce +
+                           (map val
+                                (filter (partial some (into #{} choices)))
+                                indicies))
+                   (count choices))))]
+    ;; Apply is to all the keywords
+    ((apply comp
+            (map (fn [kw] (fn [indicies] (update-in indicies [kw] + avg)))
+                 choices))
+            indicies)))
+
+(defn- fuzzify-indicies
+  "Randomly adds, subtracts, or leaves alone each of the indicies"
+  [indicies]
+  ((apply comp (map (fn [kw] (fn [ind] (update-in ind [kw] + (dec (rand-int 3)))))
+                    (keys indicies))
+          )
+   indicies))
+
+(defn- adjust-index
+  "Using a three letter input, first two letters as keyword and final as direction
+  (U for up, D for down), adjusts the selected index.
+  If no value is given, defaults to 4"
+  ([adj indicies]
+   (adjust-index adj indicies 4))
+  ([adj indicies value]
+   (assert (string? adj) "Index adjustment is not a string!")
+   (if (or (not (= (count adj) 3))
+           (not (or (= (nth adj 2) \D)
+                    (= (nth adj 2) \U)))
+           ) ;; TODO Test to see if keyword exists
+     (do ; Invalid index, log and return
+         (log/debug "Adjustment " adj " incorrect, skipping")
+         indicies)
+     (update-in indicies
+                [(keyword (.substring adj 0 2))]
+                +
+                (if (= (nth adj 2) \U)
+                  value
+                  (- value))))))
+
+(defn- create-indicies
+  "Creates an indicies list modified by crisis tags and normalised
+  Requries crisies to be initialised"
+  [scenRec]
 
 (defn- get-crisis-id-list
   "Taking a full crisis record, returns a collection of the crisis ids"
