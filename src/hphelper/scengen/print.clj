@@ -50,7 +50,6 @@
   "Prints all the directives for the GM to view"
   [scenRec]
   (assert (scenRec :directives) "Directives do not exist?!")
-  (println "Directives: " (scenRec :directives))
   (html [:div
          [:b "Printing Directives:"]
          (interpose " -- "
