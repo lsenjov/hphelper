@@ -255,4 +255,4 @@
      (html-print-remaining-access charRec)
      ]))
 
-(html-print-sheet (create-character))
+(create-character)

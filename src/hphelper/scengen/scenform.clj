@@ -97,6 +97,19 @@
                  societies))
      params)))
 
+(defn- assoc-print-sheet
+  "Checks to see which players need character sheets printed, and associates
+  it with a set :printSheet keyword in the character"
+  [params]
+  ((apply comp (map (fn [pId]
+                      (fn [params]
+                        (if (contains? params (keyword (str "charsheet_" pId)))
+                          (assoc-in params [:hps pId :printSheet] true)
+                          params)))
+                    (range 6))
+          )
+   params))
+
 (defn- gen-character
   "Creates the 6 characters from whatever details given"
   [playerId params]
@@ -138,4 +151,5 @@
   (-> params
       (assoc-all-players)
       (assoc-all-crisises)
+      (assoc-print-sheet)
       ))

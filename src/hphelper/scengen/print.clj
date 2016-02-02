@@ -2,6 +2,7 @@
   (:require [hiccup.core :refer :all]
             [clojure.tools.logging :as log]
             [hphelper.shared.sql :as sql]
+            [hphelper.chargen.generator :as cgen]
             ;; These are just here for debugging, should not be referenced anywhere else
             [hphelper.scengen.generator]
             [hphelper.scengen.scenform]
@@ -32,7 +33,6 @@
   [scenRec]
   (assert (scenRec :directives) "Directives do not exist?!")
   (println "Directives: " (scenRec :directives))
-  (log/info "sg_ids: " (map :sg_id (scenRec :directives)))
   (html [:div
          [:b "Printing Directives:"]
          (interpose " -- "
@@ -44,23 +44,47 @@
                       (scenRec :directives)))
          ]))
 
+(defn- html-print-single-society-mission
+  "Prints a single society mission in a readable format"
+  [mission]
+  (html [:span [:b (sql/get-ss-by-id (mission :ss_id)) ": "]
+         (mission :ssm_text)]))
+
 (defn- html-print-ssm-summary
   "Prints all the ssm for the GM to review"
   [scenRec]
   (html [:div
          [:b "Secret Society Missions: "]
          [:small
-          (interpose " -- " (map
-                             (fn [ssm] [:span [:b (sql/get-ss-by-id (ssm :ss_id)) ": "] (ssm :ssm_text)])
+          (interpose " -- " (map html-print-single-society-mission
                              (scenRec :societies)))
           ]]))
+
+(defn- html-print-player-sheet
+  "Prints a single player sheet in a html format"
+  [player]
+  (html [:div
+         [:div [:h3 "Welcome " (player :name)]]
+         ;; TODO Indicies
+         ;; TODO News
+         [:div [:b "Message summary follows:"]]
+         ]
+        ))
+
+(defn- html-print-player-sheets
+  "Prints all the player's sheets, and possibly their character sheets, in a html format"
+  [scenRec]
+  ;(map html-print-player-sheet (scenRec :hps))
+  )
 
 (defn html-print-scenario
   "Prints a scenario in html format"
   [scenRec]
   (html [:div
+         [:div "DEBUG: " (str scenRec)]
          (html-print-crisises scenRec)
          (html-print-directive-summary scenRec)
          (html-print-ssm-summary scenRec)
+         (html-print-player-sheets scenRec)
          ]
         ))
