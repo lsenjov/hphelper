@@ -25,16 +25,17 @@
   [choices indicies]
   ;; Take the negative average of all the chosen indicies
   (let [avg
-        (- (int (/ (reduce +
-                           (map val
-                                (filter (partial some (into #{} choices)))
-                                indicies))
-                   (count choices))))]
-    ;; Apply is to all the keywords
+        (- (int (Math/floor (/ (reduce + ;; Get the negative integer average
+                           (map val ;; Get their values
+                                (filter (partial some (into #{} choices))
+                                        indicies))) ;; Get all the indicies in the choices
+                   (count choices)))))]
+    ;; Apply to all the keywords
     ((apply comp
-            (map (fn [kw] (fn [indicies] (update-in indicies [kw] + avg)))
-                 choices))
-            indicies)))
+            (map (fn [kw]
+                   (fn [ind]
+                     (update-in ind [kw] + avg)))
+                 choices)) indicies)))
 
 (defn- fuzzify-indicies
   "Randomly adds, subtracts, or leaves alone each of the indicies"
@@ -51,12 +52,13 @@
   ([adj indicies]
    (adjust-index adj indicies 4))
   ([adj indicies value]
-   (assert (string? adj) "Index adjustment is not a string!")
+   (assert (string? adj) (str "Index adjustment is not a string, is instead " adj))
    (if (or (not (= (count adj) 3))
            (not (or (= (nth adj 2) \D)
                     (= (nth adj 2) \U)))
+           (not (get indicies (keyword (.substring adj 0 2))))
            ) ;; TODO Test to see if keyword exists
-     (do ; Invalid index, log and return
+     (do ; Invalid adjustment, log and return
          (log/debug "Adjustment " adj " incorrect, skipping")
          indicies)
      (update-in indicies
@@ -66,16 +68,32 @@
                   value
                   (- value))))))
 
-(defn- create-indicies
-  "Creates an indicies list modified by crisis tags and normalised
-  Requries crisies to be initialised"
-  [scenRec]
-
 (defn- get-crisis-id-list
   "Taking a full crisis record, returns a collection of the crisis ids"
   [{crisises :crisises :as crisRec}]
-  (map (partial :c_id)
-       crisises))
+  (map :c_id crisises))
+
+(defn- select-crisis-tags
+  "Selects all the crisis tags for a single crisis"
+  [crisisNum]
+  (map :ct_tag (sql/query "SELECT * FROM crisis_tag WHERE c_id = ?;" crisisNum)))
+
+(defn- normalise-all-indicies
+  "Normalises the sector indicies, and the service group indicies"
+  [indicies]
+  (->> indicies
+      (normalise-specific-indicies sectorIndicies)
+      (normalise-specific-indicies (map key (remove (partial some (into #{} sectorIndicies)) indicies)))))
+
+(defn- load-crisis-indicies
+  "Updates the indicies list modified by crisis tags and normalised
+  Requries crisies and base indicies to be initialised"
+  [scenRec]
+  (update-in scenRec [:indicies]
+              (apply comp (map partial
+                               (repeat adjust-index)
+                               (apply concat (map select-crisis-tags (get-crisis-id-list scenRec)))))
+              ))
 
 (defn- add-crisis-desc
   "Given a crisis map, adds an :extraDesc field with a vector of string descriptors"
@@ -215,6 +233,11 @@
        (select-secret-society-missions)
        (select-secret-society-missions-unused)
        (select-minion-lists)
+       (assoc-in [:indicies] (create-base-indicies-list))
+       (load-crisis-indicies)
+       (update-in [:indicies] fuzzify-indicies)
+       (update-in [:indicies] fuzzify-indicies)
+       (update-in [:indicies] normalise-all-indicies)
        )))
 
-(keys (create-scenario))
+(:indicies (create-scenario))
