@@ -31,8 +31,8 @@
   "Calculates clone degredation in a character record, deriving from stats"
   [charRec]
   (assert (charRec :priStats) "Can't derive without stats")
-  (assoc-in charRec 
-            [:secStats "Clone Degredation"] 
+  (assoc-in charRec
+            [:secStats "Clone Degredation"]
             (int (- 5 (Math/ceil (/ ((charRec :priStats) "Wetware") 5))))))
 
 (defn- calc-program-group-size
@@ -46,7 +46,7 @@
 (defn- create-societies
   "Adds program group socities to the record from the database"
   [charRec]
-  (assert (<= (count (charRec "Program Group")) 
+  (assert (<= (count (charRec "Program Group"))
               (-> charRec (:secStats) (get "Program Group Size")))
           (str "Secret society count greater than allowed. Management is:" (-> charRec :priStats (get "Management"))))
   (if (>= (-> charRec (get "Program Group") (count))
@@ -70,11 +70,11 @@
 (defn- create-public-standing
   "Checks remaining access, and if more than specified has a chance to give the character a good public standing."
   [charRec minimumAccess]
-  (if (and 
+  (if (and
         (> (calc-access-remaining charRec) minimumAccess)
         (not (charRec :publicStanding))
         (> 0.5 (Math/random)))
-    (assoc-in charRec [:publicStanding] 
+    (assoc-in charRec [:publicStanding]
               (+ (int (Math/ceil (* (Math/random) 5))) 5)) ;; Creates a public standing between 6 and 10
     charRec ;; Don't do anything, just return the record
     ))
@@ -142,7 +142,7 @@
 (defn html-print-stats
   "Returns the primary stats of a character in a readable format"
   [charRec]
-  (html [:div 
+  (html [:div
             [:b "Primary Statistics"]
             [:table {:style "width:100%"}
              (for [row (partition-all 2 (charRec :priStats))]
@@ -176,8 +176,8 @@
             [:b "Program Group"][:br]
             [:table {:style "width:100%"}
              [:tr [:td "Society"] [:td "Skills"] [:td "Cover Identity"]]
-             (for [ss (charRec "Program Group")] 
-               [:tr 
+             (for [ss (charRec "Program Group")]
+               [:tr
                 [:td (ss :ss_name)]
                 [:td [:small (ss :sskills)]]])]
             ]
@@ -240,13 +240,13 @@
     ))
 
 (defn html-print-sheet
-  "Prints a character sheet in a readable format"
+  "Prints a character sheet in a readable format, forces printing on a separate page"
   [charRec]
-  (html 
-    [:html 
+  (html
+    [:div {:style "page-break-before: always;"}
      (html-print-name charRec)
-     (html-print-stats charRec) 
-     (html-print-secondary charRec)    
+     (html-print-stats charRec)
+     (html-print-secondary charRec)
      (html-print-mutation charRec)
      (html-print-public-standing charRec)
      (html-print-program-group charRec)
@@ -254,5 +254,10 @@
      (html-print-service-groups)
      (html-print-remaining-access charRec)
      ]))
+
+(defn html-print-sheet-one-page
+  "Prints a character sheet in a readable format, with html tags for single pages"
+  [charRec]
+  (html [:html (html-print-sheet charRec)]))
 
 (create-character)

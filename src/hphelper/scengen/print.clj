@@ -81,7 +81,7 @@
   "Prints a single player sheet in a html format"
   [scenRec player]
   (log/trace "Printing player sheet for: " player)
-  (html [:div
+  (html [:div {:style "page-break-before: always;"}
          (if (player :printSheet)
            [:div (cgen/html-print-sheet player)]
            "")
@@ -101,7 +101,8 @@
 (defn- html-print-player-sheets
   "Prints all the player's sheets, and possibly their character sheets, in a html format"
   [scenRec]
-  (map (comp (partial html-print-player-sheet scenRec) second) (scenRec :hps))
+  (map (comp (partial html-print-player-sheet scenRec) second)
+       (scenRec :hps))
   )
 
 (defn html-print-scenario

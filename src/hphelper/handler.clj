@@ -12,7 +12,7 @@
   (:gen-class))
 
 (defroutes app-routes
-  (GET "/char/" [] (cgen/html-print-sheet (cgen/create-character)))
+  (GET "/char/" [] (cgen/html-print-sheet-one-page (cgen/create-character)))
   (GET "/scen/" [] (sform/html-select-page))
   (POST "/scen/"
         {params :params}
