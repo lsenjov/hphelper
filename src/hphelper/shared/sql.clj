@@ -74,6 +74,25 @@
   []
   (get-random-row "mutations" "id"))
 
+(defn get-news-crisis
+  "Gets the news articles from a crisis, returns a vector"
+  [crisisId]
+  (into [] (map :news_desc (query "SELECT * FROM news WHERE c_id = ?;" crisisId))))
+
+(defn get-news-random-single
+  "Gets a random unassociated news item"
+  []
+  (:news_desc (rand-nth (query "SELECT * FROM news WHERE c_id IS NULL;"))))
+
+(defn get-news-random
+  "Gets up to numb news items unassociated with crisises. Returns a vector."
+  ([numb]
+   (get-news-random numb #{}))
+  ([numb items]
+   (if (<= numb 0)
+     (into [] items) ;; Is done, return a vector
+     (recur (dec numb) (conj items (get-news-random-single))))))
+
 (defn get-random-name
   "Gets a random name from the database.
   If supplied with a collision set, tries up to five times to return a name not in that set."

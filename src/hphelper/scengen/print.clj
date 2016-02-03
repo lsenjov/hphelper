@@ -52,6 +52,7 @@
   (assert (scenRec :directives) "Directives do not exist?!")
   (html [:div
          [:b "Printing Directives:"]
+         [:small
          (interpose " -- "
                     (map
                       (fn [direc]
@@ -59,7 +60,7 @@
                         (assert (and (direc :sg_id) (direc :sgm_text)))
                         [:span [:b (sql/get-sg-by-id (direc :sg_id)) ": "] (direc :sgm_text)])
                       (scenRec :directives)))
-         ]))
+         ]]))
 
 (defn- html-print-single-society-mission
   "Prints a single society mission in a readable format"
@@ -87,7 +88,8 @@
            "")
          [:div [:h3 "Welcome " (player :name)]]
          [:div (html-print-indicies scenRec)]
-         ;; TODO News
+         [:div [:b "Sector News:"] [:br]
+          (interpose " -- " (scenRec :news))]
          [:div [:b "Message summary follows:"]]
          [:div (map html-print-single-society-mission
                     (filter (fn [mission]
@@ -105,6 +107,11 @@
        (scenRec :hps))
   )
 
+(defn- html-print-news-summary
+  "Prints the news in a small format for the GM"
+  [{news :news :as scenRec}]
+  [:div [:b "Sector News:" ] [:small (interpose " -- " news)]])
+
 (defn html-print-scenario
   "Prints a scenario in html format"
   [scenRec]
@@ -113,6 +120,7 @@
          (html-print-indicies scenRec)
          (html-print-crisises scenRec)
          (html-print-directive-summary scenRec)
+         (html-print-news-summary scenRec)
          (html-print-ssm-summary scenRec)
          (html-print-player-sheets scenRec)
          ]

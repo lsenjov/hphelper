@@ -207,12 +207,20 @@
              (sort-by :minion_name (into [] minions)))))
 
 (defn- select-minion-lists
+  "Creates minion lists for each service group under :minions"
   ([scenRec]
    (assoc-in scenRec [:minions]
              (map (comp sort-minion-list
                         (partial add-additional-minions 10 10) ;; Want at least 10 minions on each list
                         (partial create-single-minion-list))
                   (sql/query "SELECT * FROM `sg`;")))))
+
+(defn- select-news
+  "Selects crisis-related news and other news articles"
+  ([scenRec]
+   (assoc-in scenRec [:news]
+             (shuffle (concat (apply concat (map sql/get-news-crisis (get-crisis-id-list scenRec)))
+                              (sql/get-news-random 6))))))
 
 (defn add-character
   "Adds a high programmer character to the record under :hps"
@@ -234,6 +242,8 @@
        (select-secret-society-missions-unused)
        (select-minion-lists)
 
+       (select-news)
+
        ;; Creating Indicies
        (assoc-in [:indicies] (create-base-indicies-list))
        (load-crisis-indicies)
@@ -242,4 +252,4 @@
        (update-in [:indicies] normalise-all-indicies)
        )))
 
-(:indicies (create-scenario))
+(:news (create-scenario))
