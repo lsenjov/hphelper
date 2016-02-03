@@ -89,14 +89,14 @@
          [:div [:h3 "Welcome " (player :name)]]
          [:div (html-print-indicies scenRec)]
          [:div [:b "Sector News:"] [:br]
-          (interpose " -- " (scenRec :news))]
+          (interpose [:br] (scenRec :news))]
          [:div [:b "Message summary follows:"]]
-         [:div (map html-print-single-society-mission
+         [:div (interpose [:br] (map html-print-single-society-mission
                     (filter (fn [mission]
                               (some #{(mission :ss_id)}
                                     (map :ss_id
                                          (get player "Program Group"))))
-                            (scenRec :societies)))]
+                            (scenRec :societies))))]
          ]
         ))
 
