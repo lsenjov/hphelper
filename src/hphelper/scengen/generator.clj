@@ -172,7 +172,7 @@
   "Given a service group record, creates a minion list under a :minions keyword"
   ([{sgNum :sg_id :as sgRec}]
    (assoc-in sgRec [:minions]
-             (set (map (fn [skill] (sql/get-random-item (sql/query "SELECT `minion`.* FROM `minion`, `minion_skill`
+             (remove nil? (set (map (fn [skill] (sql/get-random-item (sql/query "SELECT `minion`.* FROM `minion`, `minion_skill`
                                                                WHERE `sg_id` = ?
                                                                AND `minion`.`minion_id` IN
                                                                (SELECT `minion_id`
@@ -183,7 +183,7 @@
                        (map :skills_id (sql/query "SELECT `skills_id`
                                                   FROM `sg_skill`
                                                   WHERE `sg_id` = ?;"
-                                                  sgNum)))))))
+                                                  sgNum))))))))
 
 (defn- add-additional-minions
   "Given a service group record, adds random minions till minimum minions have been reached,
@@ -252,4 +252,4 @@
        (update-in [:indicies] normalise-all-indicies)
        )))
 
-(:news (create-scenario))
+(:directives (create-scenario))

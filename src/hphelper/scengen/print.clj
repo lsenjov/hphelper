@@ -112,6 +112,49 @@
   [{news :news :as scenRec}]
   [:div [:b "Sector News:" ] [:small (interpose " -- " news)]])
 
+(defn- html-print-single-minion-cell
+  "Prints a single minion table cell"
+  [minion]
+  (assert minion "Minion does not exist?")
+  [:td {:style "border: 1px solid black"}
+   (:minion_name minion) " -- "
+   (:minion_clearance minion) " -- "
+   (:minion_cost minion) " -- "
+   (:mskills (first (sql/query "SELECT mskills FROM minion_skills WHERE minion_id = ?" (:minion_id minion))))
+   ])
+
+(defn- html-print-minion-table
+  "Prints a single sg's minion table"
+  [{minions :minions :as sg}]
+  (html [:div
+         [:b (:sg_name sg)] [:br]
+         [:table {:style "border: 1px solid black"}
+          (map (fn [pair] [:tr (map html-print-single-minion-cell pair)])
+               (partition-all 2 minions))
+          ]
+         ]
+        ))
+
+(defn- html-print-minions
+  "Prints all sgs' minion tables"
+  [{minions :minions :as scenRec}]
+  (interpose [:br]
+             (map (fn [pairSgs] [:div {:style "page-break-before: always;"}
+                                 (map html-print-minion-table pairSgs)])
+                  (partition-all 2 minions))))
+
+(defn- html-print-directive-table
+  "Prints the directive list in a table"
+  [{directives :directives :as scenRec}]
+  [:div {:style "page-break-before: always;"}
+   [:table
+    (map (fn [pair] [:tr (map (fn [single] [:td {:style "border: 1px solid black"}
+                                             [:span [:b (sql/get-sg-by-id (single :sg_id)) ": "]
+                                              (single :sgm_text)]])
+                               pair)
+                      ])
+          (partition-all 2 directives))]])
+
 (defn html-print-scenario
   "Prints a scenario in html format"
   [scenRec]
@@ -123,5 +166,9 @@
          (html-print-news-summary scenRec)
          (html-print-ssm-summary scenRec)
          (html-print-player-sheets scenRec)
+         (html-print-minions scenRec)
+         (html-print-directive-table scenRec)
          ]
         ))
+
+(html-print-scenario (hphelper.scengen.generator/create-scenario))
