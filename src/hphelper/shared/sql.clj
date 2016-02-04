@@ -71,11 +71,60 @@
 
 (defn get-random-name
   "Gets a random name from the database. at a specified clearance level"
-  ([]
-   (let [nameMap (get-random-item (query "SELECT * FROM `name` WHERE `name_clearance` = 'U';"))]
+  ([clearance]
+   (let [nameMap (get-random-item (query "SELECT * FROM `name` WHERE `name_clearance` = ?;" clearance))]
      (str (nameMap :name_first) "-"
           (nameMap :name_clearance) "-"
           (nameMap :name_zone))))
+  )
+
+(def allClearances
+  "All possible clearances for citizens"
+  ["IR" "R" "O" "Y" "G" "B" "I" "V" "U"])
+
+(defn- interpret-citizen-name
+  "Interprets a string in form ##CIT-V-TAGS##, where the second part is the clearance level"
+  [token]
+  (let [tokenised (clojure.string/split token #"-")]
+    (if (or (<= (count tokenised) 1) ;; If not enough parts
+            (not (some #{(second tokenised)} allClearances))) ;; or if second part is not one of the clearances
+      (do ;; Fail and return token
+        (log/error "Citizen name token in incorrect form:" token "second token is" (second tokenised))
+        token)
+      (get-or-create-name (partial get-random-name (second tokenised)) token))))
+
+(defn- interpret-token
+  "Takes a string of format ABC-TAGS-AND-OTHERS and looks at the first part, choosing which
+  function to call, then calls get-or-create-name. On an error logs and returns the token."
+  [zoneName token]
+  (let [firstPart (first (clojure.string/split token #"-"))]
+    (case firstPart
+      "ZON" zoneName
+      "CIT" (interpret-citizen-name token)
+      (do
+        (log/error "Incorrect token form:" token)
+        token)
+      )
+    ))
+
+(defn interpret-line
+  "Takes a string, and looks for ##ABC-TAGS##, replacing these tokens with the correct items.
+  Also takes a zone name and optional crisisId. Returns the new line, or the old line if it has an error"
+  ([zoneName line]
+   (interpret-line zoneName line ""))
+  ([zoneName line crisisId]
+   (assert (string? line) "Line to look at is not a string!")
+   (let [tokenised (clojure.string/split line #"##" 3)]
+     (case (count tokenised)
+       1 line
+       2 (do (log/error "Incorrect line in crisis" crisisId " line is:" line)
+             line)
+       3 (recur zoneName
+                (str (first tokenised)
+                     (interpret-token zoneName (str (second tokenised) "-" crisisId))
+                     (nth tokenised 2))
+                crisisId
+       ))))
   )
 
 (defn get-sg-by-id
@@ -133,20 +182,23 @@
 
 (defn get-news-crisis
   "Gets the news articles from a crisis, returns a vector"
-  [crisisId]
-  (into [] (map :news_desc (query "SELECT * FROM news WHERE c_id = ?;" crisisId))))
+  [zone crisisId]
+  (into [] (map (fn [rec] (interpret-line zone
+                                          (rec :news_desc)
+                                          (rec :c_id)))
+                (query "SELECT * FROM news WHERE c_id = ?;" crisisId))))
 
 (defn get-news-random-single
   "Gets a random unassociated news item"
-  []
-  (:news_desc (rand-nth (query "SELECT * FROM news WHERE c_id IS NULL;"))))
+  [zone]
+  (interpret-line zone (:news_desc (rand-nth (query "SELECT * FROM news WHERE c_id IS NULL;")))))
 
 (defn get-news-random
   "Gets up to numb news items unassociated with crisises. Returns a vector."
-  ([numb]
-   (get-news-random numb #{}))
-  ([numb items]
+  ([zone numb]
+   (get-news-random zone numb #{}))
+  ([zone numb items]
    (if (<= numb 0)
      (into [] items) ;; Is done, return a vector
-     (recur (dec numb) (conj items (get-news-random-single))))))
+     (recur zone (dec numb) (conj items (get-news-random-single zone))))))
 

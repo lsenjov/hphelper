@@ -113,7 +113,7 @@
    (if nam
      charRec
      (assoc-in charRec [:name]
-               (sql/get-random-name)))))
+               (sql/get-random-name "U")))))
 
 (defn create-character
   "Fills in the missing spots in a character record.

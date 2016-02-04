@@ -217,10 +217,12 @@
 
 (defn- select-news
   "Selects crisis-related news and other news articles"
-  ([scenRec]
+  ([{zone :zone :as scenRec}]
    (assoc-in scenRec [:news]
-             (shuffle (concat (apply concat (map sql/get-news-crisis (get-crisis-id-list scenRec)))
-                              (sql/get-news-random 6))))))
+             (shuffle (concat (apply concat 
+                                     (map (partial sql/get-news-crisis zone)
+                                          (get-crisis-id-list scenRec)))
+                              (sql/get-news-random zone 6))))))
 
 (defn- create-random-zone-name
   "Creates a randome 3 letter zone name"
@@ -248,6 +250,7 @@
   ([] (create-scenario {}))
   ([scen]
    (-> scen
+       (check-zone-name)
        (select-crisises)
        (add-crisis-descriptions)
        (select-service-group-directives)
@@ -255,7 +258,6 @@
        (select-secret-society-missions)
        (select-secret-society-missions-unused)
        (select-minion-lists)
-       (check-zone-name)
 
        (select-news)
 
