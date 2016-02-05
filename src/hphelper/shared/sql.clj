@@ -80,29 +80,6 @@
           (nameMap :name_zone))))
   )
 
-(defn get-crisis-by-id
-  "Gets a specific crisis by its id, returns a map, or nil if the crisis does not exist"
-  [zone crisisId]
-  (let [crisis (first (query "SELECT * FROM `crisis` WHERE `c_id` = ?;" crisisId))]
-    (if (not crisis)
-      nil
-      (update-in crisis [:c_desc]
-                 (partial interpret-line zone crisisId)))))
-
-(defn get-random-crisis
-  "Gets a random crisis, returning a map"
-  [zone]
-  (let [crisis (rand-nth (query "SELECT * FROM `crisis`;"))]
-  (update-in crisis
-             [:c_desc]
-             (partial interpret-line zone (crisis :c_id)))))
-
-(defn get-crisis-desc
-  "Gets the descriptors from a single crisis, interprets, and returns a vector of strings"
-  [zone crisisId]
-  (into [] (map (comp (partial interpret-line zone crisisId) :ct_desc)
-                (query "SELECT `ct_desc` FROM `crisis_text` WHERE `c_id` = ?;" crisisId))))
-
 (def allClearances
   "All possible clearances for citizens"
   ["IR" "R" "O" "Y" "G" "B" "I" "V" "U"])
@@ -158,8 +135,30 @@
                 (str (first tokenised)
                      (interpret-token zoneName (str (second tokenised) "-" crisisId))
                      (nth tokenised 2))
-       ))))
-  )
+       )))))
+
+(defn get-crisis-by-id
+  "Gets a specific crisis by its id, returns a map, or nil if the crisis does not exist"
+  [zone crisisId]
+  (let [crisis (first (query "SELECT * FROM `crisis` WHERE `c_id` = ?;" crisisId))]
+    (if (not crisis)
+      nil
+      (update-in crisis [:c_desc]
+                 (partial interpret-line zone crisisId)))))
+
+(defn get-random-crisis
+  "Gets a random crisis, returning a map"
+  [zone]
+  (let [crisis (rand-nth (query "SELECT * FROM `crisis`;"))]
+  (update-in crisis
+             [:c_desc]
+             (partial interpret-line zone (crisis :c_id)))))
+
+(defn get-crisis-desc
+  "Gets the descriptors from a single crisis, interprets, and returns a vector of strings"
+  [zone crisisId]
+  (into [] (map (comp (partial interpret-line zone crisisId) :ct_desc)
+                (query "SELECT `ct_desc` FROM `crisis_text` WHERE `c_id` = ?;" crisisId))))
 
 (defn get-secret-society-missions
   "Selects all the secret society missions of a single crisis"
