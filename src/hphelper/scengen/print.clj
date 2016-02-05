@@ -42,7 +42,6 @@
   "Prints all the crisises in html"
   [scenRec]
   (html [:div
-         [:b "Welcome GM. Crisis numbers are: " (interpose ", " (map :c_id (scenRec :crisises))) [:br]]
          (map html-print-crisis (scenRec :crisises))
          ]))
 
@@ -155,11 +154,20 @@
                       ])
           (partition-all 2 directives))]])
 
+(defn- html-print-header
+  "Prints a short summary at the beginning"
+  [{zone :zone :as scenRec}]
+  [:div
+   [:b "Welcome GM. Zone is: " zone ". "
+    "Crisis numbers are: " (interpose ", " (map :c_id (scenRec :crisises))) [:br]]
+   ])
+
 (defn html-print-scenario
   "Prints a scenario in html format"
   [scenRec]
   (html [:div
          ;[:div "DEBUG: " (str scenRec)] ;; Prints out the entire map for debugging
+         (html-print-header scenRec)
          (html-print-indicies scenRec)
          (html-print-crisises scenRec)
          (html-print-directive-summary scenRec)
