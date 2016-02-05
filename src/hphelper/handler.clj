@@ -8,6 +8,7 @@
             [hphelper.scengen.scenform :as sform]
             [hphelper.scengen.generator :as sgen]
             [hphelper.scengen.print :as sprint]
+            [hiccup.core :refer :all]
             )
   (:gen-class))
 
@@ -20,7 +21,13 @@
             (sform/from-select-to-scenmap)
             (sgen/create-scenario)
             (sprint/html-print-scenario)))
-  (route/not-found "Not Found"))
+  (route/not-found
+   (html [:html
+          [:body
+           [:a {:href "./scen/"} "Scenario Generator"][:br]
+           [:a {:href "./char/"} "Character Generator"][:br]
+           ]]))
+  )
 
 (def app
   (-> app-routes
