@@ -144,15 +144,28 @@
   (map update-in
        (query "SELECT * FROM `ssm` WHERE `c_id` = ?;" crisisId)
        (repeat [:ssm_text])
-       (repeat (partial interpret-line zone crisisId))
-       )
-  )
+       (repeat (partial interpret-line zone crisisId))))
 
 (defn get-secret-socity-mission-unused
   "Selects a single secret society mission not associated to a crisis"
   [zone ssId]
   (update-in (get-random-item (query "SELECT * FROM `ssm` WHERE `ss_id` = ? AND `c_id` IS NULL;" ssId))
              [:ssm_text]
+             (partial interpret-line zone)))
+
+(defn get-directive-crisis
+  "Selects directives related to a single crisis"
+  [zone crisisId]
+  (map update-in
+       (query "SELECT * FROM `sgm` WHERE `c_id` = ?;" crisisId)
+       (repeat [:sgm_text])
+       (repeat (partial interpret-line zone crisisId))))
+
+(defn get-directive-unused
+  "Selects a single service group directive not associated to a crisis"
+  [zone sgId]
+  (update-in (get-random-item (query "SELECT * FROM `sgm` WHERE `sg_id` = ? AND `c_id` IS NULL;" sgId))
+             [:sgm_text]
              (partial interpret-line zone)))
 
 (defn get-sg-by-id

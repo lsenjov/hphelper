@@ -130,20 +130,18 @@
 
 (defn- select-service-group-directives
   "Adds service group directives to scenario record associated with the current queries"
-  ([{crisises :crisises :as crisRec}]
+  ([{crisises :crisises zone :zone :as crisRec}]
    (assoc-in crisRec [:directives]
-             (apply concat (map (fn [crisNum] (sql/query "SELECT * FROM `sgm` WHERE `c_id` = ?;" crisNum))
+             (apply concat (map (partial sql/get-directive-crisis zone)
                                 (get-crisis-id-list crisRec))))))
 
 (defn- select-service-group-directives-unused
   "Adds directives to service groups without one"
-  ([{directives :directives :as crisRec}]
+  ([{directives :directives zone :zone :as crisRec}]
    (log/trace "Directives before unused" directives)
    (assoc-in crisRec [:directives]
              (concat directives
-                     (map (comp sql/get-random-item
-                                (fn [sgNum]
-                                  (sql/query "SELECT * FROM `sgm` WHERE `sg_id` = ? AND `c_id` IS NULL;" sgNum)))
+                     (map (partial sql/get-directive-unused zone)
                           (remove (set (map :sg_id directives)) ;; Removing used sgs from all sgs
                                   (map :sg_id
                                        (sql/query "SELECT `sg_id` FROM `sg`;"))))))))
