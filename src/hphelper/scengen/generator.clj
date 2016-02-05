@@ -157,13 +157,11 @@
 
 (defn- select-secret-society-missions-unused
   "Adds directives to service groups without one"
-  ([{societies :societies :as crisRec}]
+  ([{societies :societies zone :zone :as crisRec}]
    (assert societies)
    (assoc-in crisRec [:societies]
              (concat societies
-                     (map (comp rand-nth
-                                (fn [ssNum]
-                                  (sql/query "SELECT * FROM `ssm` WHERE `ss_id` = ? AND `c_id` IS NULL;" ssNum)))
+                     (map (partial sql/get-secret-socity-mission-unused zone)
                           (remove (set (map :ss_id societies)) ;; Removing used sss from all sgs
                                   (map :ss_id
                                        (sql/query "SELECT `ss_id` FROM `ss`;"))))))))

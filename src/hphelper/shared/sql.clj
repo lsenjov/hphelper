@@ -13,6 +13,8 @@
   (log/trace "Performing Query: " quer)
   (jdb/query db quer))
 
+;; Until reset, this will save all references. The same number crisis will
+;; continue to return the same names for ##REF-TAGS##
 (def namedItems
   "A map atom with references as keys and named items as values"
   (atom {}))
@@ -136,6 +138,13 @@
        (repeat (partial interpret-line zone crisisId))
        )
   )
+
+(defn get-secret-socity-mission-unused
+  "Selects a single secret society mission not associated to a crisis"
+  [zone ssId]
+  (update-in (get-random-item (query "SELECT * FROM `ssm` WHERE `ss_id` = ? AND `c_id` IS NULL;" ssId))
+             [:ssm_text]
+             (partial interpret-line zone)))
 
 (defn get-sg-by-id
   "Gets service group by sg_id"
