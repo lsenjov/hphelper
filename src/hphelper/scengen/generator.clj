@@ -97,34 +97,31 @@
 
 (defn- add-crisis-desc
   "Given a crisis map, adds an :extraDesc field with a vector of string descriptors"
-  [{id :c_id :as crisisMap}]
+  [zone {id :c_id :as crisisMap}]
   (assoc-in crisisMap [:extraDesc]
-            (reduce conj
-                    []
-                    (map (partial :ct_desc)
-                         (sql/query "SELECT `ct_desc` FROM `crisis_text` WHERE `c_id` = ?;"
-                                    id)))))
+            (sql/get-crisis-desc zone id)))
 
 (defn- add-crisis-descriptions
   "Given crisises, adds extra description to each"
-  [{crisises :crisises :as crisRec}]
+  [{crisises :crisises zone :zone :as crisRec}]
   (assert crisises)
   (assoc-in crisRec [:crisises]
-            (map add-crisis-desc crisises)))
+            (map (partial add-crisis-desc zone)
+                 crisises)))
 
 (defn- select-crisises
   "If given a vector of crisis id integers, adds full crisis maps to the record, then fills remaining spots up to 3 crisises.
   If the :crisises key is empty, adds the key with three randomly selected crisises"
-  [{crisises :crisises :as crisRec}]
+  [{crisises :crisises zone :zone :as crisRec}]
   (if (nil? crisises)
     (recur (assoc-in crisRec [:crisises] #{}))
     (if (vector? crisises)
       (recur (assoc-in crisRec [:crisises]
-                       (into #{} (remove nil? (set (map (fn [id] (first (sql/query "SELECT * FROM `crisis` WHERE `c_id` = ?;" id)))
-                                              crisises))))))
+                       (into #{} (remove nil? (set (map (partial sql/get-crisis-by-id zone)
+                                                        crisises))))))
       (if (< (count crisises) 3)
         (recur (assoc-in crisRec [:crisises]
-                         (into #{} (remove nil? (conj crisises (sql/get-random-row "crisis" "c_id"))))))
+                         (into #{} (remove nil? (conj crisises (sql/get-random-crisis zone))))))
         crisRec
         ))))
 
