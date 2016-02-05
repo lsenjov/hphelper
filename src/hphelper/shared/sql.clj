@@ -95,6 +95,13 @@
         token)
       (get-or-create-name (partial get-random-name (second tokenised)) token))))
 
+(defn- get-random-resource
+  "Gets a random resource from the database"
+  [resType]
+  (:resource_name
+   (rand-nth
+    (query "SELECT resource_name FROM resource WHERE resource_type LIKE ?;" resType))))
+
 (defn- interpret-token
   "Takes a string of format ABC-TAGS-AND-OTHERS and looks at the first part, choosing which
   function to call, then calls get-or-create-name. On an error logs and returns the token."
@@ -103,6 +110,8 @@
     (case firstPart
       "ZON" zoneName
       "CIT" (interpret-citizen-name token)
+      "LOC" (get-or-create-name (partial get-random-resource "LOC") token)
+      "RES" (get-or-create-name (partial get-random-resource "RES") token)
       (do
         (log/error "Incorrect token form:" token)
         token)
