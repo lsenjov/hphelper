@@ -111,20 +111,30 @@
   "Takes a string, and looks for ##ABC-TAGS##, replacing these tokens with the correct items.
   Also takes a zone name and optional crisisId. Returns the new line, or the old line if it has an error"
   ([zoneName line]
-   (interpret-line zoneName line ""))
-  ([zoneName line crisisId]
-   (assert (string? line) "Line to look at is not a string!")
+   (interpret-line zoneName 0 line))
+  ([zoneName crisisId line]
+   (assert (string? line) (str "Line to look at is not a string! Is actually:" line))
    (let [tokenised (clojure.string/split line #"##" 3)]
      (case (count tokenised)
        1 line
        2 (do (log/error "Incorrect line in crisis" crisisId " line is:" line)
              line)
        3 (recur zoneName
+                crisisId
                 (str (first tokenised)
                      (interpret-token zoneName (str (second tokenised) "-" crisisId))
                      (nth tokenised 2))
-                crisisId
        ))))
+  )
+
+(defn get-secret-society-missions
+  "Selects all the secret society missions of a single crisis"
+  [zone crisisId]
+  (map update-in
+       (query "SELECT * FROM `ssm` WHERE `c_id` = ?;" crisisId)
+       (repeat [:ssm_text])
+       (repeat (partial interpret-line zone crisisId))
+       )
   )
 
 (defn get-sg-by-id
@@ -184,8 +194,8 @@
   "Gets the news articles from a crisis, returns a vector"
   [zone crisisId]
   (into [] (map (fn [rec] (interpret-line zone
-                                          (rec :news_desc)
-                                          (rec :c_id)))
+                                          (rec :c_id)
+                                          (rec :news_desc)))
                 (query "SELECT * FROM news WHERE c_id = ?;" crisisId))))
 
 (defn get-news-random-single

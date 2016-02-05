@@ -150,9 +150,9 @@
 
 (defn- select-secret-society-missions
   "Adds secret society directives to scenario record associated with the current crisises"
-  ([{crisises :crisises :as crisRec}]
+  ([{crisises :crisises zone :zone :as crisRec}]
    (assoc-in crisRec [:societies]
-             (apply concat (map (fn [crisNum] (sql/query "SELECT * FROM `ssm` WHERE `c_id` = ?;" crisNum))
+             (apply concat (map (partial sql/get-secret-society-missions zone)
                                 (get-crisis-id-list crisRec))))))
 
 (defn- select-secret-society-missions-unused
@@ -219,7 +219,7 @@
   "Selects crisis-related news and other news articles"
   ([{zone :zone :as scenRec}]
    (assoc-in scenRec [:news]
-             (shuffle (concat (apply concat 
+             (shuffle (concat (apply concat
                                      (map (partial sql/get-news-crisis zone)
                                           (get-crisis-id-list scenRec)))
                               (sql/get-news-random zone 6))))))
