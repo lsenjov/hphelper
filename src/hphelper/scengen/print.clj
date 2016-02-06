@@ -81,11 +81,11 @@
   "Prints a single player sheet in a html format"
   [scenRec player]
   (log/trace "Printing player sheet for: " player)
-  (html [:div {:style "page-break-before: always;"}
+  (html [:div
          (if (player :printSheet)
            [:div (cgen/html-print-sheet player)]
            "")
-         [:div [:h3 "Welcome " (player :name)]]
+         [:div {:style "page-break-before: always;"} [:h3 "Welcome " (player :name)]]
          [:div (html-print-indicies scenRec)]
          [:div [:b "Sector News:"] [:br]
           (interpose [:br] (scenRec :news))]

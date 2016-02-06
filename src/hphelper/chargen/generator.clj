@@ -242,6 +242,7 @@
 (defn html-print-sheet
   "Prints a character sheet in a readable format, forces printing on a separate page"
   [charRec]
+  (log/trace "Printing Character sheet for:" (:name charRec))
   (html
     [:div {:style "page-break-before: always;"}
      (html-print-name charRec)

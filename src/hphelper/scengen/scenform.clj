@@ -42,7 +42,7 @@
          ]
         ]
        ;; Description done, now for the actual form
-       [:form {:action "/scen/" :method "post"}
+       [:form {:action "." :method "post"}
         (anti-forgery-field)
         [:div "Random Seed:" [:input {:type "text" :name "seed"}] "(Numeric only, leave blank for random.)"]
         [:div "Sector Name:" [:input {:type "text" :name "s_seed"}] "(Leave blank for random)"]
