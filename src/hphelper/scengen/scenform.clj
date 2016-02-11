@@ -45,7 +45,7 @@
        [:form {:action "." :method "post"}
         (anti-forgery-field)
         [:div "Random Seed:" [:input {:type "text" :name "seed"}] "(Numeric only, leave blank for random.)"]
-        [:div "Sector Name:" [:input {:type "text" :name "s_seed"}] "(Leave blank for random)"]
+        [:div "Sector Name:" [:input {:type "text" :name "s_name"}] "(Leave blank for random)"]
         [:div "Crisis Numbers:" (for [cField (range 3)]
                                   [:input {:type "text"
                                            :name (str "crisis_" cField)
@@ -145,10 +145,16 @@
                                                           (map (partial str "crisis_")
                                                                (range 3))))))))
 
+(defn- assoc-zone
+  "Associates the crisis' zone in the correct field"
+  [params]
+  (assoc-in params [:zone] (get params :s_name)))
+
 (defn from-select-to-scenmap
   "Converts the form input to a scenario form for use by the generator"
   [params]
   (-> params
+      (assoc-zone)
       (assoc-all-players)
       (assoc-all-crisises)
       (assoc-print-sheet)

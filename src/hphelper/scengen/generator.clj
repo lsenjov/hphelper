@@ -188,10 +188,10 @@
        minMinions
        (dec triesRemaining)
        (assoc-in sgRec [:minions]
-                 (conj minions
-                       (sql/get-random-item (sql/query "SELECT * FROM `minion` WHERE `sg_id` = ?;"
-                                                   sgNum)))))
-     sgRec)))
+                 (into #{} (conj minions
+                                 (sql/get-random-item (sql/query "SELECT * FROM `minion` WHERE `sg_id` = ?;"
+                                                                 sgNum))))))
+       sgRec)))
 
 (defn- sort-minion-list
   "Given a minion record, converts minions to a vector then sorts it by cost"
@@ -204,7 +204,7 @@
   ([scenRec]
    (assoc-in scenRec [:minions]
              (map (comp sort-minion-list
-                        (partial add-additional-minions 10 10) ;; Want at least 10 minions on each list
+                        (partial add-additional-minions 12 12) ;; Want at least 10 minions on each list
                         (partial create-single-minion-list))
                   (sql/query "SELECT * FROM `sg`;")))))
 
@@ -229,7 +229,7 @@
            (string? zone)
            (= (count zone) 3))
     scenRec
-    (assoc-in scenRec [:zone] (create-random-zone-name))))
+    (assoc-in scenRec [:zone] (apply str (repeatedly 3 (fn [] (char (+ (rand-int 26) (int \A)))))))))
 
 (defn add-character
   "Adds a high programmer character to the record under :hps"
