@@ -217,11 +217,6 @@
                                           (get-crisis-id-list scenRec)))
                               (sql/get-news-random zone 6))))))
 
-(defn- create-random-zone-name
-  "Creates a randome 3 letter zone name"
-  []
-  (apply str (take 3 (repeatedly (fn [] (char (+ (int \A) (rand-int 26))))))))
-
 (defn- check-zone-name
   "Checks for zone name, and if missing creates a random sector name"
   [{zone :zone :as scenRec}]
@@ -229,7 +224,7 @@
            (string? zone)
            (= (count zone) 3))
     scenRec
-    (assoc-in scenRec [:zone] (apply str (repeatedly 3 (fn [] (char (+ (rand-int 26) (int \A)))))))))
+    (assoc-in scenRec [:zone] (sql/create-random-zone-name))))
 
 (defn add-character
   "Adds a high programmer character to the record under :hps"

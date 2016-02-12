@@ -71,18 +71,23 @@
      nil
      (nth collection (int (Math/floor (* (Math/random) (count collection))))))))
 
-(defn get-random-name
-  "Gets a random name from the database. at a specified clearance level"
-  ([clearance]
-   (let [nameMap (get-random-item (query "SELECT * FROM `name` WHERE `name_clearance` = ?;" clearance))]
-     (str (nameMap :name_first) "-"
-          (nameMap :name_clearance) "-"
-          (nameMap :name_zone))))
-  )
-
 (def allClearances
   "All possible clearances for citizens"
   ["IR" "R" "O" "Y" "G" "B" "I" "V" "U"])
+
+(defn create-random-zone-name
+  "Creates a random three letter zone name"
+  []
+  (apply str (repeatedly 3 (fn [] (char (+ (rand-int 26) (int \A)))))))
+
+(defn get-random-name
+  "Gets a random name from the database. at a specified clearance level"
+  ([clearance]
+   (let [nameMap (get-random-item (query "SELECT * FROM `first_name`;"))]
+     (str (nameMap :fn_name) "-"
+          clearance "-"
+          (create-random-zone-name))))
+  )
 
 (defn- interpret-citizen-name
   "Interprets a string in form ##CIT-V-TAGS##, where the second part is the clearance level"
