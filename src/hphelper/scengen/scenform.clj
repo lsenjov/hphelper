@@ -20,7 +20,7 @@
                                  (html [:input {:type "checkbox" :name (str "ss_" playerId "_" (society :ss_id))}])
                                  (html [:br])))
               (sql/query "SELECT * FROM ss;"))
-         [:textarea {:rows "4" :name (str "messages_" playerId)}]
+         ;[:textarea {:rows "4" :name (str "messages_" playerId)}]
          ]))
 
 (defn html-select-page
@@ -44,7 +44,7 @@
        ;; Description done, now for the actual form
        [:form {:action "." :method "post"}
         (anti-forgery-field)
-        [:div "Random Seed:" [:input {:type "text" :name "seed"}] "(Numeric only, leave blank for random.)"]
+        ;[:div "Random Seed:" [:input {:type "text" :name "seed"}] "(Numeric only, leave blank for random.)"]
         [:div "Sector Name:" [:input {:type "text" :name "s_name"}] "(Leave blank for random)"]
         [:div "Crisis Numbers:" (for [cField (range 3)]
                                   [:input {:type "text"
