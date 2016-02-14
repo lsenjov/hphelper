@@ -222,7 +222,7 @@
   [{zone :zone :as scenRec}]
   (if (and zone
            (string? zone)
-           (= (count zone) 3))
+           (> (count zone) 0))
     scenRec
     (assoc-in scenRec [:zone] (sql/create-random-zone-name))))
 
