@@ -233,6 +233,22 @@
    (assoc-in scenRec [:hps]
              (concat '() hps (list character)))))
 
+(defn- copy-key
+  "Associates the key from source to the target"
+  [source k dest]
+  (assoc dest k (get source k)))
+
+(defn purge-unused
+  "Removes unused keys that are generally holdovers from elsewhere"
+  [scenRec]
+  ((apply comp
+          (map partial
+               (repeat copy-key)
+               (repeat scenRec)
+               [:zone :crisises :directives :societies :minions :news :indicies :hps]))
+   {}
+   ))
+
 (defn create-scenario
   "Creates a generated scenario"
   ([] (create-scenario {}))
@@ -255,6 +271,7 @@
        (update-in [:indicies] fuzzify-indicies)
        (update-in [:indicies] fuzzify-indicies)
        (update-in [:indicies] normalise-all-indicies)
+       ;(purge-unused)
        )))
 
-(:zone (create-scenario))
+(keys (create-scenario))
