@@ -240,18 +240,20 @@
    (map (comp minutes-to-readable
               int
               (partial + start)
+              #(+ (rand-int 11) %) ;; Adds anywhere between 0 and 10 minutes, to fuzzify times a little
               (partial * (/ (- finish start) n)))
         (range n))))
 
 (defn- generate-cbay
   "Generates cbay articles from both crisises and random items"
   [scenRec]
-  (into []
-        (let [items (sql/get-random-cbay-items (scenRec :zone) 5)]
-          (map str
-               items
-               (repeat " ")
-               (generate-times 30 240 (count items))))))
+  (assoc-in scenRec [:cbay]
+            (into []
+                  (let [items (sql/get-random-cbay-items (scenRec :zone) 5)]
+                    (map str
+                         items
+                         (repeat " ")
+                         (generate-times 30 240 (count items)))))))
 
 (defn add-character
   "Adds a high programmer character to the record under :hps"
@@ -298,7 +300,8 @@
        (update-in [:indicies] fuzzify-indicies)
        (update-in [:indicies] fuzzify-indicies)
        (update-in [:indicies] normalise-all-indicies)
-       ;(purge-unused)
+       (generate-cbay)
+       (purge-unused)
        )))
 
 (keys (create-scenario))

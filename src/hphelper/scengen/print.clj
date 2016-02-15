@@ -77,6 +77,15 @@
                              (scenRec :societies)))
           ]]))
 
+(defn- html-print-cbay
+  "Prints cbay in html format"
+  [{cbay :cbay :as scenRec}]
+  [:div
+   [:b "C-Bay auctions" [:br]]
+   (interpose [:br] cbay)
+   ]
+  )
+
 (defn- html-print-player-sheet
   "Prints a single player sheet in a html format"
   [scenRec player]
@@ -96,6 +105,7 @@
                                     (map :ss_id
                                          (get player "Program Group"))))
                             (scenRec :societies))))]
+         (html-print-cbay scenRec)
          ]
         ))
 
