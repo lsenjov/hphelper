@@ -226,6 +226,33 @@
     scenRec
     (assoc-in scenRec [:zone] (sql/create-random-zone-name))))
 
+(defn- minutes-to-readable
+  "Changes an integer minutes to a readable 1h14m format"
+  [t]
+  (str (int (Math/floor (/ t 60)))
+       "h"
+       (int (mod t 60))
+       "m"))
+
+(defn- generate-times
+  "Returns a vector of times in minutes, distributed between start and finish"
+  ([start finish n]
+   (map (comp minutes-to-readable
+              int
+              (partial + start)
+              (partial * (/ (- finish start) n)))
+        (range n))))
+
+(defn- generate-cbay
+  "Generates cbay articles from both crisises and random items"
+  [scenRec]
+  (into []
+        (let [items (sql/get-random-cbay-items (scenRec :zone) 5)]
+          (map str
+               items
+               (repeat " ")
+               (generate-times 30 240 (count items))))))
+
 (defn add-character
   "Adds a high programmer character to the record under :hps"
   ([{hps :hps :as scenRec} {nam :name :as character}]
@@ -245,7 +272,7 @@
           (map partial
                (repeat copy-key)
                (repeat scenRec)
-               [:zone :crisises :directives :societies :minions :news :indicies :hps]))
+               [:zone :crisises :directives :societies :minions :news :indicies :hps :cbay]))
    {}
    ))
 
