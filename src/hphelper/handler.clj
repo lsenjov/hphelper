@@ -26,6 +26,8 @@
           [:body
            [:a {:href "./scen/"} "Scenario Generator"][:br]
            [:a {:href "./char/"} "Character Generator"][:br]
+           [:br]
+           [:a {:href "https://github.com/lsenjov/hphelper"} "Source Code"][:br]
            ]]))
   )
 
