@@ -249,11 +249,11 @@
   [scenRec]
   (assoc-in scenRec [:cbay]
             (into []
-                  (let [items (sql/get-random-cbay-items (scenRec :zone) 5)]
+                  (let [items (sql/get-random-cbay-items (scenRec :zone) 3)]
                     (map str
                          items
                          (repeat " ")
-                         (generate-times 30 240 (count items)))))))
+                         (generate-times 30 120 (count items)))))))
 
 (defn add-character
   "Adds a high programmer character to the record under :hps"
