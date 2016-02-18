@@ -301,7 +301,8 @@
        (update-in [:indicies] fuzzify-indicies)
        (update-in [:indicies] normalise-all-indicies)
        (generate-cbay)
+       ;(add-character (cg/create-character))
        (purge-unused)
        )))
 
-(keys (create-scenario))
+(:hps (create-scenario))

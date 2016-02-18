@@ -67,7 +67,6 @@
     )
   )
 
-
 ;; This is the conversion from the form params to a usable scenario generator map
 (defn- assoc-player-name
   "Checks the map for the player's name, and if exists associates it in the player's index"

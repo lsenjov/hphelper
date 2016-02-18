@@ -8,19 +8,25 @@
             [hphelper.scengen.scenform :as sform]
             [hphelper.scengen.generator :as sgen]
             [hphelper.scengen.print :as sprint]
+            [hphelper.scengen.select :as ssel]
+            [hphelper.shared.saveload :as sl]
             [hiccup.core :refer :all]
             )
   (:gen-class))
 
 (defroutes app-routes
   (GET "/char/" [] (cgen/html-print-sheet-one-page (cgen/create-character)))
-  (GET "/scen/" [] (sform/html-select-page))
-  (POST "/scen/"
+  (GET "/scen/" {params :params} 
+       (if (params :scen_id)
+         (ssel/print-crisis-page (params :scen_id))
+         (ssel/print-select-page)))
+  (GET "/scen/gen/" [] (sform/html-select-page))
+  (POST "/scen/gen/"
         {params :params}
         (-> params
             (sform/from-select-to-scenmap)
             (sgen/create-scenario)
-            (sprint/html-print-scenario)))
+            ((comp ssel/print-crisis-page sl/save-scen-to-db))))
   (route/not-found
    (html [:html
           [:body

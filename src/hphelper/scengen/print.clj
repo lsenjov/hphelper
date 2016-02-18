@@ -172,22 +172,43 @@
     "Crisis numbers are: " (interpose ", " (map :c_id (scenRec :crisises))) [:br]]
    ])
 
+(defn html-print-optional
+  "Prints selected parts of a scenario.
+  Optional prints are:
+  :gmheader GM's Header
+  :gmindicies Indicies for the GM
+  :gmcrisises Crisis data for GM
+  :gmcbay Cbay data for GM
+  :gmdirectives Directive data for GM
+  :gmnews News data for GM
+  :gmsocieties Societies summary for GM
+  :player_n prints that specific player
+  :players prints all players
+  :minions prints minions for all service groups
+  :directives prints directives for all service groups"
+  [scenRec & options]
+  (html [:div
+         (if (some #{:gmheader} options) (html-print-header scenRec))
+         (if (some #{:gmindicies} options) (html-print-indicies scenRec))
+         (if (some #{:gmcrisises} options) (html-print-crisises scenRec))
+         (if (some #{:gmcbay} options) (html-print-cbay scenRec))
+         (if (some #{:gmdirectives} options) (html-print-directive-summary scenRec))
+         (if (some #{:gmnews} options) (html-print-news-summary scenRec))
+         (if (some #{:gmsocieties} options) (html-print-ssm-summary scenRec))
+         (if (some #{:players} options) (html-print-player-sheets scenRec))
+         (dotimes [p 6] (if (some #{(keyword (str "player_" p))} options)
+                          (html-print-player-sheet (get (scenRec :hps) p))))
+         (if (some #{:minions} options) (html-print-minions scenRec))
+         (if (some #{:directives} options) (html-print-directive-table scenRec))
+         ]
+        ))
+
 (defn html-print-scenario
   "Prints a scenario in html format"
   [scenRec]
-  (html [:div
-         ;[:div "DEBUG: " (str scenRec)] ;; Prints out the entire map for debugging
-         (html-print-header scenRec)
-         (html-print-indicies scenRec)
-         (html-print-crisises scenRec)
-         (html-print-cbay scenRec)
-         (html-print-directive-summary scenRec)
-         (html-print-news-summary scenRec)
-         ;(html-print-ssm-summary scenRec)
-         (html-print-player-sheets scenRec)
-         (html-print-minions scenRec)
-         (html-print-directive-table scenRec)
-         ]
-        ))
+  (html-print-optional scenRec
+                       :gmheader :gmindicies :gmcrisises :gmcbay
+                       :gmdirectives :gmnews :players :minions :directives)
+        )
 
 (html-print-scenario (hphelper.scengen.generator/create-scenario))
