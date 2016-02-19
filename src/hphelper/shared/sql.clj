@@ -94,7 +94,9 @@
 (defn get-random-name
   "Gets a random name from the database. at a specified clearance level"
   ([clearance]
-   (let [nameMap (get-random-item (query "SELECT * FROM `first_name`;"))]
+   (let [nameMap (first (query "SELECT * FROM `first_name` LIMIT 1 OFFSET ?;"
+                                         ((comp rand-int :cnt first)
+                                          (query "SELECT COUNT(`fn_id`) AS `cnt` FROM `first_name`"))))]
      (str (nameMap :fn_name) "-"
           clearance "-"
           (create-random-zone-name))))
