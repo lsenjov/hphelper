@@ -16,20 +16,23 @@
 
 (defroutes app-routes
   (GET "/char/" [] (cgen/html-print-sheet-one-page (cgen/create-character)))
-  (GET "/scen/" {params :params} 
+  (GET "/scen/" {params :params baseURL :context} 
        (if (params :scen_id)
-         (ssel/print-crisis-page (params :scen_id))
-         (ssel/print-select-page)))
+         (ssel/print-crisis-page (params :scen_id) baseURL)
+         (ssel/print-select-page baseURL)))
   (GET "/scen/gen/" [] (sform/html-select-page))
   (POST "/scen/gen/"
-        {params :params}
+        {params :params baseURL :context}
         (-> params
             (sform/from-select-to-scenmap)
             (sgen/create-scenario)
-            ((comp ssel/print-crisis-page sl/save-scen-to-db))))
+            (sl/save-scen-to-db)
+            (ssel/print-crisis-page baseURL)))
   (GET "/scen/print/" {params :params}
        ;(prn-str (keys params)))
        (sprint/html-print-optional (sl/load-scen-from-db (params :scen_id)) (keys params)))
+  (GET "/test/" stuff
+       (prn-str stuff))
   (route/not-found
    (html [:html
           [:body

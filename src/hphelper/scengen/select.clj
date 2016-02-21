@@ -11,37 +11,37 @@
 
 (defn print-select-page
   "Prints a page for selecting individual crisises"
-  []
-  (html [:html
-         [:head [:title "HPHelper Scenario Generator"]]
-         [:body
-          [:h3 "Scenario Generator"]
-          [:form {:action "./gen/"}
-           "Generate New Scenario:"
-           [:input {:type "submit" :value "New Scenario"}]
-           ]
-          [:br]
-          [:form {:action "." :method "get"}
-           [:select {:name "scen_id"}
-            (map (fn [i] [:option {:value i} i])
-                 (sl/get-scen-ids))
+  ([baseURL]
+   (html [:html
+          [:head [:title "HPHelper Scenario Generator"]]
+          [:body
+           [:h3 "Scenario Generator"]
+           [:form {:action (str baseURL "/scen/gen/")}
+            "Generate New Scenario:"
+            [:input {:type "submit" :value "New Scenario"}]
             ]
-           [:input {:type "submit" :value "Load Scenario"}]
+           [:br]
+           [:form {:action "." :method "get"}
+            [:select {:name "scen_id"}
+             (map (fn [i] [:option {:value i} i])
+                  (sl/get-scen-ids))
+             ]
+            [:input {:type "submit" :value "Load Scenario"}]
+            ]
            ]
           ]
-         ]
-        ))
+         )))
 
 (defn print-crisis-page
   "Prints the page for selecting view options for a crisis"
-  [s_id]
+  [s_id baseURL]
   (html [:html
          [:head
           [:title "Select your view"]
           ]
          [:body
           [:h3 "Selection for saved scenario: " s_id]
-          [:form {:action "/scen/print/" :method "get"}
+          [:form {:action (str baseURL "/scen/print/") :method "get"}
            [:input {:type "hidden" :name "scen_id" :value s_id}]
            [:input {:type "checkbox" :name "gmheader" :checked "on"} "Print GM's Header"] [:br]
            [:input {:type "checkbox" :name "gmindicies" :checked "on"} "Print GM's Indicies"] [:br]
