@@ -20,7 +20,7 @@
 (defn init-named-items
   "Checks if namedItems is initialised. If not, initialise it"
   []
-  (if (not (resolve 'namedItems))
+  (if (not (ns-resolve 'hphelper.shared.sql 'namedItems))
     (def namedItems
       "A map atom with references as keys and named items as values"
       (atom {}))))
