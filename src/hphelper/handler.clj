@@ -31,16 +31,16 @@
   (GET "/scen/print/" {params :params}
        ;(prn-str (keys params)))
        (sprint/html-print-optional (sl/load-scen-from-db (params :scen_id)) (keys params)))
-  (GET "/test/" stuff
-       (prn-str stuff))
+  (GET "/" {baseURL :context}
+       (html [:html
+              [:body
+               [:a {:href (str baseURL "/scen/")} "Scenario Generator"][:br]
+               [:a {:href (str baseURL "/char/")} "Character Generator"][:br]
+               [:br]
+               [:a {:href "https://github.com/lsenjov/hphelper"} "Source Code"][:br]
+               ]]))
   (route/not-found
-   (html [:html
-          [:body
-           [:a {:href "/scen/"} "Scenario Generator"][:br]
-           [:a {:href "/char/"} "Character Generator"][:br]
-           [:br]
-           [:a {:href "https://github.com/lsenjov/hphelper"} "Source Code"][:br]
-           ]]))
+    "Not Found.")
   )
 
 (def app
