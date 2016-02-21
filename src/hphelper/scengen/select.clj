@@ -40,8 +40,21 @@
           [:title "Select your view"]
           ]
          [:body
-          (sprint/html-print-scenario (sl/load-scen-from-db s_id))
-
+          [:h3 "Selection for saved scenario: " s_id]
+          [:form {:action "/scen/print/" :method "get"}
+           [:input {:type "hidden" :name "scen_id" :value s_id}]
+           [:input {:type "checkbox" :name "gmheader" :checked "on"} "Print GM's Header"] [:br]
+           [:input {:type "checkbox" :name "gmindicies" :checked "on"} "Print GM's Indicies"] [:br]
+           [:input {:type "checkbox" :name "gmcrisises" :checked "on"} "Print GM's Crisis Summary"] [:br]
+           [:input {:type "checkbox" :name "gmcbay" :checked "on"} "Print GM's Cbay Summary"] [:br]
+           [:input {:type "checkbox" :name "gmdirectives" :checked "on"} "Print GM's Directive summary"] [:br]
+           [:input {:type "checkbox" :name "gmnews" :checked "on"} "Print GM's News Summary"] [:br]
+           [:input {:type "checkbox" :name "gmsocieties"} "Print GM's Societies Summary"] [:br]
+           [:input {:type "checkbox" :name "players" :checked "on"} "Print player sheets"] [:br]
+           [:input {:type "checkbox" :name "minions" :checked "on"} "Print minion sheets"] [:br]
+           [:input {:type "checkbox" :name "directives" :checked "on"} "Print directive sheets"] [:br]
+           [:div [:input {:type "submit" :value "Print Scenario"}]]
+           ]
           ]
          ]
         ))

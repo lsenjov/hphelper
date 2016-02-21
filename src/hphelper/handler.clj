@@ -27,11 +27,14 @@
             (sform/from-select-to-scenmap)
             (sgen/create-scenario)
             ((comp ssel/print-crisis-page sl/save-scen-to-db))))
+  (GET "/scen/print/" {params :params}
+       ;(prn-str (keys params)))
+       (sprint/html-print-optional (sl/load-scen-from-db (params :scen_id)) (keys params)))
   (route/not-found
    (html [:html
           [:body
-           [:a {:href "./scen/"} "Scenario Generator"][:br]
-           [:a {:href "./char/"} "Character Generator"][:br]
+           [:a {:href "/scen/"} "Scenario Generator"][:br]
+           [:a {:href "/char/"} "Character Generator"][:br]
            [:br]
            [:a {:href "https://github.com/lsenjov/hphelper"} "Source Code"][:br]
            ]]))

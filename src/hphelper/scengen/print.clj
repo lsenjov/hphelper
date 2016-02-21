@@ -186,7 +186,7 @@
   :players prints all players
   :minions prints minions for all service groups
   :directives prints directives for all service groups"
-  [scenRec & options]
+  [scenRec options]
   (html [:div
          (if (some #{:gmheader} options) (html-print-header scenRec))
          (if (some #{:gmindicies} options) (html-print-indicies scenRec))
@@ -210,5 +210,3 @@
                        :gmheader :gmindicies :gmcrisises :gmcbay
                        :gmdirectives :gmnews :players :minions :directives)
         )
-
-(html-print-scenario (hphelper.scengen.generator/create-scenario))
