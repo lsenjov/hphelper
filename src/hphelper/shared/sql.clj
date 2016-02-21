@@ -17,15 +17,9 @@
 ;; continue to return the same names for ##REF-TAGS##
 ;; It is done this way so names aren't overwritten during frequent updating
 ;; (resaving source files will re-load them into memory)
-(defn init-named-items
-  "Checks if namedItems is initialised. If not, initialise it"
-  []
-  (if (not (ns-resolve 'hphelper.shared.sql 'namedItems))
-    (def namedItems
-      "A map atom with references as keys and named items as values"
-      (atom {}))))
-
-(init-named-items)
+(def namedItems
+  "A map atom with references as keys and named items as values"
+  (atom {}))
 
 (defn reset-named-items!
   "Resets the namedItems atom"
@@ -35,13 +29,11 @@
 (defn get-name
   "Returns the referenced name from namedItems, or nil if not existing"
   [keyName]
-  (init-named-items)
   (get @namedItems keyName))
 
 (defn named-exists?
   "Returns true if the named item already exists in namedItems, else false"
   [refName]
-  (init-named-items)
   (if (some #{refName} (vals @namedItems))
     true
     false))
@@ -50,7 +42,6 @@
   "Adds the reference name pair to namedItems, overwriting any previous allocation.
   Returns the added name"
   ([keyRef valName]
-   (init-named-items)
    (swap! namedItems assoc keyRef valName)
    valName)
   ([[keyRef valName]]
