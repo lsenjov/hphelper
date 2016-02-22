@@ -125,7 +125,7 @@
   "Prints a single minion table cell"
   [minion]
   (assert minion "Minion does not exist?")
-  [:td {:style "border: 1px solid black"}
+  [:td {:style "border: 1px solid black; font-size: small"}
    (:minion_name minion) " -- "
    (:minion_clearance minion) " -- "
    (:minion_cost minion) " -- "
