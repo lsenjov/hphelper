@@ -20,6 +20,7 @@
                                  (html [:input {:type "checkbox" :name (str "ss_" playerId "_" (society :ss_id))}])
                                  (html [:br])))
               (sql/query "SELECT * FROM ss;"))
+         "Player messages:" [:br]
          [:textarea {:rows "4" :name (str "messages_" playerId)}]
          ]))
 
@@ -56,7 +57,8 @@
             (html [:td (html-player-sheet playerId)]))
           ]
          ]
-
+        "Extra cbay items: (Remember to add the price as \"5 ACCESS\" on the end)" [:br]
+        [:textarea {:rows "4" :cols "80" :name "cbay"}]
 
         [:div [:input {:type "submit" :value "Create Sector"}]]
         ]
@@ -162,11 +164,20 @@
   [params]
   (assoc-in params [:zone] (get params :s_name)))
 
+(defn- assoc-cbay
+  "If cbay exists, converts to a vector of strings, if not, removes it"
+  [{cbay :cbay :as params}]
+  (if (and cbay
+           (> (count cbay) 0))
+    (assoc-in params [:cbay] (clojure.string/split cbay #"\n"))
+    (dissoc params :cbay)))
+
 (defn from-select-to-scenmap
   "Converts the form input to a scenario form for use by the generator"
   [params]
   (-> params
       (assoc-zone)
+      (assoc-cbay)
       (assoc-all-players)
       (assoc-all-crisises)
       (assoc-print-sheet)

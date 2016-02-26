@@ -246,10 +246,11 @@
 
 (defn- generate-cbay
   "Generates cbay articles from both crisises and random items"
-  [scenRec]
+  [{cbay :cbay :as scenRec}] ;; Cbay may or may not exist
   (assoc-in scenRec [:cbay]
             (into []
-                  (let [items (sql/get-random-cbay-items (scenRec :zone) 3)]
+                  (let [items (concat (sql/get-random-cbay-items (scenRec :zone) 3)
+                                      cbay)] ;; If cbay does not exist, will be as before.
                     (map str
                          items
                          (repeat " ")
