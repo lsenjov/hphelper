@@ -20,7 +20,7 @@
                                  (html [:input {:type "checkbox" :name (str "ss_" playerId "_" (society :ss_id))}])
                                  (html [:br])))
               (sql/query "SELECT * FROM ss;"))
-         ;[:textarea {:rows "4" :name (str "messages_" playerId)}]
+         [:textarea {:rows "4" :name (str "messages_" playerId)}]
          ]))
 
 (defn html-select-page
@@ -109,6 +109,18 @@
           )
    params))
 
+(defn- assoc-additional-messages
+  "Checks for additional messages, and if exists and long enough splits by \n"
+  [playerId {admes (keyword (str "messages_" playerId))
+             :as params}]
+  (if (and admes
+           (> (count admes) 0))
+    (do 
+      (assoc-in params [:hps playerId :msgs]
+                 (clojure.string/split admes #"\n"))
+      )
+    params))
+
 (defn- gen-character
   "Creates the 6 characters from whatever details given"
   [playerId params]
@@ -120,6 +132,7 @@
   (->> params
       (assoc-player-name playerId)
       (assoc-player-societies playerId)
+      (assoc-additional-messages playerId)
       (gen-character playerId)
       ))
 

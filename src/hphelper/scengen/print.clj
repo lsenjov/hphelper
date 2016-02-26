@@ -86,6 +86,18 @@
    ]
   )
 
+(defn- html-print-additional-messages
+  "Prints additional messages, one each line"
+  [{msgs :msgs :as pRec}]
+  (if msgs
+    [:div
+     [:b "Additional Messages" [:br]]
+     (map (fn [line] [:span line [:br]])
+          msgs)
+     ]
+    ""
+    ))
+
 (defn- html-print-player-sheet
   "Prints a single player sheet in a html format"
   [scenRec player]
@@ -105,6 +117,7 @@
                                     (map :ss_id
                                          (get player "Program Group"))))
                             (scenRec :societies))))]
+         (html-print-additional-messages player)
          (html-print-cbay scenRec)
          ]
         ))
@@ -187,6 +200,7 @@
   :minions prints minions for all service groups
   :directives prints directives for all service groups"
   [scenRec options]
+  ;(println (prn-str scenRec)) ;DEBUG
   (html [:div
          (if (some #{:gmheader} options) (html-print-header scenRec))
          (if (some #{:gmindicies} options) (html-print-indicies scenRec))
