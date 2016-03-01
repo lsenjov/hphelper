@@ -8,6 +8,9 @@
   (:gen-class)
   )
 
+(def numPlayers 
+  "The number of players to display and print" 
+  9)
 
 ;; This is the form presented to the player
 (defn- html-player-sheet
@@ -53,7 +56,7 @@
                                            :pattern "\\d*"}])]
         [:table
          [:tr
-          (for [playerId (range 6)]
+          (for [playerId (range numPlayers)]
             (html [:td (html-player-sheet playerId)]))
           ]
          ]
@@ -107,7 +110,7 @@
                         (if (contains? params (keyword (str "charsheet_" pId)))
                           (assoc-in params [:hps pId :printSheet] true)
                           params)))
-                    (range 6))
+                    (range numPlayers))
           )
    params))
 
@@ -124,7 +127,7 @@
     params))
 
 (defn- gen-character
-  "Creates the 6 characters from whatever details given"
+  "Creates the numPlayers characters from whatever details given"
   [playerId params]
   (update-in params [:hps playerId] cgen/create-character))
 
@@ -139,14 +142,14 @@
       ))
 
 (defn- assoc-all-players
-  "Associates all 6 possible players"
+  "Associates all numPlayers possible players"
   [params]
-  (let [pIds (range 6)]
+  (let [pIds (range numPlayers)]
     (-> params
         ((apply comp
                 (map partial
                      (repeat assoc-player)
-                     pIds))) ;; Composes 6 assoc-player functions together, one for each possible player
+                     pIds))) ;; Composes numPlayers assoc-player functions together, one for each possible player
         ))
   )
 
