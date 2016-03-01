@@ -24,7 +24,7 @@
            [:form {:action "." :method "get"}
             [:select {:name "scen_id"}
              (map (fn [i] [:option {:value i} i])
-                  (sl/get-scen-ids))
+                  (reverse (sl/get-scen-ids)))
              ]
             [:input {:type "submit" :value "Load Scenario"}]
             ]
