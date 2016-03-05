@@ -4,7 +4,13 @@
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [clojure.tools.logging :as log]
             [clojure.data.json :as json]
+
+            ;; Character handling
             [hphelper.chargen.generator :as cgen]
+            [hphelper.chargen.charform :as cform]
+            [hphelper.chargen.print :as cprint]
+
+            ;; Scenario handling
             [hphelper.scengen.scenform :as sform]
             [hphelper.scengen.generator :as sgen]
             [hphelper.scengen.print :as sprint]
@@ -15,7 +21,8 @@
   (:gen-class))
 
 (defroutes app-routes
-  (GET "/char/" [] (cgen/html-print-sheet-one-page (cgen/create-character)))
+  (GET "/char/" [] (cform/html-select-page))
+  (GET "/char/gen" [] (cprint/html-print-sheet-one-page (cgen/create-character)))
   (GET "/scen/" {params :params baseURL :context} 
        (if (params :scen_id)
          (ssel/print-crisis-page (params :scen_id) baseURL)
@@ -35,7 +42,7 @@
        (html [:html
               [:body
                [:a {:href (str baseURL "/scen/")} "Scenario Generator"][:br]
-               [:a {:href (str baseURL "/char/")} "Character Generator"][:br]
+               [:a {:href (str baseURL "/char/gen")} "Character Generator"][:br]
                [:br]
                [:a {:href "https://github.com/lsenjov/hphelper"} "Source Code"][:br]
                ]]))
