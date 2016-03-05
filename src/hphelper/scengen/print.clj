@@ -2,7 +2,7 @@
   (:require [hiccup.core :refer :all]
             [clojure.tools.logging :as log]
             [hphelper.shared.sql :as sql]
-            [hphelper.chargen.generator :as cgen]
+            [hphelper.chargen.print :as cprint]
             [hphelper.scengen.generator :refer [sectorIndicies]]
             )
   (:gen-class)
@@ -104,7 +104,7 @@
   (log/trace "Printing player sheet for: " player)
   (html [:div
          (if (player :printSheet)
-           [:div (cgen/html-print-sheet player)]
+           [:div (cprint/html-print-sheet player)]
            "")
          [:div {:style "page-break-before: always;"} [:h3 "Welcome " (player :name)]]
          [:div (html-print-indicies scenRec)]
