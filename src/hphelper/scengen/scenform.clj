@@ -33,40 +33,39 @@
   (html
     [:html
      [:head
-      [:title "Welcome High Programmer"]
-      [:body
-       [:h1 "Please make your selection below"]
-       [:div "Some notes:" [:br]
-        [:ul
-         [:li "You can use a double hash to sub objects:"]
-         [:li "##LOC-1## for example, pulls a random location. ##LOC-1## is used for many of the generic SS missions, and is often a good pick."]
-         [:li "##CIT-G-1## will give you a random GREEN citizen's name. These names work from R all the way up to U"]
-         [:li "##RES-1## will give a random resource. Anything from Nuclear Waste to Hot Fun. Rare in the missions, but may be useful"]
-         [:li "##ZON## will return the zone's three letters."]
-         ]
+      [:title "Welcome High Programmer"]]
+     [:body
+      [:h1 "Please make your selection below"]
+      [:div "Some notes:" [:br]
+       [:ul
+        [:li "You can use a double hash to sub objects:"]
+        [:li "##LOC-1## for example, pulls a random location. ##LOC-1## is used for many of the generic SS missions, and is often a good pick."]
+        [:li "##CIT-G-1## will give you a random GREEN citizen's name. These names work from R all the way up to U"]
+        [:li "##RES-1## will give a random resource. Anything from Nuclear Waste to Hot Fun. Rare in the missions, but may be useful"]
+        [:li "##ZON## will return the zone's three letters."]
         ]
-       ;; Description done, now for the actual form
-       [:form {:action "." :method "post"}
-        (anti-forgery-field)
-        ;[:div "Random Seed:" [:input {:type "text" :name "seed"}] "(Numeric only, leave blank for random.)"]
-        [:div "Sector Name:" [:input {:type "text" :name "s_name"}] "(Leave blank for random)"]
-        [:div "Crisis Numbers:" (for [cField (range 3)]
-                                  [:input {:type "text"
-                                           :name (str "crisis_" cField)
-                                           :pattern "\\d*"}])]
-        [:table
-         [:tr
-          (for [playerId (range numPlayers)]
-            (html [:td (html-player-sheet playerId)]))
-          ]
-         ]
-        "Extra cbay items: (Remember to add the price as \"5 ACCESS\" on the end)" [:br]
-        [:textarea {:rows "4" :cols "80" :name "cbay"}]
-
-        [:div [:input {:type "submit" :value "Create Sector"}]]
-        ]
-
        ]
+      ;; Description done, now for the actual form
+      [:form {:action "." :method "post"}
+       (anti-forgery-field)
+       ;[:div "Random Seed:" [:input {:type "text" :name "seed"}] "(Numeric only, leave blank for random.)"]
+       [:div "Sector Name:" [:input {:type "text" :name "s_name"}] "(Leave blank for random)"]
+       [:div "Crisis Numbers:" (for [cField (range 3)]
+                                 [:input {:type "text"
+                                          :name (str "crisis_" cField)
+                                          :pattern "\\d*"}])]
+       [:table
+        [:tr
+         (for [playerId (range numPlayers)]
+           (html [:td (html-player-sheet playerId)]))
+         ]
+        ]
+       "Extra cbay items: (Remember to add the price as \"5 ACCESS\" on the end)" [:br]
+       [:textarea {:rows "4" :cols "80" :name "cbay"}]
+
+       [:div [:input {:type "submit" :value "Create Sector"}]]
+       ]
+
       ]
      ]
     )

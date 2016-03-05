@@ -111,6 +111,20 @@
    (rand-nth
     (query "SELECT resource_name FROM resource WHERE resource_type LIKE ?;" resType))))
 
+(defn- create-random-sub
+  "Creates a random subdomain of type 123-45/A"
+  []
+  (apply str (concat
+               (repeatedly (+ 2 (rand-int 3))
+                              (partial rand-int 10))
+               '(\-)
+               (repeatedly (+ 2 (rand-int 3))
+                           (partial rand-int 10))
+               '(\/)
+               (repeatedly (+ 1 (rand-int 2))
+                          (fn [] (char (+ (int \A) (rand-int 26)))))
+               )))
+
 (defn- interpret-token
   "Takes a string of format ABC-TAGS-AND-OTHERS and looks at the first part, choosing which
   function to call, then calls get-or-create-name. On an error logs and returns the token."
@@ -121,6 +135,7 @@
       "CIT" (interpret-citizen-name token)
       "LOC" (get-or-create-name (partial get-random-resource "LOC") token)
       "RES" (get-or-create-name (partial get-random-resource "RES") token)
+      "SUB" (get-or-create-name create-random-sub token)
       (do
         (log/error "Incorrect token form:" token)
         token)
