@@ -47,13 +47,15 @@
 (defn- create-societies
   "Adds program group socities to the record from the database"
   [charRec]
-  (assert (<= (count (charRec "Program Group"))
-              (-> charRec (:secStats) (get "Program Group Size")))
-          (str "Secret society count greater than allowed. Management is:" (-> charRec :priStats (get "Management"))))
-  (if (>= (-> charRec (get "Program Group") (count))
-          (-> charRec (:secStats) (get "Program Group Size")))
-    charRec
-    (recur (assoc-in charRec ["Program Group"] (clojure.set/union #{} (charRec "Program Group") #{(sql/get-random-society)})))))
+  (if (<= (count (charRec "Program Group"))
+              (-> charRec (:secStats) (get "Program Group Size"))) ;; If there's too many societies, drop one below
+    (if (>= (-> charRec (get "Program Group") (count))
+            (-> charRec (:secStats) (get "Program Group Size")))
+      charRec
+      (recur (assoc-in charRec ["Program Group"] ;; Add a random society
+                       (clojure.set/union #{} (charRec "Program Group") #{(sql/get-random-society)}))))
+    (recur (update-in charRec ["Program Group"] ;; Drop a random society
+                      (dissoc (rand-int (count (charRec "Program Group"))))))))
 
 (defn- calc-access-remaining
   "Calculates remaining access"
@@ -85,6 +87,14 @@
   [charRec]
   (assoc charRec :accessRemaining (calc-access-remaining charRec)))
 
+(defn create-drawback
+  "Creates a single drawback in a character record"
+  [charRec]
+  (assoc-in charRec [:drawbacks] (clojure.set/union #{}
+                                                    (charRec :drawbacks)
+                                                    #{(sql/get-random-drawback)})))
+
+
 (defn- create-drawbacks
   "Checks minimum access.
   If not enough, adds a drawback up to three and adds access.
@@ -92,12 +102,8 @@
   [charRec minimumAccess]
   (if (>= (count (charRec :drawbacks)) 3)
     charRec ;; Already at 3 drawbacks
-    (if (or (< (calc-access-remaining charRec) minimumAccess)
-            (< (Math/random) 0.2)) ;; 1 in 5 chance of an extra drawback
-      (let [newCharRec (assoc-in charRec [:drawbacks] (clojure.set/union #{}
-                                                                          (charRec :drawbacks)
-                                                                          #{(sql/get-random-drawback)}))]
-        (recur newCharRec minimumAccess))
+    (if (< (calc-access-remaining charRec) minimumAccess)
+      (recur (create-drawback charRec) minimumAccess)
       charRec)))
 
 (defn- create-mutation
@@ -128,8 +134,8 @@
          (calc-clone-degredation)
          (calc-program-group-size)
          (create-societies)
-         (create-public-standing 30)
-         (create-drawbacks 30)
+         ;(create-public-standing 30) ; No longer required
+         (create-drawbacks 0)
          (create-mutation 10)
          (set-remaining-access)
          (check-name)

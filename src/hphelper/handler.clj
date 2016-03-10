@@ -22,7 +22,9 @@
 
 (defroutes app-routes
   (GET "/char/" [] (cform/html-select-page))
-  (GET "/char/gen" [] (cprint/html-print-sheet-one-page (cgen/create-character)))
+  (POST "/char/"
+        {params :params}
+        (cprint/html-print-sheet-one-page (cgen/create-character (cform/convert-to-char params))))
   (GET "/scen/" {params :params baseURL :context} 
        (if (params :scen_id)
          (ssel/print-crisis-page (params :scen_id) baseURL)
@@ -42,7 +44,7 @@
        (html [:html
               [:body
                [:a {:href (str baseURL "/scen/")} "Scenario Generator"][:br]
-               [:a {:href (str baseURL "/char/gen")} "Character Generator"][:br]
+               [:a {:href (str baseURL "/char/")} "Character Generator"][:br]
                [:br]
                [:a {:href "https://github.com/lsenjov/hphelper"} "Source Code"][:br]
                ]]))
