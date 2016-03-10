@@ -258,6 +258,11 @@
   [ssId]
   (first (query "SELECT * FROM ss_skills WHERE ss_id = ?;" ssId)))
 
+(defn get-society-all
+  "Returns the table of all secret socities"
+  []
+  (query "SELECT * FROM ss_skills;"))
+
 (defn get-random-drawback
   "Gets a random drawback from the database. Returns a string."
   []

@@ -113,6 +113,24 @@
       (assoc target :publicStanding ps)
       target)))
 
+(defn- assoc-single-society
+  "Checks for a single society and associates if exists"
+  [params sNum target]
+  (if ((keyword (str "ss_" sNum)) params)
+    (assoc-in target ["Program Group"] ;; Add society
+              (clojure.set/union #{} (target "Program Group") #{(sql/get-society sNum)}))
+    target))
+
+(defn- assoc-societies
+  "Checks for all possible socities and associates them if required"
+  [params target]
+  ((apply comp (map partial
+                    (repeat assoc-single-society)
+                    (repeat params)
+                    (map :ss_id (sql/get-society-all))))
+   target)
+  )
+
 (defn convert-to-char
   "Coverts a set of paramaters to a data object to generate"
   [params]
@@ -121,6 +139,5 @@
        (assoc-stats params)
        (generate-drawbacks params)
        (assoc-public-standing params)
-  ;; Assoc Public Standing
-  ;; Assoc Societies
+       (assoc-societies params)
   ))
