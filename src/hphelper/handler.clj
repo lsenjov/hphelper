@@ -9,6 +9,7 @@
             [hphelper.chargen.generator :as cgen]
             [hphelper.chargen.charform :as cform]
             [hphelper.chargen.print :as cprint]
+            [hphelper.chargen.select :as csel]
 
             ;; Scenario handling
             [hphelper.scengen.scenform :as sform]
@@ -21,10 +22,27 @@
   (:gen-class))
 
 (defroutes app-routes
-  (GET "/char/" [] (cform/html-select-page))
-  (POST "/char/"
+  ;; CHARACTERS
+  (GET "/char/" {params :params baseURL :context}
+       (if (:char_id params)
+         (cprint/html-print-sheet-one-page (sl/load-char-from-db (:char_id params)))
+         (csel/print-select-page baseURL)))
+  (GET "/char/gen/" {baseURL :context}
+       (cform/html-select-page))
+  (POST "/char/gen/"
         {params :params}
-        (cprint/html-print-sheet-one-page (cgen/create-character (cform/convert-to-char params))))
+        (html [:div
+               (-> params
+                   (cform/convert-to-char)
+                   (cgen/create-character)
+                   (sl/save-char-to-db)
+                   (sl/load-char-from-db)
+                   (cprint/html-print-sheet-one-page))
+               ]))
+  (GET "/char/print/" {params :params}
+       (cprint/html-print-sheet-one-page (sl/load-char-from-db (:char_id params))))
+
+  ;; SCENARIOS
   (GET "/scen/" {params :params baseURL :context} 
        (if (params :scen_id)
          (ssel/print-crisis-page (params :scen_id) baseURL)
@@ -38,8 +56,9 @@
             (sl/save-scen-to-db)
             (ssel/print-crisis-page baseURL)))
   (GET "/scen/print/" {params :params}
-       ;(prn-str (keys params)))
        (sprint/html-print-optional (sl/load-scen-from-db (params :scen_id)) (keys params)))
+
+  ;; OTHER
   (GET "/" {baseURL :context}
        (html [:html
               [:body
