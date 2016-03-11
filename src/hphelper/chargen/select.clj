@@ -13,11 +13,11 @@
   "Prints a page for selecting individual crisises"
   ([baseURL]
    (html [:html
-          [:head [:title "HPHelper Scenario Generator"]]
+          [:head [:title "HPHelper Character Generator"]]
           [:body
-           [:h3 "Scenario Generator"]
+           [:h3 "Character Generator"]
            [:form {:action (str baseURL "/char/gen/")}
-            "Generate New Scenario:"
+            "Generate New Character:"
             [:input {:type "submit" :value "New Character"}]
             ]
            [:br]
