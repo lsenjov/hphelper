@@ -24,8 +24,13 @@
   (if (and (not (-> charRec :priStats (get "Management")))
            (-> charRec (get "Program Group"))) ;; If no management skill but an existing program group
     (assoc-in charRec [:priStats "Management"]
-              (let [minimum (inc (* 5 (dec (dec (count (get charRec "Program Group"))))))]
-                (+ minimum (rand-int (- 20 minimum)))))
+              (let [minimum (inc
+                              (* 5
+                                 (+ -2
+                                    (min 5
+                                         (count (get charRec "Program Group"))))))]
+                (log/info "Minimum is: " minimum)
+                (+ minimum (rand-int (- 21 minimum)))))
     charRec))
 
 (defn- calc-clone-degredation
@@ -54,8 +59,9 @@
       charRec
       (recur (assoc-in charRec ["Program Group"] ;; Add a random society
                        (clojure.set/union #{} (charRec "Program Group") #{(sql/get-random-society)}))))
-    (recur (update-in charRec ["Program Group"] ;; Drop a random society
-                      (dissoc (rand-int (count (charRec "Program Group"))))))))
+    (recur (assoc-in charRec ["Program Group"] ;; Drop a random society
+                     (let [pg (get charRec "Program Group")]
+                       (disj pg (rand-nth (into '() pg))))))))
 
 (defn- calc-access-remaining
   "Calculates remaining access"
