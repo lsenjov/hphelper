@@ -39,6 +39,8 @@
                                        (sl/get-char-list)))
                          [:option {:value ""} "No Char"])
                        ]
+         "Additional Messages for player:"
+         [:textarea {:rows "4" :name (str "messages_" playerId)}]
          ]
         ))
 
@@ -151,12 +153,13 @@
 
 (defn- assoc-additional-messages
   "Checks for additional messages, and if exists and long enough splits by \n"
-  [playerId {admes (keyword (str "messages_" playerId))
-             :as params}]
+  [playerId
+   {admes (keyword (str "messages_" playerId)) :as params}
+   scen]
   (if (and admes
            (> (count admes) 0))
     (do 
-      (assoc-in params [:hps playerId :msgs]
+      (assoc-in scen [:hps playerId :msgs]
                  (clojure.string/split admes #"\n"))
       )
     params))
@@ -175,6 +178,7 @@
         (if player
           (assoc-additional-messages
             playerId
+            params
             (assoc-in scen [:hps playerId] player))
           scen))
       scen)))
