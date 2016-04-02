@@ -68,14 +68,6 @@
      ]
     ))
 
-(defn- parse-int
-  "Parses a string to an integer. On fail, return nil."
-  [i]
-  (if (integer? i)
-    i
-    (try (Integer/parseInt i)
-         (catch Exception e nil))))
-
 ;; Converting from sheet to character sheet
 (defn- assoc-name
   "If a name field exists, move it to the target"
@@ -87,7 +79,7 @@
 (defn- assoc-stat
   "Associates a single stat"
   [params stat target]
-  (let [statVal (parse-int ((keyword (str "stat_" stat)) params))]
+  (let [statVal (sql/parse-int ((keyword (str "stat_" stat)) params))]
     (if statVal
       (assoc-in target [:priStats stat] statVal)
       target)))
@@ -100,15 +92,15 @@
 (defn- generate-drawbacks
   "If drawbacks is greater than 0, generate that number of drawbacks for the character"
   [params target]
-  (if (> (parse-int (:DrawbackCount params)) 0)
-    ((apply comp (repeat (parse-int (:DrawbackCount params)) cgen/create-drawback)) target)
+  (if (> (sql/parse-int (:DrawbackCount params)) 0)
+    ((apply comp (repeat (sql/parse-int (:DrawbackCount params)) cgen/create-drawback)) target)
     target)
   )
 
 (defn- assoc-public-standing
   "Associates public standing if it exists"
   [params target]
-  (let [ps (parse-int (params :PublicStanding))]
+  (let [ps (sql/parse-int (params :PublicStanding))]
     (if ps
       (assoc target :publicStanding ps)
       target)))

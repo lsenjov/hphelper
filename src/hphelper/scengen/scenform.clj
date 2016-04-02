@@ -4,6 +4,7 @@
             [ring.util.anti-forgery :refer [anti-forgery-field]]
             [hphelper.chargen.generator :as cgen]
             [clojure.tools.logging :as log]
+            [hphelper.shared.saveload :as sl]
             )
   (:gen-class)
   )
@@ -13,7 +14,7 @@
   9)
 
 ;; This is the form presented to the player
-(defn- html-player-sheet
+(defn- html-old-player-sheet
   "Generates an input form for a single player"
   [playerId]
   (html [:div
@@ -27,9 +28,23 @@
          [:textarea {:rows "4" :name (str "messages_" playerId)}]
          ]))
 
+(defn- html-player-sheet
+  "Generates a selection form for a single player"
+  [playerId]
+  (html [:div
+         "Character:" [:select {:name (str "char_" playerId)}
+                       (conj
+                         (reverse (map (fn [x] [:option {:value (:char_id x)}
+                                                (str (:char_name x) \( (:char_id x) \) )])
+                                       (sl/get-char-list)))
+                         [:option {:value ""} "No Char"])
+                       ]
+         ]
+        ))
+
 (defn html-select-page
   "Generates a html page to select options for the creation of a scenario"
-  []
+  [baseURL]
   (html
     [:html
      [:head
@@ -46,7 +61,7 @@
         ]
        ]
       ;; Description done, now for the actual form
-      [:form {:action "." :method "post"}
+      [:form {:action (str baseURL "/scen/gen/") :method "post"}
        (anti-forgery-field)
        ;[:div "Random Seed:" [:input {:type "text" :name "seed"}] "(Numeric only, leave blank for random.)"]
        [:div "Sector Name:" [:input {:type "text" :name "s_name"}] "(Leave blank for random)"]
@@ -54,12 +69,8 @@
                                  [:input {:type "text"
                                           :name (str "crisis_" cField)
                                           :pattern "\\d*"}])]
-       [:table
-        [:tr
-         (for [playerId (range numPlayers)]
-           (html [:td (html-player-sheet playerId)]))
-         ]
-        ]
+       ; Players table removed for second stage
+       ; [:table [:tr (for [playerId (range numPlayers)] (html [:td (html-player-sheet playerId)])) ] ]
        "Extra cbay items: (Remember to add the price as \"5 ACCESS\" on the end)" [:br]
        [:textarea {:rows "4" :cols "80" :name "cbay"}]
 
@@ -70,6 +81,31 @@
      ]
     )
   )
+
+(defn html-scen-to-full-page
+  "Generates a html page to select players for a created scenario"
+  [baseURL scenId]
+  (html
+    [:html
+     [:head
+      [:title "Welcome High Programmer"]]
+     [:body
+      [:h3 "Select HPs for saved scenario: " scenId]
+      [:form {:action (str baseURL "/scen/full/") :method "post"}
+       (anti-forgery-field)
+       [:input {:type "hidden" :name "scen_id" :value scenId}]
+       [:table
+        [:tr
+         (for [playerId (range numPlayers)]
+           (html [:td (html-player-sheet playerId)]))
+         ]
+        ]
+       [:div [:input {:type "submit" :value "Create HPs"}]]
+       ]
+      ]
+     ]
+    ))
+      
 
 ;; This is the conversion from the form params to a usable scenario generator map
 (defn- assoc-player-name
@@ -130,7 +166,21 @@
   [playerId params]
   (update-in params [:hps playerId] cgen/create-character))
 
-(defn- assoc-player
+(defn- assoc-saved-player
+  "Taking a single player id, loads the character from the database and adds it to the scenario"
+  [playerId params scen]
+  (let [pInt (sql/parse-int ((keyword (str "char_" playerId)) params))]
+    (if pInt
+      (let [player (sl/load-char-from-db pInt)]
+        (if player
+          (assoc-additional-messages
+            playerId
+            (assoc-in scen [:hps playerId] player))
+          scen))
+      scen)))
+
+
+(defn- assoc-player-old
   "Given a player ID, checks the map for all items pertinent to the player and re-orders the map"
   [playerId params]
   (->> params
@@ -142,15 +192,16 @@
 
 (defn- assoc-all-players
   "Associates all numPlayers possible players"
-  [params]
+  ([params scen]
   (let [pIds (range numPlayers)]
-    (-> params
+    (-> scen
         ((apply comp
                 (map partial
-                     (repeat assoc-player)
-                     pIds))) ;; Composes numPlayers assoc-player functions together, one for each possible player
+                     (repeat assoc-saved-player)
+                     pIds
+                     (repeat params)))) ;; Composes numPlayers assoc-player functions together, one for each possible player
         ))
-  )
+  ))
 
 (defn- assoc-all-crisises
   "Associates the crisises in the correct place"
@@ -180,7 +231,14 @@
   (-> params
       (assoc-zone)
       (assoc-cbay)
-      (assoc-all-players)
       (assoc-all-crisises)
-      (assoc-print-sheet)
       ))
+
+(defn from-scenmap-to-full
+  "Converts the form input of a scenmap to a full scenario"
+  [params]
+  (log/info "Params in from-scenmap-to-full are:" params)
+  (let [scen (sl/load-scen-from-db (sql/parse-int (:scen_id params)))]
+    (assert scen (str "Scenario not found! ScenId is:" scen))
+    (assoc-all-players params scen))
+  )

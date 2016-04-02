@@ -20,13 +20,23 @@
             "Generate New Scenario:"
             [:input {:type "submit" :value "New Scenario"}]
             ]
-           [:br]
-           [:form {:action "." :method "get"}
+
+           [:form {:action (str baseURL "/scen/full/") :method "get"}
+            "Choose programmers for a scenario:"
             [:select {:name "scen_id"}
              (map (fn [i] [:option {:value i} i])
                   (reverse (sl/get-scen-ids)))
              ]
-            [:input {:type "submit" :value "Load Scenario"}]
+            [:input {:type "submit" :value "Choose Programmers for scenario"}]
+            ]
+
+           [:form {:action "." :method "get"}
+            "Print a completed scenario:"
+            [:select {:name "scen_id"}
+             (map (fn [i] [:option {:value i} i])
+                  (reverse (sl/get-fullscen-ids)))
+             ]
+            [:input {:type "submit" :value "Print Completed Scenario"}]
             ]
            ]
           ]

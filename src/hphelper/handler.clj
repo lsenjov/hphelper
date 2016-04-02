@@ -47,16 +47,23 @@
        (if (params :scen_id)
          (ssel/print-crisis-page (params :scen_id) baseURL)
          (ssel/print-select-page baseURL)))
-  (GET "/scen/gen/" [] (sform/html-select-page))
+  (GET "/scen/gen/" {baseURL :context} (sform/html-select-page baseURL))
   (POST "/scen/gen/"
         {params :params baseURL :context}
         (-> params
             (sform/from-select-to-scenmap)
             (sgen/create-scenario)
             (sl/save-scen-to-db)
+            ((partial sform/html-scen-to-full-page baseURL))))
+  (GET "/scen/full/" {params :params baseURL :context}
+       (sform/html-scen-to-full-page baseURL (:scen_id params)))
+  (POST "/scen/full/" {params :params baseURL :context}
+        (-> params
+            (sform/from-scenmap-to-full)
+            (sl/save-fullscen-to-db)
             (ssel/print-crisis-page baseURL)))
   (GET "/scen/print/" {params :params}
-       (sprint/html-print-optional (sl/load-scen-from-db (params :scen_id)) (keys params)))
+       (sprint/html-print-optional (sl/load-fullscen-from-db (params :scen_id)) (keys params)))
 
   ;; OTHER
   (GET "/" {baseURL :context}

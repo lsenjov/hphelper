@@ -200,7 +200,7 @@
   :minions prints minions for all service groups
   :directives prints directives for all service groups"
   [scenRec options]
-  ;(println (prn-str scenRec)) ;DEBUG
+  (println (prn-str scenRec)) ;DEBUG
   (html [:div
          (if (some #{:gmheader} options) (html-print-header scenRec))
          (if (some #{:gmindicies} options) (html-print-indicies scenRec))

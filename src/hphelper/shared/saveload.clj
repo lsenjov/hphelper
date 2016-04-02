@@ -25,6 +25,23 @@
   []
   (map :scen_id (jdb/query db ["SELECT scen_id FROM scen"])))
 
+;; Scenarios With Characters
+(defn save-fullscen-to-db
+  "Takes a data object, saves it as an edn string in the database.
+  Returns the generated key"
+  [obj]
+  (:generated_key (first (jdb/insert! db :fullscen {:fs_file (prn-str obj)}))))
+
+(defn load-fullscen-from-db
+  "Takes an integer key, gets the data object from the database."
+  [k]
+  (edn/read-string (:fs_file (first (jdb/query db ["SELECT fs_file FROM fullscen WHERE fs_id = ?;" k])))))
+
+(defn get-fullscen-ids
+  "Returns a list of all scenario ids"
+  []
+  (map :fs_id (jdb/query db ["SELECT fs_id FROM fullscen"])))
+
 ;; Characters
 (defn save-char-to-db
   "Takes a data object, saves it as an edn string in the database.

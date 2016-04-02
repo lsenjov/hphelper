@@ -13,6 +13,18 @@
   (log/trace "Performing Query: " quer)
   (jdb/query db quer))
 
+;; Items that need to get moved to their own file
+(defn parse-int
+  "Parses a string to an integer. On fail, return nil."
+  [i]
+  (if (integer? i)
+    i
+    (try (Integer/parseInt i)
+         (catch Exception e 
+           (do
+             (log/debug "Could not parse:" i)
+             nil)))))
+
 ;; Until reset, this will save all references. The same number crisis will
 ;; continue to return the same names for ##REF-TAGS##
 ;; It is done this way so names aren't overwritten during frequent updating

@@ -26,7 +26,20 @@ CREATE TABLE IF NOT EXISTS `chars` (
   `char_name` varchar(45) NOT NULL,
   `char_file` mediumtext NOT NULL,
   PRIMARY KEY (`char_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `fullscen`
+--
+
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE IF NOT EXISTS `fullscen` (
+  `fs_id` int(11) NOT NULL AUTO_INCREMENT,
+  `fs_file` text NOT NULL,
+  PRIMARY KEY (`fs_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -40,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `scen` (
   `scen_file` mediumtext NOT NULL,
   PRIMARY KEY (`scen_id`),
   UNIQUE KEY `scen_id_UNIQUE` (`scen_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -52,4 +65,4 @@ CREATE TABLE IF NOT EXISTS `scen` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-03-06 11:04:06
+-- Dump completed on 2016-04-02 16:39:57
