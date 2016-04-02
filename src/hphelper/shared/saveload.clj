@@ -30,6 +30,7 @@
   "Takes a data object, saves it as an edn string in the database.
   Returns the generated key"
   [obj]
+  (assert (:directives obj) "No directives exist?")
   (:generated_key (first (jdb/insert! db :fullscen {:fs_file (prn-str obj)}))))
 
 (defn load-fullscen-from-db

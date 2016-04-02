@@ -156,13 +156,14 @@
   [playerId
    {admes (keyword (str "messages_" playerId)) :as params}
    scen]
+  (log/debug "playerId is" playerId ", keys are:" (apply str (keys scen)))
   (if (and admes
            (> (count admes) 0))
     (do 
       (assoc-in scen [:hps playerId :msgs]
                  (clojure.string/split admes #"\n"))
       )
-    params))
+    scen))
 
 (defn- gen-character
   "Creates the numPlayers characters from whatever details given"
@@ -172,6 +173,7 @@
 (defn- assoc-saved-player
   "Taking a single player id, loads the character from the database and adds it to the scenario"
   [playerId params scen]
+  (log/debug "playerId is" playerId ", keys are:" (apply str (keys scen)))
   (let [pInt (sql/parse-int ((keyword (str "char_" playerId)) params))]
     (if pInt
       (let [player (sl/load-char-from-db pInt)]
@@ -182,7 +184,6 @@
             (assoc-in scen [:hps playerId] player))
           scen))
       scen)))
-
 
 (defn- assoc-player-old
   "Given a player ID, checks the map for all items pertinent to the player and re-orders the map"
