@@ -64,6 +64,11 @@
             (ssel/print-crisis-page baseURL)))
   (GET "/scen/print/" {params :params}
        (sprint/html-print-optional (sl/load-fullscen-from-db (params :scen_id)) (keys params)))
+  (GET "/scen/print/char/" {params :params}
+       (println params)
+       (let [scen (sl/load-fullscen-from-db (Integer/parseInt (:scen_id params)))]
+         (println (:hps scen))
+         (sprint/html-print-player-sheet scen ((:hps scen) (Integer/parseInt (:p_id params))))))
 
   ;; OTHER
   (GET "/" {baseURL :context}

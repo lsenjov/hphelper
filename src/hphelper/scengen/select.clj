@@ -65,6 +65,13 @@
            [:input {:type "checkbox" :name "directives" :checked "on"} "Print directive sheets"] [:br]
            [:div [:input {:type "submit" :value "Print Scenario"}]]
            ]
+          (let [players (:hps (sl/load-fullscen-from-db s_id))]
+            (map (fn [[playerId {playerName :name}]]
+                   [:div [:a {:href (str baseURL "/scen/print/char/"
+                                         "?scen_id=" s_id
+                                         "&p_id=" playerId)}
+                          playerName][:br]])
+                 players))
           ]
          ]
         ))

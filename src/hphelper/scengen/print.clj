@@ -98,7 +98,7 @@
     ""
     ))
 
-(defn- html-print-player-sheet
+(defn html-print-player-sheet
   "Prints a single player sheet in a html format"
   [scenRec player]
   (log/trace "Printing player sheet for: " player)
