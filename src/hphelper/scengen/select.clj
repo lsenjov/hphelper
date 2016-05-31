@@ -7,6 +7,7 @@
     [hphelper.shared.saveload :as sl]
     [hiccup.core :refer :all]
     [hphelper.shared.saveload :refer :all]
+    [hphelper.shared.encrypt :as c]
     ))
 
 (defn print-select-page
@@ -67,11 +68,16 @@
            ]
           (let [players (:hps (sl/load-fullscen-from-db s_id))]
             (map (fn [[playerId {playerName :name}]]
-                   [:div [:a {:href (str baseURL "/scen/print/char/"
-                                         "?scen_id=" s_id
-                                         "&p_id=" playerId)}
+                   [:div [:a {:href (str baseURL "/player/"
+                                         (c/int-hide s_id)
+                                         "/"
+                                         (c/int-hide playerId)
+                                         "/")}
                           playerName][:br]])
                  players))
+          [:br]
+          [:div [:a {:href (str baseURL "/minions/" (c/int-hide s_id) "/")}
+                 "Minions"]]
           ]
          ]
         ))

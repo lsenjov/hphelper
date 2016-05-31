@@ -306,4 +306,3 @@
        (purge-unused)
        )))
 
-(:hps (create-scenario))

@@ -5,19 +5,22 @@
             [clojure.tools.logging :as log]
             [clojure.data.json :as json]
 
-            ;; Character handling
+    ;; Character handling
             [hphelper.chargen.generator :as cgen]
             [hphelper.chargen.charform :as cform]
             [hphelper.chargen.print :as cprint]
             [hphelper.chargen.select :as csel]
 
-            ;; Scenario handling
+    ;; Scenario handling
             [hphelper.scengen.scenform :as sform]
             [hphelper.scengen.generator :as sgen]
             [hphelper.scengen.print :as sprint]
             [hphelper.scengen.select :as ssel]
             [hphelper.shared.saveload :as sl]
             [hiccup.core :refer :all]
+
+    ;; For hiding items from players
+            [hphelper.shared.encrypt :as c]
             )
   (:gen-class))
 
@@ -78,10 +81,16 @@
     (sprint/html-print-optional (sl/load-fullscen-from-db (params :scen_id)) (keys params)))
   ;; Prints a single session sheet for a character for a specific character
   (GET "/scen/print/char/" {params :params}
-    (println params)
+    (log/trace "Char sheet params:" params)
     (let [scen (sl/load-fullscen-from-db (Integer/parseInt (:scen_id params)))]
       (println (:hps scen))
       (sprint/html-print-player-sheet scen ((:hps scen) (Integer/parseInt (:p_id params))))))
+
+  (GET "/player/:scen_id/:p_id/" {{scen_id :scen_id p_id :p_id} :params baseURL :context}
+      (let [scen (sl/load-fullscen-from-db (c/int-show (Integer/parseInt scen_id)))]
+         (sprint/html-print-player-sheet scen ((:hps scen) (c/int-show (Integer/parseInt p_id))))))
+  (GET "/minions/:scen_id/" {{scen_id :scen_id} :params baseURL :context}
+    (sprint/html-print-optional (sl/load-fullscen-from-db (c/int-show (Integer/parseInt scen_id))) '(:minions)))
 
   ;; OTHER
   ;; Simple directs to the above
