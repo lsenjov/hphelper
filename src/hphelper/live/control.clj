@@ -16,11 +16,14 @@
   "Creates a new game, either from an existing map or straight 0s. Returns the generated uid"
   ([valMap]
    (uni/add-uuid-atom! currentGames
-                       (update-in valMap
-                                  [:indicies]
-                                  (partial merge
-                                           (indicies/create-base-indicies-list)))
-                       ))
+                       (-> valMap
+                           (update-in [:indicies]
+                                      (partial merge
+                                               (indicies/create-base-indicies-list)))
+                           (update-in [:news]
+                                      (partial concat
+                                               '()))
+                       )))
   ([]
    (new-game {:indicies (indicies/create-base-indicies-list)})))
 
@@ -44,3 +47,13 @@
       (uni/swap-uuid! currentGames uid update-in [:indicies index] + amount)
       nil)
   ))
+
+(defn add-news-item
+  "Adds a single news item to a game"
+  [uid ^String newsItem]
+  (uni/swap-uuid! currentGames uid update-in [:news] conj newsItem))
+
+(defn get-news
+  "Gets the news list of a game"
+  [uid]
+  ((uni/get-uuid-atom currentGames uid) :news))
