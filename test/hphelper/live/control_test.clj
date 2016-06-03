@@ -29,4 +29,8 @@
   (testing "Basic news operation"
     (let [uid (lcon/new-game)]
       (is (= '() (lcon/get-news uid)) "Should be an empty list")
-      )))
+      ))
+    (let [newsList '("asdf")
+          uid (lcon/new-game {:news newsList})]
+      (is (= newsList (lcon/get-news uid)) "Should be an empty list")
+      ))
