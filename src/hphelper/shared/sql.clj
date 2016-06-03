@@ -227,6 +227,11 @@
              [:sgm_text]
              (partial interpret-line zone)))
 
+(defn get-sgs
+  "Gets all service groups, keys sg_id, sg_name, sg_abbr"
+  []
+  (query "SELECT sg_id, sg_name, sg_abbr FROM sg;"))
+
 (defn get-sg-by-id
   "Gets service group by sg_id"
   [sgId]

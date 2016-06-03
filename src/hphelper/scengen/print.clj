@@ -3,7 +3,7 @@
             [clojure.tools.logging :as log]
             [hphelper.shared.sql :as sql]
             [hphelper.chargen.print :as cprint]
-            [hphelper.scengen.generator :refer [sectorIndicies]]
+            [hphelper.shared.indicies :refer :all]
             )
   (:gen-class)
   )
