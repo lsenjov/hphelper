@@ -1,6 +1,7 @@
 (ns hphelper.shared.unique
   (:require [clojure.tools.logging :as log]
             )
+  (:gen-class)
 )
 
 (defn uuid

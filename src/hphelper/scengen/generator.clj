@@ -19,13 +19,6 @@
   [crisisNum]
   (map :ct_tag (sql/query "SELECT * FROM crisis_tag WHERE c_id = ?;" crisisNum)))
 
-(defn- normalise-all-indicies
-  "Normalises the sector indicies, and the service group indicies"
-  [indicies]
-  (->> indicies
-      (normalise-specific-indicies sectorIndicies)
-      (normalise-specific-indicies (map key (remove (partial some (into #{} sectorIndicies)) indicies)))))
-
 (defn- load-crisis-indicies
   "Updates the indicies list modified by crisis tags and normalised
   Requries crisies and base indicies to be initialised"

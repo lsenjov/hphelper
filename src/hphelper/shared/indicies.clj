@@ -2,7 +2,7 @@
   (:require [hphelper.shared.sql :as sql]
             [clojure.tools.logging :as log]
             )
-
+  (:gen-class)
 )
 
 (def sectorIndicies
@@ -33,6 +33,13 @@
                    (fn [ind]
                      (update-in ind [kw] + avg)))
                  choices)) indicies)))
+
+(defn normalise-all-indicies
+  "Normalises the sector indicies, and the service group indicies"
+  [indicies]
+  (->> indicies
+      (normalise-specific-indicies sectorIndicies)
+      (normalise-specific-indicies (map key (remove (partial some (into #{} sectorIndicies)) indicies)))))
 
 (defn fuzzify-indicies
   "Randomly adds, subtracts, or leaves alone each of the indicies"
