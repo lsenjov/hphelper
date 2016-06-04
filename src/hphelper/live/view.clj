@@ -61,6 +61,7 @@
     (html [:html
            [:head
             [:title "Sector indicies"]
+            [:meta {:http-equiv "refresh" :content 5}]
             ]
            [:body
             [:div
