@@ -35,6 +35,7 @@
 (defn modify-index
   "Modifys an index by a certain amount, returns the map"
   [uid index amount]
+  (log/trace "modify-index:" uid index amount)
   (if (string? amount)
     (modify-index uid
                   index
@@ -44,7 +45,10 @@
                            (log/debug "modify-item: could not parse" amount)
                            0))))
     (if (-> @currentGames (get uid) (get :indicies) (get index))
-      (uni/swap-uuid! currentGames uid update-in [:indicies index] + amount)
+      (do (uni/swap-uuid! currentGames uid update-in [:indicies index] + amount)
+          (uni/swap-uuid! currentGames uid update-in [:indicies]
+                          (comp indicies/normalise-all-indicies indicies/fuzzify-indicies))
+          )
       nil)
   ))
 

@@ -95,10 +95,65 @@
              ]
             ))))
 
+(defn- create-self-pointing-button
+  "Creates a button designed to point to edit-game"
+  ([url amount index]
+   [:td [:form
+         {:action
+          (str url
+               index "/"
+               amount "/")
+          :method "get"}
+         [:input {:type "submit" :value amount}]
+         ]]))
+
+(defn- create-self-pointing-link
+  "Creates a link designed to point to edit-game"
+  ([url amount index]
+   [:td [:a {:href (str url index "/" amount "/")} (str index " " amount)]]))
+
+(defn- create-sorted-indicies-list
+  "Creates a list of sorted indicies, sector ones first"
+  [inds]
+  (let [others (remove (set indicies/sectorIndicies) (keys inds))]
+    (concat (sort indicies/sectorIndicies) others)))
+
+(def changeVals "Numbers to give the GM to change sector values by"
+  [-10 -8 -5 -3 -1 1 3 5 8 10])
+
+(defn- create-editing-table
+  "Creates a html table for modifying sector values"
+  [url inds]
+  (log/trace "create-editing-table:" url inds)
+  (let [ks (map name (create-sorted-indicies-list inds))]
+    [:table
+     [:tr (map (fn [k] [:td k " " (inds (keyword k))]) ks)]
+     (for [r changeVals]
+       [:tr (map (partial create-self-pointing-link url r)
+                 ks)])
+     ]
+    )
+  )
+
 (defn edit-game
   "Prints a view for the GM to edit a game, also performs actions"
   ([baseURL uid confirm]
    (if (= confirm (str (hash uid)))
-     "Correct, not implemented"
+     (html
+       [:html
+        [:div
+         [:body
+          (create-editing-table
+            (str baseURL "/live/view/"
+                 uid "/"
+                 confirm "/")
+            (:indicies (lcon/get-game uid)))
+          ]]])
      "Incorrect confirmation"
-   )))
+     ))
+  ([baseURL uid confirm index amount]
+   (if (= confirm (str (hash uid)))
+     (do (lcon/modify-index uid (keyword index) amount)
+         (edit-game baseURL uid confirm))
+     "Incorrect confirmation"))
+  )
