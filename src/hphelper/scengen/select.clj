@@ -81,6 +81,10 @@
           [:div [:a {:href (str baseURL "/minions/" (c/int-hide s_id) "/")}
                  "Minions"]]
           [:br]
+          [:a {:href (str baseURL "/live/new/"
+                          s_id "/")}
+           "Create new live game"
+           ]
           ]
          ]
         ))

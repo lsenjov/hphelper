@@ -98,6 +98,8 @@
   ;; LIVE
   (GET "/live/view/:uuid/" {{uid :uuid} :params baseURL :context}
        (lview/view-game baseURL uid))
+  (GET "/live/view/:uuid/:confirm/" {{uid :uuid confirm :confirm} :params baseURL :context}
+       (lview/edit-game baseURL uid confirm))
   (GET "/live/new/:scen_id/" {{scen_id :scen_id} :params baseURL :context}
        (lview/new-game baseURL scen_id))
 

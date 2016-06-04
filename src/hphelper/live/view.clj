@@ -76,24 +76,29 @@
     ))
 
 (defn new-game
-  "Creates a new live game by loading a completed scenario"
+  "Creates a new live game by loading a completed scenario. Gives links to player view and GM view"
   [baseURL scenId]
   (if (string? scenId)
     (new-game baseURL (try (Integer/parseInt scenId)
                            (catch Exception e
                              (do (log/trace "new-game. Could not parse:" scenId)
                                  "Invalid scenId"))))
-    (html [:html
-           [:head
-            [:meta {:http-equiv "refresh"
-                    :content (str "0; url="
-                                  "/live/view/"
-                                  (lcon/new-game (sl/load-fullscen-from-db scenId))
-                                  "/")}
-             ]]])))
+    (let [uid (lcon/new-game (sl/load-fullscen-from-db scenId))]
+      (html [:html
+             [:body
+              [:a {:href (str baseURL "/live/view/" uid "/")} "Player Link"]
+              [:br]
+              [:a {:href (str baseURL "/live/view/"
+                              uid "/"
+                              (str (hash uid)) "/")} "GM Link"]
+              ]
+             ]
+            ))))
 
 (defn edit-game
   "Prints a view for the GM to edit a game, also performs actions"
-  ([baseURL uid]
-   nil ;;TODO
-   ))
+  ([baseURL uid confirm]
+   (if (= confirm (str (hash uid)))
+     "Correct, not implemented"
+     "Incorrect confirmation"
+   )))
