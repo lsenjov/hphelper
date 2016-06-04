@@ -66,6 +66,7 @@
            [:input {:type "checkbox" :name "directives" :checked "on"} "Print directive sheets"] [:br]
            [:div [:input {:type "submit" :value "Print Scenario"}]]
            ]
+          ;; Links to singular minion sheets
           (let [players (:hps (sl/load-fullscen-from-db s_id))]
             (map (fn [[playerId {playerName :name}]]
                    [:div [:a {:href (str baseURL "/player/"
@@ -76,8 +77,10 @@
                           playerName][:br]])
                  players))
           [:br]
+          ;; Link to minion sheet
           [:div [:a {:href (str baseURL "/minions/" (c/int-hide s_id) "/")}
                  "Minions"]]
+          [:br]
           ]
          ]
         ))

@@ -5,13 +5,13 @@
             [clojure.tools.logging :as log]
             [clojure.data.json :as json]
 
-    ;; Character handling
+            ;; Character handling
             [hphelper.chargen.generator :as cgen]
             [hphelper.chargen.charform :as cform]
             [hphelper.chargen.print :as cprint]
             [hphelper.chargen.select :as csel]
 
-    ;; Scenario handling
+            ;; Scenario handling
             [hphelper.scengen.scenform :as sform]
             [hphelper.scengen.generator :as sgen]
             [hphelper.scengen.print :as sprint]
@@ -19,7 +19,10 @@
             [hphelper.shared.saveload :as sl]
             [hiccup.core :refer :all]
 
-    ;; For hiding items from players
+            ;; Live paranoia
+            [hphelper.live.view :as lview]
+
+            ;; For hiding items from players
             [hphelper.shared.encrypt :as c]
             )
   (:gen-class))
@@ -90,7 +93,13 @@
       (let [scen (sl/load-fullscen-from-db (c/int-show (Integer/parseInt scen_id)))]
          (sprint/html-print-player-sheet scen ((:hps scen) (c/int-show (Integer/parseInt p_id))))))
   (GET "/minions/:scen_id/" {{scen_id :scen_id} :params baseURL :context}
-    (sprint/html-print-optional (sl/load-fullscen-from-db (c/int-show (Integer/parseInt scen_id))) '(:minions)))
+       (sprint/html-print-optional (sl/load-fullscen-from-db (c/int-show (Integer/parseInt scen_id))) '(:minions)))
+
+  ;; LIVE
+  (GET "/live/view/:uuid/" {{uid :uuid} :params baseURL :context}
+       (lview/view-game baseURL uid))
+  (GET "/live/new/:scen_id/" {{scen_id :scen_id} :params baseURL :context}
+       (lview/new-game baseURL scen_id))
 
   ;; OTHER
   ;; Simple directs to the above

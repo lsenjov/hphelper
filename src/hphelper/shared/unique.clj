@@ -26,7 +26,7 @@
   "Applys swap! to the correct item, returns the value object reffered by the uuid, or nil if invalid uuid"
   [ma uid f & args]
   (log/trace "swap-uuid!" ma uid f args)
-  (if (@ma uid)
+  (if (and uid (@ma uid))
     (if args
       (let [newMap (apply f (@ma uid) args)]
         ((swap! ma assoc uid newMap) uid))
