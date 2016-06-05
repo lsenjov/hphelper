@@ -18,9 +18,9 @@
   [index]
   (str (name (key index))
        (if (> 0 (val index))
-         "&#8657;" ;; Up Arrow
+         "&#8659;" ;; Down Arrow
          (if (< 0 (val index))
-           "&#8659;" ;; Down Arrow
+           "&#8657;" ;; Up Arrow
            "&#8658;" ;; Right Arrow
            ))
        (Math/abs (val index))
