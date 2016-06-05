@@ -65,7 +65,7 @@
             ]
            [:body
             [:div
-             (html-print-indicies-table (:indicies game) 3)
+             (html-print-indicies-table (:indicies game) 13)
              ]
             [:div
              (map (fn [n] [:div n])
