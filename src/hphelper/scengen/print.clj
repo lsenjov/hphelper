@@ -8,26 +8,6 @@
   (:gen-class)
   )
 
-(defn- html-print-single-index
-  "Prints a single index in html format"
-  [index]
-  (str (.substring (str (key index)) 1)
-       (if (> 0 (val index))
-         "&#8657;" ;; Up Arrow
-         (if (< 0 (val index))
-           "&#8659;" ;; Down Arrow
-           "&#8658;" ;; Right Arrow
-           ))
-       (Math/abs (val index))
-       " "))
-
-(defn- html-print-indicies
-  "Prints the indicies in html format"
-  [scenRec]
-  (concat (sort (map html-print-single-index (filter (partial some (into #{} sectorIndicies)) (:indicies scenRec))))
-          (sort (map html-print-single-index (remove (partial some (into #{} sectorIndicies)) (:indicies scenRec))))
-  ))
-
 (defn- html-print-crisis
   "Prints a single crisis in html format"
   [crisis]
@@ -107,7 +87,7 @@
            [:div (cprint/html-print-sheet player)]
            "")
          [:div {:style "page-break-before: always;"} [:h3 "Welcome " (player :name)]]
-         [:div (html-print-indicies scenRec)]
+         [:div (html-print-indicies (:indicies scenRec))]
          [:div [:b "Sector News:"] [:br]
           (interpose [:br] (scenRec :news))]
          [:div [:b "Message summary follows:"]]
@@ -203,7 +183,7 @@
   (log/trace (prn-str scenRec)) ;DEBUG
   (html [:div
          (if (some #{:gmheader} options) (html-print-header scenRec))
-         (if (some #{:gmindicies} options) (html-print-indicies scenRec))
+         (if (some #{:gmindicies} options) (html-print-indicies (:indicies scenRec)))
          (if (some #{:gmcrisises} options) (html-print-crisises scenRec))
          (if (some #{:gmcbay} options) (html-print-cbay scenRec))
          (if (some #{:gmdirectives} options) (html-print-directive-summary scenRec))

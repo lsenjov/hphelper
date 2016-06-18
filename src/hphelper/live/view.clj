@@ -13,34 +13,6 @@
   (:gen-class)
   )
 
-(defn- html-print-single-index
-  "Prints a single index in html format"
-  [index]
-  (str (name (key index))
-       (if (> 0 (val index))
-         "&#8659;" ;; Down Arrow
-         (if (< 0 (val index))
-           "&#8657;" ;; Up Arrow
-           "&#8658;" ;; Right Arrow
-           ))
-       (Math/abs (val index))
-       ))
-
-(defn- html-print-indicies
-  "Prints the indicies in html format"
-  [inds]
-  (concat (sort (map html-print-single-index
-                     (filter (partial some
-                                      (into #{}
-                                            indicies/sectorIndicies))
-                             inds)))
-          (sort (map html-print-single-index
-                     (remove (partial some
-                                      (into #{}
-                                            indicies/sectorIndicies))
-                             inds)))
-  ))
-
 (defn- html-print-indicies-table
   "Prints indicies in a table in n columns"
   [inds n]
@@ -49,7 +21,7 @@
         (partition-all
           n
           (map (fn [x] [:td x])
-               (html-print-indicies inds))))
+               (indicies/html-print-indicies inds))))
    ]
   )
 

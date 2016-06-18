@@ -9,6 +9,30 @@
   "The four sector indicies: Happiness, Compliance, Loyalty, and Security"
   [:HI :CI :LI :SI])
 
+(defn html-print-single-index
+  "Prints a single index in html format"
+  [index]
+  (str (name (key index))
+       \space
+       (val index)
+       \space
+       ))
+
+(defn html-print-indicies
+  "Prints the indicies in html format"
+  [inds]
+  (assert (:HI inds) "Not linking the correct item")
+  (concat (sort (map html-print-single-index
+                     (filter (partial some
+                                      (into #{}
+                                            sectorIndicies))
+                             inds)))
+          (sort (map html-print-single-index
+                     (remove (partial some
+                                      (into #{}
+                                            sectorIndicies))
+                             inds)))))
+
 (defn create-base-indicies-list
   "Combines the base indicies with sg indicies, and sets them all to 0"
   []

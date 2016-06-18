@@ -3,6 +3,7 @@
             [hphelper.shared.sql :as sql]
             [hiccup.core :refer :all]
             [clojure.tools.logging :as log]
+            [hphelper.shared.indicies :refer :all]
     )
   )
 
