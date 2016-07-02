@@ -1,8 +1,8 @@
 (ns hphelper.handler
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
-            [clojure.tools.logging :as log]
+            [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
+            [taoensso.timbre :as log]
             [clojure.data.json :as json]
 
             ;; Character handling
@@ -26,6 +26,8 @@
             [hphelper.shared.encrypt :as c]
             )
   (:gen-class))
+
+(log/set-level! :trace)
 
 (defroutes
   app-routes
@@ -122,7 +124,7 @@
 
 (def app
   (-> app-routes
-      (wrap-defaults site-defaults)
+      (wrap-defaults api-defaults)
       ring.middleware.session/wrap-session
       )
   )

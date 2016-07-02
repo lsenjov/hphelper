@@ -5,7 +5,7 @@
             [hphelper.shared.indicies :as indicies]
             ;; For indicies
             [hphelper.scengen.generator :as sgen]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as log]
             )
   (:gen-class)
 )

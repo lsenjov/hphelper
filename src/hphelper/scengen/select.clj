@@ -1,6 +1,6 @@
 (ns hphelper.scengen.select
   (:require 
-    [clojure.tools.logging :as log]
+    [taoensso.timbre :as log]
     [hphelper.scengen.scenform :as sform]
     [hphelper.scengen.generator :as sgen]
     [hphelper.scengen.print :as sprint]

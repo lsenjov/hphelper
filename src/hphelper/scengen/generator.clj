@@ -3,7 +3,7 @@
             [hphelper.shared.sql :as sql]
             [hiccup.core :refer :all]
             [hphelper.chargen.generator :as cg]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as log]
             [hphelper.shared.indicies :refer :all]
             )
   (:gen-class)

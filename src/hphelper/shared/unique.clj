@@ -1,5 +1,5 @@
 (ns hphelper.shared.unique
-  (:require [clojure.tools.logging :as log]
+  (:require [taoensso.timbre :as log]
             )
   (:gen-class)
 )

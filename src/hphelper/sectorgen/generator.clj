@@ -1,6 +1,7 @@
 (ns hphelper.sectorgen.generator
   (:require [hphelper.shared.sql :as sql]
             [hiccup.core :refer :all]
+            [taoensso.timbre :as log]
             ))
 
 (defn create-service-group

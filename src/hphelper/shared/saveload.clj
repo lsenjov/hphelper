@@ -1,7 +1,7 @@
 (ns hphelper.shared.saveload
   (:require [clojure.java.jdbc :as jdb]
-            [clojure.tools.logging :as log]
             [clojure.edn :as edn]
+            [taoensso.timbre :as log]
             ))
 
 (def db {:subprotocol "mysql"
@@ -13,12 +13,16 @@
   "Takes a data object, saves it as an edn string in the database.
   Returns the generated key"
   [obj]
+  (log/trace "save-scen-to-db:" obj)
   (:generated_key (first (jdb/insert! db :scen {:scen_file (prn-str obj)}))))
 
 (defn load-scen-from-db
   "Takes an integer key, gets the data object from the database."
   [k]
-  (edn/read-string (:scen_file (first (jdb/query db ["SELECT scen_file FROM scen WHERE scen_id = ?;" k])))))
+  (log/trace "load-scen-from-db. Scenario number:" k)
+  (let [in (:scen_file (first (jdb/query db ["SELECT scen_file FROM scen WHERE scen_id = ?;" k])))]
+    (log/trace "load-scen-from-db:" in)
+    (edn/read-string in)))
 
 (defn get-scen-ids
   "Returns a list of all scenario ids"

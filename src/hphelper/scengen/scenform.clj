@@ -3,7 +3,7 @@
             [hiccup.core :refer :all]
             [ring.util.anti-forgery :refer [anti-forgery-field]]
             [hphelper.chargen.generator :as cgen]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as log]
             [hphelper.shared.saveload :as sl]
             [hphelper.scengen.print :as sprint]
             )

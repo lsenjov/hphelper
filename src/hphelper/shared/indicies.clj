@@ -1,6 +1,6 @@
 (ns hphelper.shared.indicies
   (:require [hphelper.shared.sql :as sql]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as log]
             )
   (:gen-class)
 )

@@ -2,7 +2,7 @@
   (:require [clojure.core.typed :as t]
             [hphelper.shared.sql :as sql]
             [hiccup.core :refer :all]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as log]
             [hphelper.chargen.print :refer :all]
     )
   )

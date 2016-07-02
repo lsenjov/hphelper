@@ -1,6 +1,6 @@
 (ns hphelper.chargen.select
   (:require 
-    [clojure.tools.logging :as log]
+    [taoensso.timbre :as log]
     [hphelper.chargen.charform :as cform]
     [hphelper.chargen.generator :as cgen]
     [hphelper.chargen.print :as cprint]

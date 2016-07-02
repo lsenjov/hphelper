@@ -1,6 +1,6 @@
 (ns hphelper.shared.encrypt
   (:require
-    [clojure.tools.logging :as log]
+    [taoensso.timbre :as log]
     )
   )
 

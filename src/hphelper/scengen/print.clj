@@ -1,6 +1,6 @@
 (ns hphelper.scengen.print
   (:require [hiccup.core :refer :all]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as log]
             [hphelper.shared.sql :as sql]
             [hphelper.chargen.print :as cprint]
             [hphelper.shared.indicies :refer :all]

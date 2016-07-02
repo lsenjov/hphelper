@@ -1,6 +1,6 @@
 (ns hphelper.shared.sql
   (:require [clojure.java.jdbc :as jdb]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as log]
             ))
 
 (def db {:subprotocol "mysql"
