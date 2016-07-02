@@ -18,8 +18,8 @@
                  ;; Logging Deps
                  [com.taoensso/timbre "4.5.1"]
 
-                 ;; Typed Clojure
-                 [org.clojure/core.typed "0.3.18"]
+                 ;; Schema for typing
+                 [prismatic/schema "1.1.2"]
 
                  ;; Json Deps
                  [org.clojure/data.json "0.2.6"]

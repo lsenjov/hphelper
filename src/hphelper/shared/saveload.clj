@@ -18,7 +18,7 @@
 
 (defn load-scen-from-db
   "Takes an integer key, gets the data object from the database."
-  [k]
+  [^Integer k]
   (log/trace "load-scen-from-db. Scenario number:" k)
   (let [in (:scen_file (first (jdb/query db ["SELECT scen_file FROM scen WHERE scen_id = ?;" k])))]
     (log/trace "load-scen-from-db:" in)
@@ -39,7 +39,7 @@
 
 (defn load-fullscen-from-db
   "Takes an integer key, gets the data object from the database."
-  [k]
+  [^Integer k]
   (edn/read-string (:fs_file (first (jdb/query db ["SELECT fs_file FROM fullscen WHERE fs_id = ?;" k])))))
 
 (defn get-fullscen-ids

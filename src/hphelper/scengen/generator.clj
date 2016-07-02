@@ -1,6 +1,5 @@
 (ns hphelper.scengen.generator
-  (:require [clojure.core.typed :as t]
-            [hphelper.shared.sql :as sql]
+  (:require [hphelper.shared.sql :as sql]
             [hiccup.core :refer :all]
             [hphelper.chargen.generator :as cg]
             [taoensso.timbre :as log]

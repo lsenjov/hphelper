@@ -1,6 +1,5 @@
 (ns hphelper.chargen.print
-  (:require [clojure.core.typed :as t]
-            [hphelper.shared.sql :as sql]
+  (:require [hphelper.shared.sql :as sql]
             [hiccup.core :refer :all]
             [taoensso.timbre :as log]
             [hphelper.shared.indicies :refer :all]

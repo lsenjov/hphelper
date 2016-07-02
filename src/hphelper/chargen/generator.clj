@@ -1,9 +1,11 @@
 (ns hphelper.chargen.generator
-  (:require [clojure.core.typed :as t]
-            [hphelper.shared.sql :as sql]
+  (:require [hphelper.shared.sql :as sql]
             [hiccup.core :refer :all]
             [taoensso.timbre :as log]
             [hphelper.chargen.print :refer :all]
+
+            [schema.core :as s]
+            [hphelper.shared.schema :as ss]
     )
   )
 
@@ -22,13 +24,13 @@
   "If there is no management skill but there are societies picked, make sure management is at a minimum"
   [charRec]
   (if (and (not (-> charRec :priStats (get "Management")))
-           (-> charRec (get "Program Group"))) ;; If no management skill but an existing program group
+           (-> charRec (get :programGroup))) ;; If no management skill but an existing program group
     (assoc-in charRec [:priStats "Management"]
               (let [minimum (inc
                               (* 5
                                  (+ -2
                                     (min 5
-                                         (count (get charRec "Program Group"))))))]
+                                         (count (get charRec :programGroup))))))]
                 (log/info "Minimum is: " minimum)
                 (+ minimum (rand-int (- 21 minimum)))))
     charRec))
@@ -51,17 +53,17 @@
 
 (defn- create-societies
   "Adds program group socities to the record from the database"
-  [charRec]
-  (if (<= (count (charRec "Program Group"))
-              (-> charRec (:secStats) (get "Program Group Size"))) ;; If there's too many societies, drop one below
-    (if (>= (-> charRec (get "Program Group") (count))
-            (-> charRec (:secStats) (get "Program Group Size")))
+  [{pg :programGroup {pgs "Program Group Size"} :secStats :as charRec}]
+  (if (<= (count pg)
+          pgs) ;; If there's too many societies, drop one below
+    (if (>= (-> charRec :programGroup (count))
+            pgs)
+      ;; We have the right number of groups
       charRec
-      (recur (assoc-in charRec ["Program Group"] ;; Add a random society
-                       (clojure.set/union #{} (charRec "Program Group") #{(sql/get-random-society)}))))
-    (recur (assoc-in charRec ["Program Group"] ;; Drop a random society
-                     (let [pg (get charRec "Program Group")]
-                       (disj pg (rand-nth (into '() pg))))))))
+      (recur (assoc charRec :programGroup ;; Add a random society
+                    (clojure.set/union #{} pg #{(sql/get-random-society)}))))
+    (recur (assoc charRec :programGroup ;; Drop a random society
+                  (disj pg (rand-nth (into '() pg)))))))
 
 (defn- calc-access-remaining
   "Calculates remaining access"
@@ -150,6 +152,5 @@
    )
   )
 
-
-
-(pr-str (create-character))
+(keys (create-character))
+(s/validate ss/PlayerCharacter (create-character))
