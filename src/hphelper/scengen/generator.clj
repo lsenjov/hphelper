@@ -4,6 +4,8 @@
             [hphelper.chargen.generator :as cg]
             [taoensso.timbre :as log]
             [hphelper.shared.indicies :refer :all]
+            [schema.core :as s]
+            [hphelper.shared.schema :as ss]
             )
   (:gen-class)
   )
@@ -238,4 +240,3 @@
        ;(add-character (cg/create-character))
        (purge-unused)
        )))
-

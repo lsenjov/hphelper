@@ -3,6 +3,8 @@
             [hiccup.core :refer :all]
             [taoensso.timbre :as log]
             [hphelper.shared.indicies :refer :all]
+            [schema.core :as s]
+            [hphelper.shared.schema :as ss]
     )
   )
 
@@ -44,7 +46,7 @@
             [:b "Program Group"][:br]
             [:table {:style "width:100%"}
              [:tr [:td "Society"] [:td "Skills"] [:td "Cover Identity"]]
-             (for [ss (charRec "Program Group")]
+             (for [ss (or (charRec :programGroup) (charRec "Program Group"))]
                [:tr
                 [:td (ss :ss_name)]
                 [:td [:small (ss :sskills)]]])]

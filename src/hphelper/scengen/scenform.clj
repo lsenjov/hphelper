@@ -126,7 +126,7 @@
   [playerId ssId params]
   (let [ssKey (keyword (str "ss_" playerId "_" ssId))]
     (if (contains? params ssKey)
-      (update-in params [:hps playerId "Program Group"] (partial clojure.set/union #{}) #{(sql/get-society ssId)})
+      (update-in params [:hps playerId :programGroup] (partial clojure.set/union #{}) #{(sql/get-society ssId)})
       params)))
 
 (defn- assoc-player-societies

@@ -109,8 +109,8 @@
   "Checks for a single society and associates if exists"
   [params sNum target]
   (if ((keyword (str "ss_" sNum)) params)
-    (assoc-in target ["Program Group"] ;; Add society
-              (clojure.set/union #{} (target "Program Group") #{(sql/get-society sNum)}))
+    (assoc-in target [:programGroup] ;; Add society
+              (clojure.set/union #{} (target :programGroup) #{(sql/get-society sNum)}))
     target))
 
 (defn- assoc-societies

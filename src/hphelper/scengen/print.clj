@@ -95,7 +95,7 @@
                     (filter (fn [mission]
                               (some #{(mission :ss_id)}
                                     (map :ss_id
-                                         (get player "Program Group"))))
+                                         (or (:programGroup player) (get player "Program Group")))))
                             (scenRec :societies))))]
          (html-print-additional-messages player)
          (html-print-cbay scenRec)

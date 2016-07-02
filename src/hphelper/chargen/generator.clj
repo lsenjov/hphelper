@@ -13,12 +13,12 @@
   "Creates a map of the 6 stats with random values"
   []
   (let [stats ["Violence" "Management" "Subterfuge" "Wetware" "Software" "Hardware"]]
-    (reduce (fn [x y] (merge x {y (int (Math/ceil (* (Math/random) 20)))})) {} stats)))
+    (reduce (fn [x y] (merge x {y (inc (rand-int 20))})) {} stats)))
 
 (defn- calc-primary-stats
   "Checks a record for existing primary stats, randomly fills in empty stats"
   [charRec]
-  (assoc-in charRec [:priStats] (merge (random-stats) (charRec :priStats))))
+  (update-in charRec [:priStats] (partial merge (random-stats))))
 
 (defn- check-for-minimum-management
   "If there is no management skill but there are societies picked, make sure management is at a minimum"
@@ -80,10 +80,11 @@
 
 (defn- create-public-standing
   "Checks remaining access, and if more than specified has a chance to give the character a good public standing."
-  [charRec minimumAccess]
+  [charRec ^Integer minimumAccess]
   (if (and
         (> (calc-access-remaining charRec) minimumAccess)
         (not (charRec :publicStanding))
+        ;; Has a 50% chance of happening if the above two are correct
         (> 0.5 (Math/random)))
     (assoc-in charRec [:publicStanding]
               (+ (int (Math/ceil (* (Math/random) 5))) 5)) ;; Creates a public standing between 6 and 10
@@ -107,7 +108,7 @@
   "Checks minimum access.
   If not enough, adds a drawback up to three and adds access.
   If above minimum access, has a small chance of adding another drawback"
-  [charRec minimumAccess]
+  [charRec ^Integer minimumAccess]
   (if (>= (count (charRec :drawbacks)) 3)
     charRec ;; Already at 3 drawbacks
     (if (< (calc-access-remaining charRec) minimumAccess)
@@ -116,7 +117,7 @@
 
 (defn- create-mutation
   "Creates a mutation at the specified power level."
-  [charRec powerLevel]
+  [charRec ^Integer powerLevel]
   (if (charRec :mutation)
     charRec
     (let [mut (sql/get-random-mutation)]
@@ -124,7 +125,7 @@
 
 (defn- check-name
   "Makes sure the character has a name, even if it is unnamed"
-  ([{nam :name :as charRec}]
+  ([{^String nam :name :as charRec}]
    (if nam
      charRec
      (assoc-in charRec [:name]
@@ -151,6 +152,3 @@
      (recur {}))
    )
   )
-
-(keys (create-character))
-(s/validate ss/PlayerCharacter (create-character))
