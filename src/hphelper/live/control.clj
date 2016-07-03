@@ -3,15 +3,14 @@
             [hphelper.shared.saveload :as sl]
             [hphelper.shared.unique :as uni]
             [hphelper.shared.indicies :as indicies]
-            ;; For indicies
-            [hphelper.scengen.generator :as sgen]
             [taoensso.timbre :as log]
             [schema.core :as s]
+            [clojure.data.json :as json]
             )
   (:gen-class)
 )
 
-(def currentGames (atom {}))
+(def currentGames (if (resolve 'currentGames) currentGames (atom {})))
 
 (defn new-game
   "Creates a new game, either from an existing map or straight 0s. Returns the generated uid"
@@ -26,6 +25,7 @@
                            (update-in [:news]
                                       (partial concat
                                                '()))
+                           (assoc :adminPass (uni/uuid))
                        )))
   ([]
    (new-game {:indicies (indicies/create-base-indicies-list)})))
@@ -34,6 +34,11 @@
   "Gets the game associated with the uid"
   [^String uid]
   (uni/get-uuid-atom currentGames uid))
+
+(def swap-game!
+  "Applys the function to the game associated with the uuid
+  ([uid fn & args])"
+  (partial uni/swap-uuid! currentGames))
 
 (defn modify-index-inner
   "Modifies an index by a certain amount, and fuzzifies the indices"
@@ -69,3 +74,4 @@
   "Gets the news list of a game"
   [uid]
   ((uni/get-uuid-atom currentGames uid) :news))
+

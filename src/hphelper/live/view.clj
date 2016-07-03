@@ -121,6 +121,7 @@
                  uid "/"
                  confirm "/")
             (:indicies (lcon/get-game uid)))
+          [:div [:a {:href (str baseURL "/api/" uid "/" (:adminPass (lcon/get-game uid)) "/admin-debug/")} "Debug Result"]]
           ]]])
      "Incorrect confirmation"
      ))

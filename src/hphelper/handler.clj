@@ -21,6 +21,7 @@
 
             ;; Live paranoia
             [hphelper.live.view :as lview]
+            [hphelper.live.api :as lapi]
 
             ;; For hiding items from players
             [hphelper.shared.encrypt :as c]
@@ -107,6 +108,15 @@
   (GET "/live/view/:uuid/:confirm/:index/:amount/"
        {{uid :uuid confirm :confirm index :index amount :amount} :params baseURL :context}
        (lview/edit-game baseURL uid confirm index amount))
+
+  ;; API
+  ;; Public endpoints
+  (GET "/api/:gameUuid/:userUuid/indicies/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-indicies gameUuid))
+
+  ;; Player endpoints
+
+  ;; Admin endpoints
+  (GET "/api/:gameUuid/:userUuid/admin-debug/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/admin-debug gameUuid userUuid))
 
   ;; OTHER
   ;; Simple directs to the above
