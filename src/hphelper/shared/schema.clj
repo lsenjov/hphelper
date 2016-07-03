@@ -5,45 +5,45 @@
   )
 
 ;; Character Sheets
-(def PlayerCharacterStatBlock
+(def playerCharacterStatBlock
   {s/Str s/Int})
 
-(def SocietySingleRec
+(def societySingleRec
   {:ss_id s/Int
    :ss_name s/Str
    :sskills s/Str
    }
   )
 
-(def PlayerSocietyRec
-  #{SocietySingleRec}
+(def playerSocietyRec
+  #{societySingleRec}
   )
 
-(def PlayerMutationRec
+(def playerMutationRec
   {:description s/Str
    :power s/Int
    }
   )
 
-(def PlayerCharacter
-  {:priStats PlayerCharacterStatBlock
-   :secStats PlayerCharacterStatBlock
-   :programGroup PlayerSocietyRec
-   :mutation PlayerMutationRec
+(def playerCharacter
+  {:priStats playerCharacterStatBlock
+   :secStats playerCharacterStatBlock
+   :programGroup playerSocietyRec
+   :mutation playerMutationRec
    :accessRemaining s/Int
    :name s/Str
    }
   )
 
 ;; Scenario Sheets
-(def ScenSocietySingle
+(def scenSocietySingle
   {:ssm_id s/Int
    :ss_id s/Int
    :c_id (s/maybe s/Int)
    :ssm_text s/Str}
   )
 
-(def ServiceGroupMinion
+(def serviceGroupMinion
   {:minion_id s/Int
    :minion_name s/Str
    :minion_clearance s/Str
@@ -51,37 +51,44 @@
    :sg_id s/Int}
   )
 
-(def ServiceGroupRecord
+(def serviceGroupRecord
   {:sg_id s/Int
    :sg_name s/Str
    :sg_abbr s/Str
-   :minions ServiceGroupMinion
+   :minions [serviceGroupMinion]
    }
   )
 
-(def CrisisRecord
+(def crisisRecord
   {:c_id s/Int
    :c_type s/Str
    :c_desc s/Str
    :extraDesc [s/Str]}
   )
 
-(def DirectiveRecord
+(def directiveRecord
   {:sgm_id s/Int
    :sgm_text s/Str
    :sg_id s/Int
-   :c_id s/Int}
+   ;; The crisis associated with this directive
+   :c_id (s/maybe s/Int)}
   )
 
-(def GeneratedScenario
+(def generatedScenario
+  ;; Cbay items up for sale. Includes time left in the string for now
   {:cbay [s/Str]
-   :hps (s/maybe {s/Int PlayerCharacter})
-   :societies [ScenSocietySingle]
+   ;; A list of all the player characters
+   :hps (s/maybe {s/Int playerCharacter})
+   ;; A list of all the secret society missions
+   :societies [scenSocietySingle]
+   ;; Name of the zone
    :zone s/Str
-   :minions [ServiceGroupRecord]
-   :crisises [CrisisRecord]
+   ;; A list of the service groups
+   :minions [serviceGroupRecord]
+   ;; The list of crisises
+   :crisises [crisisRecord]
    :indicies {s/Keyword s/Int}
-   :directives [DirectiveRecord]
+   :directives [directiveRecord]
    :news [s/Str]
    }
   )

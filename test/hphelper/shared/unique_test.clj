@@ -1,5 +1,5 @@
 (ns hphelper.shared.unique-test
-  (:require [clojure.tools.logging :as log]
+  (:require [taoensso.timbre :as log]
             [clojure.test :refer :all]
             [hphelper.shared.unique :as uni]
             )

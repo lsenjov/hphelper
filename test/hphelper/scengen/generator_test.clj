@@ -6,4 +6,4 @@
             )
   )
 
-;(s/validate ss/GeneratedScenario (create-scenario))
+(s/validate ss/generatedScenario (create-scenario))

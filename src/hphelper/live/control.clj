@@ -6,6 +6,7 @@
             ;; For indicies
             [hphelper.scengen.generator :as sgen]
             [taoensso.timbre :as log]
+            [schema.core :as s]
             )
   (:gen-class)
 )
@@ -17,9 +18,11 @@
   ([valMap]
    (uni/add-uuid-atom! currentGames
                        (-> valMap
+                           ;; Fill in any missing indices
                            (update-in [:indicies]
                                       (partial merge
                                                (indicies/create-base-indicies-list)))
+                           ;; Make sure the news is in the correct format
                            (update-in [:news]
                                       (partial concat
                                                '()))
@@ -29,12 +32,20 @@
 
 (defn get-game
   "Gets the game associated with the uid"
-  [uid]
+  [^String uid]
   (uni/get-uuid-atom currentGames uid))
 
+(defn modify-index-inner
+  "Modifies an index by a certain amount, and fuzzifies the indices"
+  [scenMap index ^Integer amount]
+  (-> scenMap
+      (update-in [:indicies index] + amount)
+      (update-in [:indicies] (comp indicies/normalise-all-indicies indicies/fuzzify-indicies))
+      ))
+
 (defn modify-index
-  "Modifys an index by a certain amount, returns the map"
-  [uid index amount]
+  "Modifys an index by a certain amount, returns the map, or nil if the game doesn't exist"
+  [^String uid index amount]
   (log/trace "modify-index:" uid index amount)
   (if (string? amount)
     (modify-index uid
@@ -44,11 +55,8 @@
                          (do
                            (log/debug "modify-item: could not parse" amount)
                            0))))
-    (if (-> @currentGames (get uid) (get :indicies) (get index))
-      (do (uni/swap-uuid! currentGames uid update-in [:indicies index] + amount)
-          (uni/swap-uuid! currentGames uid update-in [:indicies]
-                          (comp indicies/normalise-all-indicies indicies/fuzzify-indicies))
-          )
+    (if (get-in @currentGames [uid :indicies index])
+      (uni/swap-uuid! currentGames uid modify-index-inner index amount)
       nil)
   ))
 
