@@ -155,7 +155,7 @@
                                               (single :sgm_text)]])
                                pair)
                       ])
-          (partition-all 2 directives))]])
+          (partition-all 1 (sort-by :sg_id directives)))]])
 
 (defn- html-print-header
   "Prints a short summary at the beginning"

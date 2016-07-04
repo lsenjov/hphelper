@@ -92,3 +92,22 @@
    :news [s/Str]
    }
   )
+
+(def liveScenario
+  ;; Cbay items up for sale. Includes time left in the string for now
+  {:cbay [s/Str]
+   ;; A list of all the player characters
+   :hps {s/Int playerCharacter}
+   ;; A list of all the secret society missions
+   :societies [scenSocietySingle]
+   ;; Name of the zone
+   :zone s/Str
+   ;; A list of the service groups
+   :minions [serviceGroupRecord]
+   ;; The list of crisises
+   :crisises [crisisRecord]
+   :indicies {s/Keyword s/Int}
+   :directives [directiveRecord]
+   :news [s/Str]
+   }
+  )

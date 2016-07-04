@@ -10,7 +10,26 @@
   (:gen-class)
 )
 
-(def currentGames (if (resolve 'currentGames) currentGames (atom {})))
+;; If currentGames exists, and is an atom, leave it alone
+(def currentGames (if (and (resolve 'currentGames)
+                           ;; This line is needed, as during the def currentGames is added to the symbol table,
+                           ;; but as an unbound. Need to make sure it's actually an atom
+                           (instance? clojure.lang.Atom currentGames))
+                    currentGames
+                    (atom {})))
+
+(defn- player-add-password-token
+  "Adds a uuid key under :password to a player map, returns the map"
+  [pMap]
+  (assoc pMap :password (uni/uuid)))
+
+(defn- player-add-all-password-tokens
+  "Adds a uuid password to all players in a scenMap, returns the map"
+  [sMap]
+  (update-in sMap [:hps] (fn [pl] (apply merge {}
+                                         (map (fn [[k pMap]]
+                                                [k (player-add-password-token pMap)])
+                                              pl)))))
 
 (defn new-game
   "Creates a new game, either from an existing map or straight 0s. Returns the generated uid"
@@ -26,6 +45,7 @@
                                       (partial concat
                                                '()))
                            (assoc :adminPass (uni/uuid))
+                           (player-add-all-password-tokens)
                        )))
   ([]
    (new-game {:indicies (indicies/create-base-indicies-list)})))

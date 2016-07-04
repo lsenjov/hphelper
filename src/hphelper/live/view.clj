@@ -28,7 +28,7 @@
 (defn view-game
   "Prints a game view nicely for players"
   [baseURL uid]
-  (log/trace "view-game:" baseURL uid)
+  (log/trace "view-game. baseURL:" baseURL "uid:" uid)
   (if-let [game (lcon/get-game uid)]
     (html [:html
            [:head
@@ -48,6 +48,21 @@
     (html [:html [:div "Game not found"]])
     ))
 
+(defn- player-key
+  "Returns a string with a game's uid and the player's uid for logging in"
+  [player]
+  (str "Player: " (:name player) ". Player uid: " (:password player) ".")
+  )
+
+(defn player-keys
+  "Returns a string with all the player's names and their login uids. Nil if incorrect game"
+  [^String uid]
+  (log/trace "player-keys. uid:" uid "hps:" (:hps (lcon/get-game uid)))
+  (if-let [g (lcon/get-game uid)]
+    (map (fn [[k pMap]] (player-key pMap)) (:hps g))
+    nil))
+
+
 (defn new-game
   "Creates a new live game by loading a completed scenario. Gives links to player view and GM view"
   [baseURL scenId]
@@ -64,6 +79,7 @@
               [:a {:href (str baseURL "/live/view/"
                               uid "/"
                               (str (hash uid)) "/")} "GM Link"]
+              (map (fn [x] [:div x]) (player-keys uid))
               ]
              ]
             ))))
@@ -108,6 +124,29 @@
     )
   )
 
+(defn- single-player-stats
+  "Creates a table rown of player stats"
+  [{pStats :priStats :as pMap}]
+  [:tr
+   [:td (:name pMap)]
+   [:td (get pStats "Management")]
+   [:td (get pStats "Violence")]
+   [:td (get pStats "Subterfuge")]
+   [:td (get pStats "Hardware")]
+   [:td (get pStats "Software")]
+   [:td (get pStats "Wetware")]
+   [:td (-> pMap :mutation :description)]
+   ])
+
+
+(defn- print-player-stats-table
+  "Creates a table of player stats for the GM's pleasure"
+  [^String uid]
+  [:table {:border 1} [:tr [:td] [:td "M"] [:td "V"] [:td "Su"] [:td "H"] [:td "So"] [:td "W"] [:td "Mutation"]]
+   (map single-player-stats (-> (lcon/get-game uid) :hps vals))
+   ]
+  )
+
 (defn edit-game
   "Prints a view for the GM to edit a game, also performs actions"
   ([baseURL uid confirm]
@@ -121,7 +160,8 @@
                  uid "/"
                  confirm "/")
             (:indicies (lcon/get-game uid)))
-          [:div [:a {:href (str baseURL "/api/" uid "/" (:adminPass (lcon/get-game uid)) "/admin-debug/")} "Debug Result"]]
+          [:div [:a {:href (str baseURL "/api/" uid "/" (:adminPass (lcon/get-game uid)) "/admin/debug/")} "Debug Result"]]
+          [:div (print-player-stats-table uid)]
           ]]])
      "Incorrect confirmation"
      ))

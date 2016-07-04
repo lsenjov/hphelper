@@ -116,7 +116,12 @@
   ;; Player endpoints
 
   ;; Admin endpoints
-  (GET "/api/:gameUuid/:userUuid/admin-debug/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/admin-debug gameUuid userUuid))
+  (GET "/api/:gameUuid/:userUuid/admin/debug/"
+       {{gameUuid :gameUuid userUuid :userUuid} :params}
+       (lapi/admin-debug gameUuid userUuid))
+  (GET "/api/:gameUuid/:userUuid/admin/modify-index/:ind/:amount/"
+       {{gameUuid :gameUuid userUuid :userUuid ind :ind amount :amount} :params}
+       (lapi/admin-modify-index gameUuid userUuid ind amount))
 
   ;; OTHER
   ;; Simple directs to the above
