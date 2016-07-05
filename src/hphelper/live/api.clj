@@ -8,6 +8,13 @@
   (:gen-class)
 )
 
+(def errors
+  "A map of precompiled error strings for an invalid game or user id login"
+  {:login (json/write-str {:status "error" :message "Invalid game or user id"})
+   :invalidGame (json/write-str {:status "error" :message "Invalid game or user id"})
+   }
+  )
+
 (defn get-indicies
   "Gets the indicies of a game"
   [^String gUid]
@@ -15,6 +22,14 @@
   (if-let [gi (:indicies (get-game gUid))]
     (json/write-str {:status "ok" :indicies gi})
     (json/write-str {:status "error" :message "Game does not exist"})
+    ))
+
+(defn get-player-character-sheet
+  "Returns a player's character sheet"
+  [^String gUid ^String uUid]
+  (if-let [p (-> (get-game gUid) :hps (get uUid))]
+    (json/write-str p)
+    (:login errors)
     ))
 
 (defn- is-admin-get-game
@@ -32,7 +47,7 @@
   (log/trace "admin-debug. gUid:" gUid "uUid:" uUid)
   (if-let [g (is-admin-get-game gUid uUid)]
       (json/write-str g)
-      (json/write-str {:status "error" :message "Invalid game or user id"})
+      (:login errors)
     ))
 
 (defn admin-modify-index
@@ -48,5 +63,5 @@
                                   0)))
       (json/write-str {:status "ok"})
       (json/write-str {:status "error" :message "modify-index failed"}))
-    (json/write-str {:status "error" :message "Invalid game or user id"})
+    (:login errors)
     ))
