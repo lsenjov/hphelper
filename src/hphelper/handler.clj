@@ -25,6 +25,9 @@
 
             ;; For hiding items from players
             [hphelper.shared.encrypt :as c]
+
+            ;; Since this will slowly be changing to an api, json is coming
+            [clojure.data.json :as json]
             )
   (:gen-class))
 
@@ -112,10 +115,12 @@
   ;; API
   ;; Public endpoints
   (GET "/api/:gameUuid/:userUuid/indicies/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-indicies gameUuid))
-  (GET "/api/:gameUuid/:userUuid/charsheet/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-character-sheet gameUuid userUuid))
-  (GET "/api/:gameUuid/:userUuid/societymissions/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-society-missions gameUuid userUuid))
+  (GET "/api/:gameUuid/:userUuid/news/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-news gameUuid))
+  (GET "/api/:gameUuid/:userUuid/cbay/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-cbay gameUuid))
 
   ;; Player endpoints
+  (GET "/api/:gameUuid/:userUuid/charsheet/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-character-sheet gameUuid userUuid))
+  (GET "/api/:gameUuid/:userUuid/societymissions/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-society-missions gameUuid userUuid))
 
   ;; Admin endpoints
   (GET "/api/:gameUuid/:userUuid/admin/debug/"
@@ -136,7 +141,7 @@
             [:a {:href "https://github.com/lsenjov/hphelper"} "Source Code"][:br]
             ]]))
   (route/not-found
-    "Not Found.")
+    (json/write-str {:status "error" :message "Invalid endpoint"}))
   )
 
 (def app

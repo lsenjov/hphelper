@@ -24,6 +24,24 @@
     (:invalidGame errors)
     ))
 
+(defn get-cbay
+  "Gets the cbay items of a game"
+  [^String gUid]
+  (log/trace "get-cbay:" gUid)
+  (if-let [gc (:cbay (get-game gUid))]
+    (json/write-str {:status "ok" :cbay gc})
+    (:invalidGame errors)
+    ))
+
+(defn get-news
+  "Gets the news items of a game"
+  [^String gUid]
+  (log/trace "get-news:" gUid)
+  (if-let [gc (:news (get-game gUid))]
+    (json/write-str {:status "ok" :news gc})
+    (:invalidGame errors)
+    ))
+
 (defn get-player-society-missions
   "Gets a list of the secret society missions of a player"
   [^String gUid ^String uUid]
