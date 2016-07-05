@@ -160,7 +160,7 @@
                  uid "/"
                  confirm "/")
             (:indicies (lcon/get-game uid)))
-          [:div [:a {:href (str baseURL "/api/" uid "/" (:adminPass (lcon/get-game uid)) "/admin/debug/")} "Debug Result"]]
+          [:div [:a {:href (str baseURL "/api/admin/" uid "/" (:adminPass (lcon/get-game uid)) "/debug/")} "Debug Result"]]
           [:div (print-player-stats-table uid)]
           ]]])
      "Incorrect confirmation"

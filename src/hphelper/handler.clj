@@ -114,19 +114,19 @@
 
   ;; API
   ;; Public endpoints
-  (GET "/api/:gameUuid/:userUuid/indicies/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-indicies gameUuid))
-  (GET "/api/:gameUuid/:userUuid/news/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-news gameUuid))
-  (GET "/api/:gameUuid/:userUuid/cbay/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-cbay gameUuid))
+  (GET "/api/public/:gameUuid/indicies/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-indicies gameUuid))
+  (GET "/api/public/:gameUuid/news/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-news gameUuid))
+  (GET "/api/public/:gameUuid/cbay/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-cbay gameUuid))
 
   ;; Player endpoints
-  (GET "/api/:gameUuid/:userUuid/charsheet/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-character-sheet gameUuid userUuid))
-  (GET "/api/:gameUuid/:userUuid/societymissions/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-society-missions gameUuid userUuid))
+  (GET "/api/player/:gameUuid/:userUuid/charsheet/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-character-sheet gameUuid userUuid))
+  (GET "/api/player/:gameUuid/:userUuid/societymissions/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-society-missions gameUuid userUuid))
 
   ;; Admin endpoints
-  (GET "/api/:gameUuid/:userUuid/admin/debug/"
+  (GET "/api/admin/:gameUuid/:userUuid/debug/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}
        (lapi/admin-debug gameUuid userUuid))
-  (GET "/api/:gameUuid/:userUuid/admin/modify-index/:ind/:amount/"
+  (GET "/api/admin/:gameUuid/:userUuid/modify-index/:ind/:amount/"
        {{gameUuid :gameUuid userUuid :userUuid ind :ind amount :amount} :params}
        (lapi/admin-modify-index gameUuid userUuid ind amount))
 
