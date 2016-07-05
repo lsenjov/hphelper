@@ -24,6 +24,21 @@
     (:invalidGame errors)
     ))
 
+(defn get-player-society-missions
+  "Gets a list of the secret society missions of a player"
+  [^String gUid ^String uUid]
+  (let [g (get-game gUid)
+        p (-> g :hps (get uUid))]
+    (if p
+      (json/write-str {:status "ok"
+                       :missions (filter (fn [mission]
+                                           (some #{(mission :ss_id)}
+                                                 (map :ss_id
+                                                      (or (:programGroup p) (get p "Program Group")))))
+                                         (g :societies))
+                       })
+      (:login errors))))
+
 (defn get-player-character-sheet
   "Returns a player's character sheet"
   [^String gUid ^String uUid]

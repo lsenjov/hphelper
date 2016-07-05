@@ -113,6 +113,7 @@
   ;; Public endpoints
   (GET "/api/:gameUuid/:userUuid/indicies/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-indicies gameUuid))
   (GET "/api/:gameUuid/:userUuid/charsheet/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-character-sheet gameUuid userUuid))
+  (GET "/api/:gameUuid/:userUuid/societymissions/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-society-missions gameUuid userUuid))
 
   ;; Player endpoints
 
