@@ -28,8 +28,7 @@
   "Adds a uuid password to all players in a scenMap, returns the map"
   [sMap]
   (update-in sMap [:hps] (fn [pl] (apply merge {}
-                                         (map player-add-password-token
-                                              pl)))))
+                                         (map player-add-password-token pl)))))
 
 (defn new-game
   "Creates a new game, either from an existing map or straight 0s. Returns the generated uid"

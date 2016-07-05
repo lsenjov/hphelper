@@ -11,7 +11,7 @@
 (def errors
   "A map of precompiled error strings for an invalid game or user id login"
   {:login (json/write-str {:status "error" :message "Invalid game or user id"})
-   :invalidGame (json/write-str {:status "error" :message "Invalid game or user id"})
+   :invalidGame (json/write-str {:status "error" :message "Invalid game"})
    }
   )
 
@@ -21,7 +21,7 @@
   (log/trace "get-indicies:" gUid)
   (if-let [gi (:indicies (get-game gUid))]
     (json/write-str {:status "ok" :indicies gi})
-    (json/write-str {:status "error" :message "Game does not exist"})
+    (:invalidGame errors)
     ))
 
 (defn get-player-character-sheet
