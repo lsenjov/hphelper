@@ -20,15 +20,15 @@
 
 (defn- player-add-password-token
   "Adds a uuid key under :password to a player map, returns the map"
-  [pMap]
-  (assoc pMap :password (uni/uuid)))
+  [[_ pMap]]
+  (let [pass (uni/uuid)]
+    [pass (assoc pMap :password pass)]))
 
 (defn- player-add-all-password-tokens
   "Adds a uuid password to all players in a scenMap, returns the map"
   [sMap]
   (update-in sMap [:hps] (fn [pl] (apply merge {}
-                                         (map (fn [[k pMap]]
-                                                [k (player-add-password-token pMap)])
+                                         (map player-add-password-token
                                               pl)))))
 
 (defn new-game
