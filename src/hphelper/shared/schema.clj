@@ -106,8 +106,11 @@
    :minions [serviceGroupRecord]
    ;; The list of crisises
    :crisises [crisisRecord]
-   :indicies {s/Keyword s/Int}
+   ;; Current indicies and previous indicies
+   :indicies [{s/Keyword s/Int}]
    :directives [directiveRecord]
    :news [s/Str]
+   ;; Current access and previous access totals
+   :access [{s/Str s/Int}]
    }
   )

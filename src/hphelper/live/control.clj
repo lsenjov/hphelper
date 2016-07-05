@@ -18,17 +18,60 @@
                     currentGames
                     (atom {})))
 
-(defn- player-add-password-token
-  "Adds a uuid key under :password to a player map, returns the map"
-  [[_ pMap]]
-  (let [pass (uni/uuid)]
-    [pass (assoc pMap :password pass)]))
+(defn current-time
+  "Returns the current time as a long"
+  []
+  (.toEpochMilli (java.time.Instant/now)))
 
-(defn- player-add-all-password-tokens
+(defn- player-setup
+  "Adds a uuid key under :password to a player map, performs other live setup, returns the map"
+  [[_ pMap]]
+  (let [pass (uni/uuid)
+        t (current-time)]
+    [pass 
+     (-> pMap
+         (assoc :password pass)
+         ;; Sets current access to starting access by default
+         (assoc :currentAccess (:accessRemaining pMap))
+         )
+     ]
+    )
+  )
+
+(defn- setup-indicies-history
+  "Sets the initial indicies history to a list of the current indicies map"
+  [{inds :indicies :as sMap}]
+  (log/trace "setup-indicies-history.")
+  (assoc sMap :indicies (list inds)))
+
+(defn- setup-current-access-totals
+  "Sets up a map of player names to current access, and starts indicies history"
+  [{players :hps :as sMap}]
+  (log/trace "setup-current-access-totals. players:" (vals players))
+  (let [at (merge (map (fn [pMap]
+                         (log/trace "pMap:" pMap)
+                         {(:name pMap) (:accessRemaining pMap)})
+                       (vals players)))]
+    (-> sMap
+        (assoc :current-access at)
+        (assoc :history-access (list at))
+        )
+    )
+  )
+
+(defn- player-all-setup
   "Adds a uuid password to all players in a scenMap, returns the map"
   [sMap]
-  (update-in sMap [:hps] (fn [pl] (apply merge {}
-                                         (map player-add-password-token pl)))))
+  (-> sMap
+      ;; Setup individual players
+      (update-in [:hps] (fn [pl] (apply merge {}
+                                        (map player-setup pl))))
+      ;; Setup indicies history
+      setup-indicies-history
+      ;; Setup current access totals and access history
+      setup-current-access-totals
+      )
+  )
 
 (defn new-game
   "Creates a new game, either from an existing map or straight 0s. Returns the generated uid"
@@ -44,7 +87,7 @@
                                       (partial concat
                                                '()))
                            (assoc :adminPass (uni/uuid))
-                           (player-add-all-password-tokens)
+                           (player-all-setup)
                        )))
   ([]
    (new-game {:indicies (indicies/create-base-indicies-list)})))
@@ -62,10 +105,14 @@
 (defn modify-index-inner
   "Modifies an index by a certain amount, and fuzzifies the indices"
   [scenMap index ^Integer amount]
-  (-> scenMap
-      (update-in [:indicies index] + amount)
-      (update-in [:indicies] (comp indicies/normalise-all-indicies indicies/fuzzify-indicies))
-      ))
+  (log/trace "modify-index-inner. index:" index "amount:" amount "indicies:" (-> scenMap :indicies first))
+  (let [newInds (-> (first (:indicies scenMap))
+                    (update-in [index] + amount)
+                    indicies/fuzzify-indicies
+                    indicies/normalise-all-indicies
+                    )]
+    (log/trace "modify-index-inner. newInds:" newInds)
+    (update-in scenMap [:indicies] (partial cons newInds))))
 
 (defn modify-index
   "Modifys an index by a certain amount, returns the map, or nil if the game doesn't exist"
@@ -79,9 +126,14 @@
                          (do
                            (log/debug "modify-item: could not parse" amount)
                            0))))
-    (if (get-in @currentGames [uid :indicies index])
-      (uni/swap-uuid! currentGames uid modify-index-inner index amount)
-      nil)
+    (if (-> @currentGames (get uid) :indicies first index)
+      (do
+        (log/trace "modify-index. Modifying index.")
+        (uni/swap-uuid! currentGames uid modify-index-inner index amount)
+        )
+      (do
+        (log/error "modify-index. Could not find game.")
+        nil))
   ))
 
 (defn add-news-item

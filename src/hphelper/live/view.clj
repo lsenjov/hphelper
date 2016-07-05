@@ -37,7 +37,7 @@
             ]
            [:body
             [:div
-             (html-print-indicies-table (:indicies game) 13)
+             (html-print-indicies-table (first (:indicies game)) 13)
              ]
             [:div
              (map (fn [n] [:div n])
@@ -159,7 +159,7 @@
             (str baseURL "/live/view/"
                  uid "/"
                  confirm "/")
-            (:indicies (lcon/get-game uid)))
+            (first (:indicies (lcon/get-game uid))))
           [:div [:a {:href (str baseURL "/api/admin/" uid "/" (:adminPass (lcon/get-game uid)) "/debug/")} "Debug Result"]]
           [:div (print-player-stats-table uid)]
           ]]])

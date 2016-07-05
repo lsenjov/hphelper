@@ -19,7 +19,7 @@
   "Gets the indicies of a game"
   [^String gUid]
   (log/trace "get-indicies:" gUid)
-  (if-let [gi (:indicies (get-game gUid))]
+  (if-let [gi (first (:indicies (get-game gUid)))]
     (json/write-str {:status "ok" :indicies gi})
     (:invalidGame errors)
     ))
@@ -39,6 +39,15 @@
   (log/trace "get-news:" gUid)
   (if-let [gc (:news (get-game gUid))]
     (json/write-str {:status "ok" :news gc})
+    (:invalidGame errors)
+    ))
+
+(defn get-current-access
+  "Gets the news items of a game"
+  [^String gUid]
+  (log/trace "get-current-access:" gUid)
+  (if-let [ga (:current-access (get-game gUid))]
+    (json/write-str {:status "ok" :current-access ga})
     (:invalidGame errors)
     ))
 

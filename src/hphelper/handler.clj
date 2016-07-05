@@ -117,6 +117,7 @@
   (GET "/api/public/:gameUuid/indicies/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-indicies gameUuid))
   (GET "/api/public/:gameUuid/news/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-news gameUuid))
   (GET "/api/public/:gameUuid/cbay/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-cbay gameUuid))
+  (GET "/api/public/:gameUuid/current-access/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-current-access gameUuid))
 
   ;; Player endpoints
   (GET "/api/player/:gameUuid/:userUuid/charsheet/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-character-sheet gameUuid userUuid))
