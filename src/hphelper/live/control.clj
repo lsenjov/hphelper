@@ -31,34 +31,28 @@
     [pass 
      (-> pMap
          (assoc :password pass)
-         ;; Sets current access to starting access by default
-         (assoc :currentAccess (:accessRemaining pMap))
          )
      ]
     )
   )
-
 (defn- setup-indicies-history
   "Sets the initial indicies history to a list of the current indicies map"
   [{inds :indicies :as sMap}]
   (log/trace "setup-indicies-history.")
   (assoc sMap :indicies (list inds)))
-
 (defn- setup-current-access-totals
   "Sets up a map of player names to current access, and starts indicies history"
   [{players :hps :as sMap}]
   (log/trace "setup-current-access-totals. players:" (vals players))
-  (let [at (merge (map (fn [pMap]
+  (let [at (reduce merge {} (map (fn [pMap]
                          (log/trace "pMap:" pMap)
                          {(:name pMap) (:accessRemaining pMap)})
                        (vals players)))]
     (-> sMap
-        (assoc :current-access at)
-        (assoc :history-access (list at))
+        (assoc :access (list at))
         )
     )
   )
-
 (defn- player-all-setup
   "Adds a uuid password to all players in a scenMap, returns the map"
   [sMap]
