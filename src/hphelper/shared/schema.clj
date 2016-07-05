@@ -97,7 +97,7 @@
   ;; Cbay items up for sale. Includes time left in the string for now
   {:cbay [s/Str]
    ;; A list of all the player characters
-   :hps {s/Int playerCharacter}
+   :hps {s/Str playerCharacter}
    ;; A list of all the secret society missions
    :societies [scenSocietySingle]
    ;; Name of the zone
