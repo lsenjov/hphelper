@@ -21,7 +21,8 @@
 (defn current-time
   "Returns the current time as a long"
   []
-  (.toEpochMilli (java.time.Instant/now)))
+  (.getTimeInMillis (java.util.Calendar/getInstance))
+  )
 
 (defn- player-setup
   "Adds a uuid key under :password to a player map, performs other live setup, returns the map"
