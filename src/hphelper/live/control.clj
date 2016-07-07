@@ -54,6 +54,14 @@
         )
     )
   )
+(defn- setup-last-updated
+  "Sets up a map of last updated times for all keys"
+  [sMap ^Integer t]
+  (log/trace "setup-last-updated. time:" t)
+  (-> sMap
+      (assoc :updated (reduce merge {} (map (fn [k] {k t}) (keys sMap))))
+      )
+  )
 (defn- player-all-setup
   "Adds a uuid password to all players in a scenMap, returns the map"
   [sMap]
@@ -65,6 +73,8 @@
       setup-indicies-history
       ;; Setup current access totals and access history
       setup-current-access-totals
+      ;; Setup last updated to now
+      (setup-last-updated (current-time))
       )
   )
 

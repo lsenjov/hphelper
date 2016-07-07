@@ -9,9 +9,9 @@
 )
 
 (def errors
-  "A map of precompiled error strings for an invalid game or user id login"
-  {:login (json/write-str {:status "error" :message "Invalid game or user id"})
-   :invalidGame (json/write-str {:status "error" :message "Invalid game"})
+  "A map of precompiled error messages for an invalid game or user id login"
+  {:login {:status "error" :message "Invalid game or user id"}
+   :invalidGame {:status "error" :message "Invalid game"}
    }
   )
 
@@ -20,7 +20,7 @@
   [^String gUid]
   (log/trace "get-indicies:" gUid)
   (if-let [gi (first (:indicies (get-game gUid)))]
-    (json/write-str {:status "ok" :indicies gi})
+    {:status "ok" :indicies gi}
     (:invalidGame errors)
     ))
 
@@ -29,7 +29,7 @@
   [^String gUid]
   (log/trace "get-cbay:" gUid)
   (if-let [gc (:cbay (get-game gUid))]
-    (json/write-str {:status "ok" :cbay gc})
+    {:status "ok" :cbay gc}
     (:invalidGame errors)
     ))
 
@@ -38,7 +38,7 @@
   [^String gUid]
   (log/trace "get-news:" gUid)
   (if-let [gc (:news (get-game gUid))]
-    (json/write-str {:status "ok" :news gc})
+    {:status "ok" :news gc}
     (:invalidGame errors)
     ))
 
@@ -46,8 +46,8 @@
   "Gets the news items of a game"
   [^String gUid]
   (log/trace "get-current-access:" gUid)
-  (if-let [ga (:current-access (get-game gUid))]
-    (json/write-str {:status "ok" :current-access ga})
+  (if-let [ga (:access (get-game gUid))]
+    {:status "ok" :access ga}
     (:invalidGame errors)
     ))
 
@@ -57,20 +57,20 @@
   (let [g (get-game gUid)
         p (-> g :hps (get uUid))]
     (if p
-      (json/write-str {:status "ok"
+      {:status "ok"
                        :missions (filter (fn [mission]
                                            (some #{(mission :ss_id)}
                                                  (map :ss_id
                                                       (or (:programGroup p) (get p "Program Group")))))
                                          (g :societies))
-                       })
+                       }
       (:login errors))))
 
 (defn get-player-character-sheet
   "Returns a player's character sheet"
   [^String gUid ^String uUid]
   (if-let [p (-> (get-game gUid) :hps (get uUid))]
-    (json/write-str p)
+    p
     (:login errors)
     ))
 
@@ -106,4 +106,42 @@
       (json/write-str {:status "ok"})
       (json/write-str {:status "error" :message "modify-index failed"}))
     (:login errors)
+    ))
+
+(defn- get-index
+  "Gets the data from an index, returns a map"
+  [^String gUid ^String uUid ind]
+  (log/trace "get-index. gUid:" gUid "ind:" ind)
+  (case ind
+    ;; Publics
+    :news (get-news gUid)
+    :cbay (get-cbay gUid)
+    :indicies (get-indicies gUid)
+    :access (get-current-access gUid)
+
+    ;; Players
+    :hps (get-player-character-sheet gUid uUid)
+    :missions (get-player-society-missions gUid uUid)
+    {}
+    ))
+
+(defn get-updated-public
+  "Gets all the updated items in a game"
+  [^String gUid ^Integer t]
+  (log/trace "get-updated-public. gUid:" gUid "time:" t)
+  (if-let [g (get-game gUid)]
+    (let [retKeys (keys (filter (fn [[k lastUpdate]] (< t lastUpdate)) (:updated g)))]
+      (log/trace "get-updated-player. retKeys:" retKeys)
+      (reduce merge {:status "ok"} (map (partial get-index gUid "") retKeys)))
+    (:invalidGame errors)
+    ))
+
+(defn get-updated-player
+  "Gets all the updated items for a player"
+  [^String gUid ^String uUid ^Integer t]
+  (log/trace "get-updated-player. gUid:" gUid "uUid:" uUid "time:" t)
+  (if-let [g (get-game gUid)]
+    (let [retKeys (keys (filter (fn [[k lastUpdate]] (< t lastUpdate)) (:updated g)))]
+      (reduce merge {:status "ok"} (map (partial get-index gUid uUid) retKeys)))
+    (:invalidGame errors)
     ))

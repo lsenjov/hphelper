@@ -33,6 +33,16 @@
 
 (log/set-level! :trace)
 
+(defn- parse-long
+  "Parses a long, returns 0 if fails"
+  [^String i]
+  (try (Long/parseLong i)
+       (catch NumberFormatException e
+         (log/error "parse-long: could not parse:" i "Returning 0 instead.")
+         0)
+       )
+  )
+
 (defroutes
   app-routes
   ;; CHARACTERS
@@ -114,14 +124,19 @@
 
   ;; API
   ;; Public endpoints
-  (GET "/api/public/:gameUuid/indicies/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-indicies gameUuid))
-  (GET "/api/public/:gameUuid/news/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-news gameUuid))
-  (GET "/api/public/:gameUuid/cbay/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-cbay gameUuid))
-  (GET "/api/public/:gameUuid/current-access/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-current-access gameUuid))
+  (GET "/api/public/:gameUuid/updates/:lastUpdated/"
+       {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}
+       (json/write-str (lapi/get-updated-public gameUuid (parse-long lastUpdated))))
+  (GET "/api/public/:gameUuid/indicies/"
+       {{gameUuid :gameUuid userUuid :userUuid} :params}
+       (json/write-str (lapi/get-indicies gameUuid)))
+  (GET "/api/public/:gameUuid/news/" {{gameUuid :gameUuid userUuid :userUuid} :params} (json/write-str (lapi/get-news gameUuid)))
+  (GET "/api/public/:gameUuid/cbay/" {{gameUuid :gameUuid userUuid :userUuid} :params} (json/write-str (lapi/get-cbay gameUuid)))
+  (GET "/api/public/:gameUuid/access/" {{gameUuid :gameUuid userUuid :userUuid} :params} (json/write-str (lapi/get-current-access gameUuid)))
 
   ;; Player endpoints
-  (GET "/api/player/:gameUuid/:userUuid/charsheet/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-character-sheet gameUuid userUuid))
-  (GET "/api/player/:gameUuid/:userUuid/societymissions/" {{gameUuid :gameUuid userUuid :userUuid} :params} (lapi/get-player-society-missions gameUuid userUuid))
+  (GET "/api/player/:gameUuid/:userUuid/charsheet/" {{gameUuid :gameUuid userUuid :userUuid} :params} (json/write-str (lapi/get-player-character-sheet gameUuid userUuid)))
+  (GET "/api/player/:gameUuid/:userUuid/societymissions/" {{gameUuid :gameUuid userUuid :userUuid} :params} (json/write-str (lapi/get-player-society-missions gameUuid userUuid)))
 
   ;; Admin endpoints
   (GET "/api/admin/:gameUuid/:userUuid/debug/"

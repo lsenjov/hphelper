@@ -112,5 +112,7 @@
    :news [s/Str]
    ;; Current access and previous access totals
    :access [{s/Str s/Int}]
+   ;; The last current-time items were updated
+   :updated {s/Keyword s/Int}
    }
   )
