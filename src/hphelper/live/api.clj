@@ -132,7 +132,9 @@
   (if-let [g (get-game gUid)]
     (let [retKeys (keys (filter (fn [[k lastUpdate]] (< t lastUpdate)) (:updated g)))]
       (log/trace "get-updated-player. retKeys:" retKeys)
-      (reduce merge {:status "ok"} (map (partial get-index gUid "") retKeys)))
+      (reduce merge
+              {:status "ok" :updated t}
+              (map (partial get-index gUid "") retKeys)))
     (:invalidGame errors)
     ))
 
@@ -142,6 +144,8 @@
   (log/trace "get-updated-player. gUid:" gUid "uUid:" uUid "time:" t)
   (if-let [g (get-game gUid)]
     (let [retKeys (keys (filter (fn [[k lastUpdate]] (< t lastUpdate)) (:updated g)))]
-      (reduce merge {:status "ok"} (map (partial get-index gUid uUid) retKeys)))
+      (reduce merge
+              {:status "ok" :updated t}
+              (map (partial get-index gUid uUid) retKeys)))
     (:invalidGame errors)
     ))
