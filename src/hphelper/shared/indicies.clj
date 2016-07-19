@@ -63,7 +63,6 @@
   [indicies]
   (log/trace "normalise-all-indicies:" indicies)
   (->> indicies
-      (normalise-specific-indicies sectorIndicies)
       (normalise-specific-indicies (map key (remove (partial some (into #{} sectorIndicies)) indicies)))))
 
 (defn fuzzify-indicies
