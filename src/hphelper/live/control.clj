@@ -117,7 +117,12 @@
                     indicies/normalise-all-indicies
                     )]
     (log/trace "modify-index-inner. newInds:" newInds)
-    (update-in scenMap [:indicies] (partial cons newInds))))
+    (-> scenMap
+        (update-in [:indicies] (partial cons newInds))
+        (assoc-in [:updated :indicies] (current-time))
+        )
+    )
+  )
 
 (defn modify-index
   "Modifys an index by a certain amount, returns the map, or nil if the game doesn't exist"
