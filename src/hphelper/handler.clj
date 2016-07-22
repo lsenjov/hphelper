@@ -145,6 +145,9 @@
   (GET "/api/admin/:gameUuid/:userUuid/debug/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}
        (lapi/admin-debug gameUuid userUuid))
+  (GET "/api/admin/:gameUuid/:userUuid/valid/"
+       {{gameUuid :gameUuid userUuid :userUuid} :params}
+       (lapi/admin-validate-spec gameUuid userUuid))
   (GET "/api/admin/:gameUuid/:userUuid/modify-index/:ind/:amount/"
        {{gameUuid :gameUuid userUuid :userUuid ind :ind amount :amount} :params}
        (lapi/admin-modify-index gameUuid userUuid ind amount))

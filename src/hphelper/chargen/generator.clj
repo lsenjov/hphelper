@@ -3,9 +3,6 @@
             [hiccup.core :refer :all]
             [taoensso.timbre :as log]
             [hphelper.chargen.print :refer :all]
-
-            [schema.core :as s]
-            [hphelper.shared.schema :as ss]
     )
   )
 

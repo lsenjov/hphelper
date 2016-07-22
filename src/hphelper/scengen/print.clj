@@ -139,7 +139,7 @@
 
 (defn- html-print-minions
   "Prints all sgs' minion tables"
-  [{minions :minions :as scenRec}]
+  [{minions :serviceGroups :as scenRec}]
   (interpose [:br]
              (map (fn [pairSgs] [:div {:style "page-break-before: always;"}
                                  (map html-print-minion-table pairSgs)])

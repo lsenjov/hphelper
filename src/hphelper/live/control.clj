@@ -4,7 +4,8 @@
             [hphelper.shared.unique :as uni]
             [hphelper.shared.indicies :as indicies]
             [taoensso.timbre :as log]
-            [schema.core :as s]
+            [clojure.spec :as s]
+            [hphelper.shared.spec :as ss]
             [clojure.data.json :as json]
             )
   (:gen-class)
@@ -93,6 +94,7 @@
                                                '()))
                            (assoc :adminPass (uni/uuid))
                            (player-all-setup)
+                           (update-in [:cbay] (partial concat '()))
                        )))
   ([]
    (new-game {:indicies (indicies/create-base-indicies-list)})))
@@ -102,10 +104,11 @@
   [^String uid]
   (uni/get-uuid-atom currentGames uid))
 
-(def swap-game!
+(defn- swap-game!
   "Applys the function to the game associated with the uuid
-  ([uid fn & args])"
-  (partial uni/swap-uuid! currentGames))
+  Asserts afterwards the game matches spec."
+  [uid func & args]
+  (apply uni/swap-uuid! currentGames uid (comp #(s/assert ::ss/liveScenario %) func) args))
 
 (defn modify-index-inner
   "Modifies an index by a certain amount, and fuzzifies the indices"
@@ -139,7 +142,7 @@
     (if (-> @currentGames (get uid) :indicies first index)
       (do
         (log/trace "modify-index. Modifying index.")
-        (uni/swap-uuid! currentGames uid modify-index-inner index amount)
+        (swap-game! uid modify-index-inner index amount)
         )
       (do
         (log/error "modify-index. Could not find game.")
@@ -149,7 +152,7 @@
 (defn add-news-item
   "Adds a single news item to a game"
   [uid ^String newsItem]
-  (uni/swap-uuid! currentGames uid update-in [:news] conj newsItem))
+  (swap-game! uid update-in [:news] conj newsItem))
 
 (defn get-news
   "Gets the news list of a game"

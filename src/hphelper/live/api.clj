@@ -1,9 +1,10 @@
 (ns hphelper.live.api
   (:require [hphelper.shared.sql :as sql]
             [taoensso.timbre :as log]
-            [schema.core :as s]
+            [clojure.spec :as s]
+            [hphelper.shared.spec :as ss]
             [clojure.data.json :as json]
-            [hphelper.live.control :refer [get-game swap-game!] :as lcon]
+            [hphelper.live.control :refer [get-game] :as lcon]
             )
   (:gen-class)
 )
@@ -90,6 +91,15 @@
   (if-let [g (is-admin-get-game gUid uUid)]
       (json/write-str g)
       (:login errors)
+    ))
+
+(defn admin-validate-spec
+  "Gets the game, validates the gamemap. requires admin login"
+  [^String gUid ^String uUid]
+  (log/trace "admin-validate-spec. gUid:" gUid "uUid:" uUid)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (s/explain-str ::ss/liveScenario g)
+    (:login errors)
     ))
 
 (defn admin-modify-index

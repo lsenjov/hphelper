@@ -1,7 +1,7 @@
 (ns hphelper.chargen.generator-test
   (:require [clojure.test :refer :all]
             [hphelper.chargen.generator :refer :all]
-            [schema.core :as s]
-            [hphelper.shared.schema :as ss]))
+            [clojure.spec :as s]
+            [hphelper.shared.spec :as ss]))
 
-(is (s/validate ss/playerCharacter (create-character)) "A random character should be of a PlayerCharacter form")
+(s/valid? ::ss/playerCharacter (create-character))

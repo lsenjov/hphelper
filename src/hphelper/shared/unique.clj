@@ -23,13 +23,19 @@
   (@ma uid))
 
 (defn swap-uuid!
-  "Applys swap! to the correct item, returns the value object reffered by the uuid, or nil if invalid uuid"
+  "Applys swap! to the correct item, returns the value object reffered by the uuid,
+  or nil if invalid uuid. If an exception is thrown while applying the function,
+  will carry the exception up and not change the atom"
   [ma uid f & args]
   (log/trace "swap-uuid!" ma uid f args)
   (if (and uid (@ma uid))
     (if args
-      (let [newMap (apply f (@ma uid) args)]
-        ((swap! ma assoc uid newMap) uid))
+      ; swap! ma update-in [uid] (partial apply f) &args
+      ; update-in ma [uid] (partial apply f) &args
+      ; (partial apply f) mp &args
+      ; apply f mp &args
+      ; f mp args
+      ((swap! ma update-in [uid] (partial apply f) args) uid)
       ((swap! ma update-in [uid] f) uid))
     (do (log/trace "swap-uuid!: could not find uid:" uid)
         nil)))

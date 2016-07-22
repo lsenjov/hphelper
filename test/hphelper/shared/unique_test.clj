@@ -35,4 +35,19 @@
       (is (= ((uni/get-uuid-atom mapAtom uid) :a) i) "Integer should still be the same")
       (is (map? (uni/swap-uuid! mapAtom uid update-in [:a] inc)) "Should still be a map")
       (is (= ((uni/get-uuid-atom mapAtom uid) :a) (inc i)) "Integer should have been increased")
+      (is (map? (uni/swap-uuid! mapAtom uid update-in [:a] inc)) "Should still be a map")
+      (is (= ((uni/get-uuid-atom mapAtom uid) :a) (+ 2 i)) "Integer should have been increased by 2 since start")
       )))
+
+(deftest test-add-multiple-args
+  (testing "adding and incrementing a map"
+    (let [mapAtom (atom {})
+          i 5
+          item {:a i}
+          uid (uni/add-uuid-atom! mapAtom item)]
+      (is (= (uni/get-uuid-atom mapAtom uid) item) "Map should be the same")
+      (is (map? (uni/swap-uuid! mapAtom uid update-in [:a] + 1 1 1)) "Should still be a map")
+      (is (= ((uni/get-uuid-atom mapAtom uid) :a) (+ 3 i)) "Should have increased by 3")
+      )
+    )
+  )

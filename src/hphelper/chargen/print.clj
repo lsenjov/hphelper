@@ -3,8 +3,6 @@
             [hiccup.core :refer :all]
             [taoensso.timbre :as log]
             [hphelper.shared.indicies :refer :all]
-            [schema.core :as s]
-            [hphelper.shared.schema :as ss]
     )
   )
 

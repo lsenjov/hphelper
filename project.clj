@@ -2,7 +2,7 @@
   :description "A suite of tools for the discerning high programmer"
   :url "http://example.com/FIXME"
   :min-lein-version "2.0.0"
-  :dependencies [[org.clojure/clojure "1.7.0"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha10"]
                  ;; Web Server
                  [compojure "1.4.0"]
                  [ring/ring-defaults "0.1.5"]
@@ -17,9 +17,6 @@
 
                  ;; Logging Deps
                  [com.taoensso/timbre "4.5.1"]
-
-                 ;; Schema for typing
-                 [prismatic/schema "1.1.2"]
 
                  ;; Json Deps
                  [org.clojure/data.json "0.2.6"]

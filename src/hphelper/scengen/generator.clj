@@ -4,8 +4,6 @@
             [hphelper.chargen.generator :as cg]
             [taoensso.timbre :as log]
             [hphelper.shared.indicies :refer :all]
-            [schema.core :as s]
-            [hphelper.shared.schema :as ss]
             )
   (:gen-class)
   )
@@ -135,9 +133,9 @@
              (sort-by :minion_name (into [] minions)))))
 
 (defn- select-minion-lists
-  "Creates minion lists for each service group under :minions"
+  "Creates minion lists for each service group under :serviceGroups"
   ([scenRec]
-   (assoc-in scenRec [:minions]
+   (assoc-in scenRec [:serviceGroups]
              (map (comp sort-minion-list
                         (partial add-additional-minions 12 12) ;; Want at least 10 minions on each list
                         (partial create-single-minion-list))
@@ -210,7 +208,7 @@
           (map partial
                (repeat copy-key)
                (repeat scenRec)
-               [:zone :crisises :directives :societies :minions :news :indicies :hps :cbay]))
+               [:zone :crisises :directives :societies :serviceGroups :news :indicies :hps :cbay]))
    {}
    ))
 
