@@ -99,17 +99,17 @@
   ([{sgNum :sg_id :as sgRec}]
    (assoc-in sgRec [:minions]
              (remove nil? (set (map (fn [skill] (sql/get-random-item (sql/query "SELECT `minion`.* FROM `minion`, `minion_skill`
-                                                               WHERE `sg_id` = ?
-                                                               AND `minion`.`minion_id` IN
-                                                               (SELECT `minion_id`
-                                                               FROM `minion_skill`
-                                                               WHERE `skills_id` = ?);"
-                                                               sgNum
-                                                               skill))) ;; Grabs a minion with the skill from the service group
-                       (map :skills_id (sql/query "SELECT `skills_id`
-                                                  FROM `sg_skill`
-                                                  WHERE `sg_id` = ?;"
-                                                  sgNum))))))))
+                                                                                WHERE `sg_id` = ?
+                                                                                AND `minion`.`minion_id` IN
+                                                                                (SELECT `minion_id`
+                                                                                FROM `minion_skill`
+                                                                                WHERE `skills_id` = ?);"
+                                                                                sgNum
+                                                                                skill))) ;; Grabs a minion with the skill from the service group
+                                    (map :skills_id (sql/query "SELECT `skills_id`
+                                                               FROM `sg_skill`
+                                                               WHERE `sg_id` = ?;"
+                                                               sgNum))))))))
 
 (defn- add-additional-minions
   "Given a service group record, adds random minions till minimum minions have been reached,

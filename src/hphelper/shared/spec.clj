@@ -50,10 +50,18 @@
 (s/def ::cbay (s/coll-of string?))
 (s/def ::news (s/coll-of string?))
 (s/def ::societyMissionSingle (s/keys :req-un [::ssm_id ::ss_id ::c_id ::ssm_text]))
+; Has this minion been paid for by a player?
+(s/def ::bought? boolean?)
 (s/def ::serviceGroupMinion
-  (s/keys :req-un [::minion_id ::minion_name ::minion_clearance ::minion_cost ::sg_id]))
+  (s/keys :req-un [::minion_id ::minion_name ::minion_clearance ::minion_cost ::sg_id]
+          :opt-un [::bought?]
+          ))
 (s/def ::minions (s/coll-of ::serviceGroupMinion))
-(s/def ::serviceGroupRecord (s/keys :req-un [::sg_id ::sg_name ::sg_abbr ::minions]))
+; The owner in uUid form
+(s/def ::owner string?)
+(s/def ::serviceGroupRecord (s/keys :req-un [::sg_id ::sg_name ::sg_abbr ::minions]
+                                    :opt-un [::owner]
+                                    ))
 (s/def ::crisisRecord (s/keys :req-un [::c_id ::c_type ::c_desc ::extraDesc]))
 (s/def ::directiveRecord (s/keys :req-un [::sgm_id ::sgm_text ::sg_id ::c_id]))
 (s/def ::socieites (s/coll-of ::societyMissionSingle))

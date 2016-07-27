@@ -122,7 +122,8 @@
    (:minion_name minion) " -- "
    (:minion_clearance minion) " -- "
    (:minion_cost minion) " -- "
-   (:mskills (first (sql/query "SELECT mskills FROM minion_skills WHERE minion_id = ?" (:minion_id minion))))
+   ;(:mskills (first (sql/query "SELECT mskills FROM minion_skills WHERE minion_id = ?" (:minion_id minion))))
+   (:mskills minion)
    ])
 
 (defn- html-print-minion-table

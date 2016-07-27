@@ -331,3 +331,32 @@
      (vec (set ;; The vec/set shuffle removes duplicates
          (repeatedly numb (partial get-cbay-random-single zone)))))))
 
+(defn- get-single-minion-from-sg
+  "Given a service group, returns a single minion from that group. Returns nil if invalid sg_id or no minions in that service group"
+  [^Integer sg_id]
+  (log/trace "create-single-minion-from-sg. sg_id:" sg_id)
+  (-> (query "SELECT minion_id FROM minion
+             WHERE sg_id=?;"
+             sg_id)
+      get-random-item
+      (get :minion_id)
+      (#(query "SELECT * FROM minion_skills WHERE minion_id = ?;" %))
+      ; The above returns a collection, with one item
+      first)
+  )
+
+(defn- get-single-minion-from-sg-and-skill
+  "Given a skill id and service group id, get a random minion with those parameters. Returns nil if none found"
+  [^Integer sg_id ^Integer skill_id]
+  (log/trace "create-single-minion-from-sg-and-skill. sg_id:" sg_id "skill_id:" skill_id)
+  (if-let [mId (:minion_id (get-random-item (query "SELECT minion.minion_id FROM minion, minion_skill
+                                                   WHERE sg_id = ?
+                                                   AND minion.minion_id IN
+                                                   (SELECT minion_id
+                                                   FROM minion_skill
+                                                   WHERE skills_id = ?);"
+                                                   sg_id
+                                                   skill_id)))]
+    (first (query "SELECT * FROM minion_skills WHERE minion_id = ?;"
+                  mId))
+    nil))

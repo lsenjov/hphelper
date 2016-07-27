@@ -16,6 +16,15 @@
    }
   )
 
+(defn- is-admin-get-game
+  "Returns the gamemap if the user is an admin, else nil"
+  [^String gUid ^String uUid]
+  (if-let [g (get-game gUid)]
+    (if (= uUid (:adminPass g))
+      g
+      nil)
+    nil))
+
 (defn get-indicies
   "Gets the indicies of a game"
   [^String gUid]
@@ -44,13 +53,36 @@
     ))
 
 (defn get-current-access
-  "Gets the news items of a game"
+  "Gets the current access totals of a game"
   [^String gUid]
   (log/trace "get-current-access:" gUid)
   (if-let [ga (:access (get-game gUid))]
     {:status "ok" :access ga}
     (:invalidGame errors)
     ))
+
+(defn- get-minions-single
+  "Gets record of a single service group, stripping out skills if it isn't the authorised player"
+  ([{serviceGroups :serviceGroups :as g} ^String uUid ^Integer sg_id]
+   (log/trace "get-minions-single: uUid:" uUid "sg_id:" sg_id)
+   (if-let [group (get serviceGroups sg_id)]
+     (if (= (:owner group) uUid)
+       ; This is the owner, give them all the information
+       group
+       ; This is NOT the owner, strip out skills of minions
+       (update-in group [:minions] #(map dissoc :skills %))
+       )
+     nil
+     )
+   )
+  )
+
+;; TODO
+(defn get-minions
+  "Gets the minions of a game, stripping out the skills of the minions which the player isn't authorised to see"
+  ([^String gUid]
+   (get-minions gUid ""))
+  )
 
 (defn get-player-society-missions
   "Gets a list of the secret society missions of a player"
@@ -74,15 +106,6 @@
     p
     (:login errors)
     ))
-
-(defn- is-admin-get-game
-  "Returns the gamemap if the user is an admin, else nil"
-  [^String gUid ^String uUid]
-  (if-let [g (get-game gUid)]
-    (if (= uUid (:adminPass g))
-      g
-      nil)
-    nil))
 
 (defn admin-debug
   "Gets the current gamemap, requires admin login"
@@ -159,3 +182,4 @@
               (map (partial get-index gUid uUid) retKeys)))
     (:invalidGame errors)
     ))
+
