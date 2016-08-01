@@ -5,6 +5,7 @@
             [hphelper.shared.spec :as ss]
             [clojure.data.json :as json]
             [hphelper.live.control :refer [get-game] :as lcon]
+            [hphelper.shared.helpers :as help]
             )
   (:gen-class)
 )
@@ -62,26 +63,38 @@
     ))
 
 (defn- get-minions-single
-  "Gets record of a single service group, stripping out skills if it isn't the authorised player"
-  ([{serviceGroups :serviceGroups :as g} ^String uUid ^Integer sg_id]
-   (log/trace "get-minions-single: uUid:" uUid "sg_id:" sg_id)
-   (if-let [group (get serviceGroups sg_id)]
-     (if (= (:owner group) uUid)
-       ; This is the owner, give them all the information
-       group
-       ; This is NOT the owner, strip out skills of minions
-       (update-in group [:minions] #(map dissoc :skills %))
-       )
-     nil
-     )
-   )
+  "Takes a record of a single service group, stripping out skills if it isn't the
+  authorised player, and returns the edited service group
+  g ::liveScenario
+  group ::serviceGroupRecord"
+  [g ^String uUid group]
+  (log/trace "get-minions-single. uUid:" uUid "group:" group)
+  ;; The owner of a service group will be their HP name
+  (if (or
+        ; Is this player the owner of the group?
+        (and (contains? group :owner)
+             (= (:owner group) (-> g :hps (get uUid) :name)))
+        ; Is this player the admin?
+        (= (:adminPass g) uUid)
+        )
+    ; This is the owner, give them all the information
+    group
+    ; This is NOT the owner, strip out skills of minions
+    (update-in group [:minions] #(do (log/trace "Stripping :mskills from:" %) (map dissoc % (repeat :mskills))))
+    )
   )
 
-;; TODO
 (defn get-minions
   "Gets the minions of a game, stripping out the skills of the minions which the player isn't authorised to see"
   ([^String gUid]
    (get-minions gUid ""))
+  ([^String gUid ^String uUid]
+   (log/trace "get-minions:" gUid uUid)
+   (if-let [g (get-game gUid)]
+     {:status "okay" :serviceGroups (:serviceGroups (update-in g [:serviceGroups] #(map (partial get-minions-single g uUid) %)))}
+     (:invalidGame errors)
+     )
+   )
   )
 
 (defn get-player-society-missions
@@ -140,6 +153,22 @@
       (json/write-str {:status "error" :message "modify-index failed"}))
     (:login errors)
     ))
+
+(defn admin-set-sg-owner
+  "Changes the owner of a service group"
+  [^String gUid ^String uUid ^String serviceGroup ^String newOwner]
+  (log/trace "admin-set-sg-owner." gUid uUid serviceGroup newOwner)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (if-let [n (help/is-hp-name? g newOwner)]
+      (if (lcon/set-sg-owner gUid serviceGroup newOwner)
+        {:status "okay"}
+        {:status "error" :message "Unknown failure."}
+        )
+      {:status "error" :message "Invalid user name"}
+      )
+    (:login errors)
+    )
+  )
 
 (defn- get-index
   "Gets the data from an index, returns a map"

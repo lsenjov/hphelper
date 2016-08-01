@@ -331,7 +331,7 @@
      (vec (set ;; The vec/set shuffle removes duplicates
          (repeatedly numb (partial get-cbay-random-single zone)))))))
 
-(defn- get-single-minion-from-sg
+(defn get-single-minion-from-sg
   "Given a service group, returns a single minion from that group. Returns nil if invalid sg_id or no minions in that service group"
   [^Integer sg_id]
   (log/trace "create-single-minion-from-sg. sg_id:" sg_id)
@@ -345,7 +345,7 @@
       first)
   )
 
-(defn- get-single-minion-from-sg-and-skill
+(defn get-single-minion-from-sg-and-skill
   "Given a skill id and service group id, get a random minion with those parameters. Returns nil if none found"
   [^Integer sg_id ^Integer skill_id]
   (log/trace "create-single-minion-from-sg-and-skill. sg_id:" sg_id "skill_id:" skill_id)

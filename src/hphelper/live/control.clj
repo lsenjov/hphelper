@@ -30,7 +30,7 @@
   [[_ pMap]]
   (let [pass (uni/uuid)
         t (current-time)]
-    [pass 
+    [pass
      (-> pMap
          (assoc :password pass)
          )
@@ -88,13 +88,19 @@
                            (update-in [:indicies]
                                       (partial merge
                                                (indicies/create-base-indicies-list)))
+                           ;; Make sure the servicegroups are in a vector
+                           (update-in [:serviceGroups]
+                                      #(into [] %))
                            ;; Make sure the news is in the correct format
                            (update-in [:news]
                                       (partial concat
                                                '()))
+                           ;; Set the admin login
                            (assoc :adminPass (uni/uuid))
+                           ;; Adds passwords to everyone
                            (player-all-setup)
-                           (update-in [:cbay] (partial concat '()))
+                           ;; Make sure cbay exists, even if it's just an empty list
+                           (update-in [:cbay] (partial concat []))
                        )))
   ([]
    (new-game {:indicies (indicies/create-base-indicies-list)})))
@@ -108,6 +114,7 @@
   "Applys the function to the game associated with the uuid
   Asserts afterwards the game matches spec."
   [uid func & args]
+  (log/trace "swap-game! uid:" uid "func:" func)
   (apply uni/swap-uuid! currentGames uid (comp #(s/assert ::ss/liveScenario %) func) args))
 
 (defn modify-index-inner
@@ -148,6 +155,50 @@
         (log/error "modify-index. Could not find game.")
         nil))
   ))
+
+(defn- set-sg-owner-inner
+  "Actually sets the owner of the service group, along with the updated time"
+  [g sgIndex newOwner]
+  (log/trace "set-sg-owner-inner. sgIndex:" sgIndex "newOwner:" newOwner)
+  (-> g
+      (assoc-in [:serviceGroups sgIndex :owner] newOwner)
+      (assoc-in [:updated :serviceGroups] (current-time))
+      )
+  )
+
+;; TODO test
+(defn set-sg-owner
+  "Sets the owner of a service group, returns the sg_id, or nil if failure.
+  sg can be either the name, id, or abbreviation"
+  [^String uid ^String sg ^String newOwner]
+  (log/trace "set-sg-owner:" uid sg newOwner)
+  (if-let [index
+           (first
+             (keep-indexed
+               (fn [index i]
+                 (log/trace "Searching at index" index "in item" i)
+                 (if (or (= sg (:sg_abbr i))
+                         (= sg (:sg_name i))
+                         (= sg (str (:sg_id i)))
+                         )
+                   index
+                   nil
+                   )
+                 )
+               (:serviceGroups (get-game uid))
+               )
+             )
+           ]
+    (do
+      (log/trace "set-sg-owner. Found sg index:" index)
+      (swap-game! uid set-sg-owner-inner index newOwner)
+      )
+    (do
+      (log/trace "set-sg-owner. Found no index for sg:" sg)
+      nil
+      )
+    )
+  )
 
 (defn add-news-item
   "Adds a single news item to a game"

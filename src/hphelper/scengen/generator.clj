@@ -98,14 +98,8 @@
   "Given a service group record, creates a minion list under a :minions keyword"
   ([{sgNum :sg_id :as sgRec}]
    (assoc-in sgRec [:minions]
-             (remove nil? (set (map (fn [skill] (sql/get-random-item (sql/query "SELECT `minion`.* FROM `minion`, `minion_skill`
-                                                                                WHERE `sg_id` = ?
-                                                                                AND `minion`.`minion_id` IN
-                                                                                (SELECT `minion_id`
-                                                                                FROM `minion_skill`
-                                                                                WHERE `skills_id` = ?);"
-                                                                                sgNum
-                                                                                skill))) ;; Grabs a minion with the skill from the service group
+             (remove nil? (set (map sql/get-single-minion-from-sg-and-skill ;; Grabs a minion with the skill from the service group
+                                    (repeat sgNum)
                                     (map :skills_id (sql/query "SELECT `skills_id`
                                                                FROM `sg_skill`
                                                                WHERE `sg_id` = ?;"
@@ -122,8 +116,8 @@
        (dec triesRemaining)
        (assoc-in sgRec [:minions]
                  (into #{} (conj minions
-                                 (sql/get-random-item (sql/query "SELECT * FROM `minion` WHERE `sg_id` = ?;"
-                                                                 sgNum))))))
+                                 (sql/get-single-minion-from-sg
+                                   sgNum)))))
        sgRec)))
 
 (defn- sort-minion-list

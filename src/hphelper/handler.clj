@@ -133,6 +133,7 @@
   (GET "/api/public/:gameUuid/news/" {{gameUuid :gameUuid userUuid :userUuid} :params} (json/write-str (lapi/get-news gameUuid)))
   (GET "/api/public/:gameUuid/cbay/" {{gameUuid :gameUuid userUuid :userUuid} :params} (json/write-str (lapi/get-cbay gameUuid)))
   (GET "/api/public/:gameUuid/access/" {{gameUuid :gameUuid userUuid :userUuid} :params} (json/write-str (lapi/get-current-access gameUuid)))
+  (GET "/api/public/:gameUuid/minions/" {{gameUuid :gameUuid userUuid :userUuid} :params} (json/write-str (lapi/get-minions gameUuid)))
 
   ;; Player endpoints
   (GET "/api/player/:gameUuid/:userUuid/updates/:lastUpdated/"
@@ -144,6 +145,9 @@
   (GET "/api/player/:gameUuid/:userUuid/societymissions/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}
        (json/write-str (lapi/get-player-society-missions gameUuid userUuid)))
+  (GET "/api/player/:gameUuid/:userUuid/minions/"
+       {{gameUuid :gameUuid userUuid :userUuid} :params}
+       (json/write-str (lapi/get-minions gameUuid userUuid)))
 
   ;; Admin endpoints
   (GET "/api/admin/:gameUuid/:userUuid/debug/"
@@ -155,6 +159,12 @@
   (GET "/api/admin/:gameUuid/:userUuid/modify-index/:ind/:amount/"
        {{gameUuid :gameUuid userUuid :userUuid ind :ind amount :amount} :params}
        (lapi/admin-modify-index gameUuid userUuid ind amount))
+  (GET "/api/admin/:gameUuid/:userUuid/minions/"
+       {{gameUuid :gameUuid userUuid :userUuid} :params}
+       (json/write-str (lapi/get-minions gameUuid userUuid)))
+  (GET "/api/admin/:gameUuid/:userUuid/set-sg-owner/:sgid/:new-owner/"
+       {{gameUuid :gameUuid userUuid :userUuid sgid :sgid newOwner :new-owner} :params}
+       (json/write-str (lapi/admin-set-sg-owner gameUuid userUuid sgid newOwner)))
 
   ;; OTHER
   ;; Simple directs to the above

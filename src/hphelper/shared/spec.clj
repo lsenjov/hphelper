@@ -52,12 +52,13 @@
 (s/def ::societyMissionSingle (s/keys :req-un [::ssm_id ::ss_id ::c_id ::ssm_text]))
 ; Has this minion been paid for by a player?
 (s/def ::bought? boolean?)
+(s/def ::mskills string?)
 (s/def ::serviceGroupMinion
-  (s/keys :req-un [::minion_id ::minion_name ::minion_clearance ::minion_cost ::sg_id]
-          :opt-un [::bought?]
+  (s/keys :req-un [::minion_id ::minion_name ::minion_clearance ::minion_cost ::mskills]
+          :opt-un [::bought? ::sg_id]
           ))
 (s/def ::minions (s/coll-of ::serviceGroupMinion))
-; The owner in uUid form
+; The owner is the HP name, not the uid
 (s/def ::owner string?)
 (s/def ::serviceGroupRecord (s/keys :req-un [::sg_id ::sg_name ::sg_abbr ::minions]
                                     :opt-un [::owner]
@@ -71,18 +72,9 @@
 (s/def ::indicies (s/coll-of (s/map-of keyword? integer?)))
 (s/def ::access (s/coll-of (s/map-of string? integer?)))
 (s/def ::updated (s/map-of keyword? integer?))
-(s/def ::liveScenario (s/keys :req-un [::cbay
-                                       ::hps
-                                       ::indicies
-                                       ::news
-                                       ::access
-                                       ::updated
-                                       ]
-                              :opt-un [
-                                       ::directives
-                                       ::societies
-                                       ::zone
-                                       ::serviceGroups
-                                       ::crisises
-                                       ]
-                              ))
+(s/def ::hps (s/map-of string? ::playerCharacter))
+(s/def ::liveScenario
+  (s/keys :req-un [::cbay ::hps ::indicies ::news ::access ::updated ]
+          :opt-un [ ::directives ::societies ::zone ::serviceGroups ::crisises ]
+          )
+  )
