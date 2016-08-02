@@ -7,6 +7,7 @@
             [clojure.spec :as s]
             [hphelper.shared.spec :as ss]
             [clojure.data.json :as json]
+            [hphelper.shared.helpers :as help]
             )
   (:gen-class)
 )
@@ -172,23 +173,7 @@
   sg can be either the name, id, or abbreviation"
   [^String uid ^String sg ^String newOwner]
   (log/trace "set-sg-owner:" uid sg newOwner)
-  (if-let [index
-           (first
-             (keep-indexed
-               (fn [index i]
-                 (log/trace "Searching at index" index "in item" i)
-                 (if (or (= sg (:sg_abbr i))
-                         (= sg (:sg_name i))
-                         (= sg (str (:sg_id i)))
-                         )
-                   index
-                   nil
-                   )
-                 )
-               (:serviceGroups (get-game uid))
-               )
-             )
-           ]
+  (if-let [index (help/get-sg-index (get-game uid) sg)]
     (do
       (log/trace "set-sg-owner. Found sg index:" index)
       (swap-game! uid set-sg-owner-inner index newOwner)
