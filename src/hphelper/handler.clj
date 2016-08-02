@@ -176,6 +176,7 @@
             [:br]
             [:a {:href "https://github.com/lsenjov/hphelper"} "Source Code"][:br]
             ]]))
+  (route/resources "/")
   (route/not-found
     (json/write-str {:status "error" :message "Invalid endpoint"}))
   )

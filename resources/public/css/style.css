@@ -1,0 +1,170 @@
+/* Colours:
+	active: #350156
+*/
+
+html, body {
+	font-family: Arial, sans-serif;
+	font-size: 14px;
+	color: #eee;
+	background-color: #0C0A0B;
+	line-height: 1.2em;
+}
+
+body {
+	width: 70%;
+	margin: 0 auto;
+	min-width: 1100px;
+}
+
+strong {
+	font-weight: bold;
+}
+
+h2 {
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+h3 {
+	/*color: #953FCB; - makes font light purple*/ 
+	font-size: 1.1em;
+	font-weight: bold;
+	padding: 5px;
+	margin-top: 5px;
+}
+
+/*------------------ICONS---------------------*/
+
+.glyphicon {
+	font-size: 0.9em;
+	margin-right: 5px;
+}
+
+#minions .glyphicon {
+	font-size: 0.3em;
+	margin: 0;
+}
+
+#minionIcons {
+	margin-right: 5px;
+}
+
+/*------------------HEADER---------------------*/
+
+header {
+	padding: 10px;
+	background-color: #350156;
+	margin-bottom: 5px;
+}
+
+h1 {
+	font-family: "Lucida Console", Monaco, monospace;
+	font-weight: bold;
+	font-size: 2em;
+}
+
+
+/*------------------DATA---------------------*/
+#data {
+	background-color: #270140;
+	width: 49%;
+	min-width: 400px; 
+	max-width: 600px;
+	float: left;
+	margin-right: 10px;
+}
+
+.dataHeading {
+	padding: 10px;
+}
+
+.dataHeading {
+	background-color: #350156;
+	border-top: 5px solid #0C0A0B;
+}
+
+.dataHeading:hover {
+	background-color: #4F017F;
+	cursor: pointer;
+}
+
+.activeHeading {
+	background-color: #4F017F;
+}
+
+.dataItem {
+	padding: 5px;
+}
+
+.splitListLeft {
+	margin-right: 30px;
+	display: inline-block;
+	list-style-type: none;
+	float: left;
+	width: 25%;
+}
+
+.splitListRight {
+	display: inline-block;
+	list-style-type: none;
+	float: left;
+}
+
+ul {
+	list-style-type: none;
+}
+
+.splitListDiv:after {
+	content: "";
+	display: table;
+	clear: both;
+}
+
+li {
+	padding: 5px;
+	display: block;
+	width: 100%;
+	margin-left: 10px;
+}
+
+/*------------------UPDATES---------------------*/
+
+#updates{
+	float: right;
+	min-width: 49%;	
+}
+
+#updates h2 {
+	margin-bottom: 0.5em;
+}
+
+#chat, #news {
+	background-color: #350156;
+	margin-top: 5px;
+	padding: 10px;
+}
+
+#chatMessages, #newsfeed {
+	background-color: #eee;
+	margin-bottom: 10px;
+	min-height: 100px;
+	width: 100%;
+	border: 3px solid #ddd;
+}
+
+#chatInput #chatTextarea, #news #newsfeed {
+	background-color: #eee;
+	color: #111;
+	border: 3px solid #ddd;
+}
+
+#chatInput #chatTextarea {
+	width: 85%;
+}
+
+#chatInput #chatBtn {
+	float: right;
+	padding: 5px 10px;
+	color: #111;
+}
+

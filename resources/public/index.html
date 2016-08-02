@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+	<head>
+	
+		<!--- BOOTSTRAP FOR GLYPHICONS --->
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+	
+		<title>HPLive</title>
+		
+		<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="css/reset.css">
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+	</head>
+	
+	<body>
+		<header>
+			<h1>High Programmers Live</h1>
+		</header>
+		
+		<content>
+			<!--- Left hand panel ---->
+			<div id="data">
+				<!--- h2 child's class must be h2's class + "Data" for js to work --->
+				
+				<!--- ACCESS --->
+				<h2 class="dataHeading accordion" id="access" onclick="return accordion('accessData');"><span class="glyphicon glyphicon-usd" aria-hidden="true"></span> ACCESS</h2>
+				<div class="dataItem" id="accessData">
+					<h3 id="characterAccessData"></h3>
+					<h3 id="poolAccessData"></h3>
+				</div>
+				
+				<!--- INDICES --->
+				<h2 class="dataHeading accordion" id="indices" onclick="return accordion('indicesData');"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Indices</h2>
+				<div class="dataItem" id="indicesData"></div>
+				
+				<!--- CHARACTER --->
+				<h2 class="dataHeading accordion" id="character" onclick="return accordion('characterData');"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Character</h2>
+				<div class="dataItem" id="characterData">
+					<h3 class="characterDataHeading" id="characterName"></h3>
+					<h3 class="characterDataHeading">Primary Statistics</h3>
+					<div class="splitListDiv">
+						<ul id="mainStatsList1" class="splitListLeft"></ul>
+						<ul id="mainStatsList2" class="splitListRight"></ul>
+					</div>
+					
+					<h3 class="characterDataHeading">Secondary Statistics</h3>
+					<ul id="sndStats"></ul>
+					
+					<h3 class="characterDataHeading">Societies</h3>
+					<ul id="societies"></ul>
+					
+					<h3 class="characterDataHeading">Drawbacks</h3>
+					<ul id="drawbacks"></ul>
+				</div>
+				
+				<!--- SERVICE GROUPS --->
+				<h2 class="dataHeading accordion" id="serviceGroups" onclick="return accordion('serviceGroupsData');"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Service Groups</h2>
+				<div class="dataItem" id="serviceGroupsData">
+					<h3>Owned Service Groups</h3>
+					<div class="splitListDiv">
+						<ul id="bidsList1" class="splitListLeft"></ul>
+						<ul id="bidsList2" class="splitListRight"></ul>
+					</div>
+					
+					<h3>Other Service Groups</h3>
+					<div class="splitListDiv">
+						<ul id="bidsList1" class="splitListLeft"></ul>
+						<ul id="bidsList2" class="splitListRight"></ul>
+					</div>
+				</div>
+				
+				<!--- MISSIONS --->
+				<h2 class="dataHeading accordion" id="missions" onclick="return accordion('missionsData');"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> Missions</h2>
+				<div class="dataItem" id="missionsData">
+				</div>
+				
+				<!--- MINIONS --->
+				<h2 class="dataHeading accordion" id="minions" onclick="return accordion('minionsData');">
+					<span id="minionIcons"><span class="glyphicon glyphicon-user" aria-hidden="true"></span><sup><span class="glyphicon glyphicon-user" aria-hidden="true"></span></sup><span class="glyphicon glyphicon-user" aria-hidden="true"></span></span>
+					 Minions</h2>
+				<div class="dataItem" id="minionsData">
+				</div>
+				
+				<!--- CBAY --->
+				<h2 class="dataHeading accordion" id="cbay" onclick="return accordion('cbayData');"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Cbay</h2>
+				<div class="dataItem" id="cbayData">
+					<h3>Auctions:</h3>
+					<ul id="cbayAuctions"></ul>
+				</div>
+				
+				<!--- CALL QUEUE --->
+				<h2 class="dataHeading accordion" id="callQueue" onclick="return accordion('callData');"><span class="glyphicon glyphicon-earphone" aria-hidden="true"></span> Calls</h2>
+				<p class="dataItem" id="callData"></p>
+				
+			</div>
+			
+			<!--- Right hand panel ---->
+			<div id="updates">
+				<div id="chat">
+					<h2>Messenger</h2>
+					<div id="chatMessages"></div>
+					<div id="chatInput">
+						<form>
+							<textarea id="chatTextarea" rows="2"></textarea>
+							<input type="submit" value="Submit" id="chatBtn">
+						</form>
+					</div>
+				</div>
+				
+				<div id="news">
+					<h2>Newsfeed</h2>
+					<div id="newsfeed"></div>
+				</div>
+			</div>		
+			
+		</content>
+	
+	
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<script src="bootstrap/js/bootstrap.min.js"></script>
+		
+		<script type="text/javascript" src="js/accordion.js" ></script>
+		<script type="text/javascript" src="js/game.js" ></script>
+		<script type="text/javascript" src="js/character.js" ></script>
+		<script type="text/javascript" src="js/indices.js" ></script>
+		<script type="text/javascript" src="js/cbay.js" ></script>
+		<script type="text/javascript" src="js/serviceGroups.js" ></script>
+		<script type="text/javascript" src="js/chat.js" ></script>
+		<script type="text/javascript" src="js/init.js" ></script>
+	
+	</body>
+	
+</html>
+		
