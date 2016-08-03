@@ -62,6 +62,15 @@
     (:invalidGame errors)
     ))
 
+(defn get-current-zone
+  "Returns the current zone name"
+  [^String gUid]
+  (if-let [gz (-> gUid get-game :zone)]
+    {:status "ok" :zone gz}
+    (:invalidGame errors)
+    )
+  )
+
 (defn- get-minions-single
   "Takes a record of a single service group, stripping out skills if it isn't the
   authorised player, and returns the edited service group
@@ -180,6 +189,7 @@
     :cbay (get-cbay gUid)
     :indicies (get-indicies gUid)
     :access (get-current-access gUid)
+    :zone (get-current-zone gUid)
 
     ;; Players
     :hps (get-player-character-sheet gUid uUid)
