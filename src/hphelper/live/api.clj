@@ -68,7 +68,7 @@
   g ::liveScenario
   group ::serviceGroupRecord"
   [g ^String uUid group]
-  (log/trace "get-minions-single. uUid:" uUid "group:" group)
+  (log/trace "get-minions-single. uUid:" uUid "group:" (:sg_abbr group))
   ;; The owner of a service group will be their HP name
   (if (or
         ; Is this player the owner of the group?
@@ -78,9 +78,9 @@
         (= (:adminPass g) uUid)
         )
     ; This is the owner, give them all the information
-    group
+    (do (log/trace "Not stripping skills, user is owner") group)
     ; This is NOT the owner, strip out skills of minions
-    (update-in group [:minions] #(do (log/trace "Stripping :mskills from:" %) (map dissoc % (repeat :mskills))))
+    (update-in group [:minions] #(do (log/trace "Stripping :mskills") (map dissoc % (repeat :mskills))))
     )
   )
 
@@ -171,7 +171,7 @@
   )
 
 (defn- get-index
-  "Gets the data from an index, returns a map"
+  "Gets the data from an index, returns a map. Returns an empty map if no result"
   [^String gUid ^String uUid ind]
   (log/trace "get-index. gUid:" gUid "ind:" ind)
   (case ind
@@ -184,7 +184,8 @@
     ;; Players
     :hps (get-player-character-sheet gUid uUid)
     :missions (get-player-society-missions gUid uUid)
-    {}
+    :serviceGroups (get-minions gUid uUid)
+    (do (log/trace "Could not do index in get-index:" ind) {})
     ))
 
 (defn get-updated-public

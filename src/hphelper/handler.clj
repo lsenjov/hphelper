@@ -138,7 +138,7 @@
   ;; Player endpoints
   (GET "/api/player/:gameUuid/:userUuid/updates/:lastUpdated/"
        {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}
-       (json/write-str (lapi/get-updated-player gameUuid (parse-long lastUpdated))))
+       (json/write-str (lapi/get-updated-player gameUuid userUuid (parse-long lastUpdated))))
   (GET "/api/player/:gameUuid/:userUuid/charsheet/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}
        (json/write-str (lapi/get-player-character-sheet gameUuid userUuid)))
