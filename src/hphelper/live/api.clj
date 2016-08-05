@@ -89,7 +89,13 @@
     ; This is the owner, give them all the information
     (do (log/trace "Not stripping skills, user is owner") group)
     ; This is NOT the owner, strip out skills of minions
-    (update-in group [:minions] #(do (log/trace "Stripping :mskills") (map dissoc % (repeat :mskills))))
+    (update-in group [:minions] (fn [mlist]
+                                   (log/trace "Stripping :mskills and :minion_cost")
+                                   (map (comp #(dissoc % :mskills)
+                                              #(dissoc % :minion_cost))
+                                        mlist)
+                                   )
+               )
     )
   )
 
