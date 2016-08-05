@@ -6,6 +6,27 @@
   (:gen-class)
   )
 
+(defn get-sg-index
+  "Finds the index of a service group in a game object. Returns the index, or nil if none
+  Searches by sg_id, sg_abbr, or sg_name"
+  [g ^String n]
+  (first
+    (keep-indexed
+      (fn [index i]
+        (log/trace "Searching at index" index "in item" i)
+        (if (or (= n (:sg_abbr i))
+                (= n (:sg_name i))
+                (= n (str (:sg_id i)))
+                )
+          index
+          nil
+          )
+        )
+      (:serviceGroups g)
+      )
+    )
+  )
+
 (defn is-hp-name?
   "Checks a game to make sure n is a valid player's name. Returns the name if true,
   else returns nil."

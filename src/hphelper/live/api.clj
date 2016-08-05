@@ -212,8 +212,10 @@
     (let [retKeys (keys (filter (fn [[k lastUpdate]] (< t lastUpdate)) (:updated g)))]
       (log/trace "get-updated-player. retKeys:" retKeys)
       (reduce merge
-              {:status "ok" :updated t}
-              (map (partial get-index gUid "") retKeys)))
+              {:status "ok" :updated (apply max (vals (:updated g)))}
+              (map (partial get-index gUid "") retKeys)
+              )
+      )
     (:invalidGame errors)
     ))
 
