@@ -1,5 +1,6 @@
 (ns hphelper.live.view
   (:require [hphelper.live.control :as lcon]
+            [hphelper.live.api :as lapi]
             [hphelper.shared.sql :as sql]
             [hphelper.shared.saveload :as sl]
             [hphelper.shared.unique :as uni]
@@ -9,6 +10,9 @@
             [taoensso.timbre :as log]
 
             [hiccup.core :refer :all]
+
+            [hphelper.scengen.print :as sprint]
+            [hphelper.chargen.print :as cprint]
             )
   (:gen-class)
   )
@@ -48,18 +52,76 @@
     (html [:html [:div "Game not found"]])
     ))
 
+(defn- print-service-group
+  "Prints a single service group in a html format"
+  [g]
+  (html [:div
+         [:h3 (str (:sg_name g) ": " (:owner g))]
+         (map (fn [r] [:div (str (:minion_name r)
+                                 " -- " (:minion_clearance r)
+                                 (if (:minion_cost r)
+                                   (str " -- " (:minion_cost r))
+                                   "")
+                                 (if (:mskills r)
+                                   (str " -- " (:mskills r))
+                                   "")
+                                 )])
+              (:minions g)
+              )
+         ]
+        )
+  )
+
+
+(defn view-game-player
+  "Prints a game view nicely for a *single* player. Includes live view, session sheet, and player sheets. Reads from a livescenario, not a normal scenario"
+  [baseURL guid uuid]
+  (log/trace "view-game-player." baseURL guid uuid)
+  (if-let [g (lcon/get-game guid)]
+    (let [u (get-in g [:hps uuid])]
+      (log/trace "view-game-player. HP name is:" (get u :name))
+      (html [:html
+             [:head
+              [:title "Sector View"]
+              [:meta {:http-equiv "refresh" :content 5}]
+              ]
+             [:body
+              [:div
+               (html-print-indicies-table (first (:indicies g)) 13)
+               ]
+              [:div
+               (map (fn [n] [:div n])
+                    (:news g))
+               ]
+              [:hr] ;; Minions
+              (map print-service-group (:serviceGroups (lapi/get-minions guid uuid)))
+              [:hr] ;; Player Sheet
+              (if u
+                [:div (cprint/html-print-sheet u)]
+                nil
+                )
+              ]
+             ]
+            )
+      )
+    )
+  )
+
 (defn- player-key
   "Returns a string with a game's uid and the player's uid for logging in"
-  [player]
-  (str "Player: " (:name player) ". Player uid: " (:password player) ".")
+  [baseURL uid player]
+  (str "Player: " (:name player)
+       ". Player uid: " (:password player)
+       ". Player link: " (html [:a {:href (str baseURL "/live/playerview/" uid "/" (:password player) "/")} (:name player)])
+       )
   )
 
 (defn player-keys
   "Returns a string with all the player's names and their login uids. Nil if incorrect game"
-  [^String uid]
+  [baseURL ^String uid]
   (log/trace "player-keys. uid:" uid "hps:" (:hps (lcon/get-game uid)))
   (if-let [g (lcon/get-game uid)]
-    (map (fn [[k pMap]] (player-key pMap)) (:hps g))
+    (map (fn [[k pMap]] (player-key baseURL uid pMap)) (:hps g))
     nil))
 
 
@@ -79,7 +141,7 @@
               [:a {:href (str baseURL "/live/view/"
                               uid "/"
                               (str (hash uid)) "/")} "GM Link"]
-              (map (fn [x] [:div x]) (player-keys uid))
+              (map (fn [x] [:div x]) (player-keys baseURL uid))
               ]
              ]
             ))))

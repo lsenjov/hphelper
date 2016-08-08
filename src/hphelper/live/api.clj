@@ -71,7 +71,7 @@
     )
   )
 
-(defn- get-minions-single
+(defn get-minions-single
   "Takes a record of a single service group, stripping out skills if it isn't the
   authorised player, and returns the edited service group
   g ::liveScenario

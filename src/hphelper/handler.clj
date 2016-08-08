@@ -121,6 +121,9 @@
   (GET "/live/view/:uuid/:confirm/:index/:amount/"
        {{uid :uuid confirm :confirm index :index amount :amount} :params baseURL :context}
        (lview/edit-game baseURL uid confirm index amount))
+  (GET "/live/playerview/:guid/:uuid/"
+       {{guid :guid uuid :uuid} :params baseURL :context}
+       (lview/view-game-player baseURL guid uuid))
 
   ;; API
   ;; Public endpoints
