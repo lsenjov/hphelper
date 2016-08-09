@@ -72,8 +72,8 @@
   )
 
 (defn get-minions-single
-  "Takes a record of a single service group, stripping out skills if it isn't the
-  authorised player, and returns the edited service group
+  "Takes a record of a single service group, stripping out minions if it isn't the
+  authorised player and not bought, returns the edited service group
   g ::liveScenario
   group ::serviceGroupRecord"
   [g ^String uUid group]
@@ -89,12 +89,18 @@
     ; This is the owner, give them all the information
     (do (log/trace "Not stripping skills, user is owner") group)
     ; This is NOT the owner, strip out skills of minions
-    (update-in group [:minions] (fn [mlist]
-                                   (log/trace "Stripping :mskills and :minion_cost")
-                                   (map (comp #(dissoc % :mskills)
-                                              #(dissoc % :minion_cost))
-                                        mlist)
-                                   )
+    (update-in group [:minions] (comp (fn [mlist]
+                                        (log/trace "Stripping :mskills and :minion_cost")
+                                        (map (comp #(dissoc % :mskills)
+                                                   #(dissoc % :minion_cost))
+                                             mlist)
+                                        )
+                                      (fn [mlist]
+                                        (log/trace "Removing non-bought minions")
+                                        (filter #(:bought? %)
+                                                mlist)
+                                        )
+                                      )
                )
     )
   )
