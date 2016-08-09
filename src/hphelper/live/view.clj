@@ -200,13 +200,43 @@
    [:td (-> pMap :mutation :description)]
    ])
 
-
 (defn- print-player-stats-table
   "Creates a table of player stats for the GM's pleasure"
   [^String uid]
   [:table {:border 1} [:tr [:td] [:td "M"] [:td "V"] [:td "Su"] [:td "H"] [:td "So"] [:td "W"] [:td "Mutation"]]
    (map single-player-stats (-> (lcon/get-game uid) :hps vals))
    ]
+  )
+
+(defn- print-sg-set-table
+  "Creates a table of links to set service group ownership"
+  [baseURL guid]
+  (log/trace "print-sg-set-table." baseURL guid)
+  (let [g (lcon/get-game guid)
+        aPass (:adminPass g)
+        serviceGroups (->> g :serviceGroups (map :sg_abbr))
+        hpNames (->> g :hps vals (map :name))]
+    (log/trace "aPass:" aPass "serviceGroups:" serviceGroups "hpNames:" (pr-str hpNames))
+    [:table
+     (for [sg serviceGroups]
+       [:tr
+        [:td sg]
+        (for [hpName hpNames]
+          [:td
+           [:a {:href (str baseURL "/api/admin/"
+                           guid "/"
+                           aPass "/set-sg-owner/"
+                           sg "/"
+                           hpName "/")
+                }
+            hpName
+            ]
+           ]
+          )
+        ]
+       )
+     ]
+    )
   )
 
 (defn edit-game
@@ -223,7 +253,8 @@
                  confirm "/")
             (first (:indicies (lcon/get-game uid))))
           [:div [:a {:href (str baseURL "/api/admin/" uid "/" (:adminPass (lcon/get-game uid)) "/debug/")} "Debug Result"]]
-          [:div (print-player-stats-table uid)]
+          [:div [:h3 "Player Stats"] (print-player-stats-table uid)]
+          [:div [:h3 "Set Player SG"] (print-sg-set-table baseURL uid)]
           ]]])
      "Incorrect confirmation"
      ))
