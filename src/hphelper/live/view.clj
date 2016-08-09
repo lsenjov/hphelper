@@ -93,13 +93,13 @@
                (map (fn [n] [:div n])
                     (:news g))
                ]
-              [:hr] ;; Minions
-              (map print-service-group (:serviceGroups (lapi/get-minions guid uuid)))
               [:hr] ;; Player Sheet
               (if u
                 [:div (cprint/html-print-sheet u)]
                 nil
                 )
+              [:hr] ;; Minions
+              (map print-service-group (:serviceGroups (lapi/get-minions guid uuid)))
               ]
              ]
             )
