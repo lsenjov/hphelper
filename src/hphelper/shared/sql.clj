@@ -20,7 +20,7 @@
   (if (integer? i)
     i
     (try (Integer/parseInt i)
-         (catch Exception e 
+         (catch Exception e
            (do
              (log/debug "Could not parse:" i)
              nil)))))
@@ -332,7 +332,8 @@
          (repeatedly numb (partial get-cbay-random-single zone)))))))
 
 (defn get-single-minion-from-sg
-  "Given a service group, returns a single minion from that group. Returns nil if invalid sg_id or no minions in that service group"
+  "Given a service group, returns a single minion from that group. Returns nil if invalid sg_id or no minions in that service group.
+  Modifies minion cost up or down 2, to a minimum of 1"
   [^Integer sg_id]
   (log/trace "create-single-minion-from-sg. sg_id:" sg_id)
   (-> (query "SELECT minion_id FROM minion
@@ -342,7 +343,9 @@
       (get :minion_id)
       (#(query "SELECT * FROM minion_skills WHERE minion_id = ?;" %))
       ; The above returns a collection, with one item
-      first)
+      first
+      (update-in [:minion_cost] (fn [^Integer cost] (max 1 (+ (rand-int 5) -2 cost))))
+      )
   )
 
 (defn get-single-minion-from-sg-and-skill
@@ -357,6 +360,9 @@
                                                    WHERE skills_id = ?);"
                                                    sg_id
                                                    skill_id)))]
-    (first (query "SELECT * FROM minion_skills WHERE minion_id = ?;"
-                  mId))
+    (-> (query "SELECT * FROM minion_skills WHERE minion_id = ?;"
+                  mId)
+        first
+        (update-in [:minion_cost] (fn [^Integer cost] (max 1 (+ (rand-int 5) -2 cost))))
+        )
     nil))
