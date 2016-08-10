@@ -87,15 +87,36 @@
               ]
              [:body
               [:div
+               [:h3 "Current Sector Indicies"]
                (html-print-indicies-table (first (:indicies g)) 13)
                ]
               [:div
+               [:h3 "Sector News"]
                (map (fn [n] [:div n])
                     (:news g))
                ]
+              ;; Society messages
+              (if-let [missions (:missions (lapi/get-player-society-missions guid uuid))]
+                (do
+                  [:div
+                   [:h3 "Private message summary"]
+                   (map (fn [{ss_id :ss_id text :ssm_text}]
+                          [:div (str (sql/get-ss-by-id ss_id) ": " text)])
+                        (sort-by :ss_id missions))
+                   ]
+                  )
+                )
+              ;; Extra Messages
+              (if-let [messages (:msgs u)]
+                [:div
+                 (map (fn [^String msg] [:div msg]) messages)
+                 ]
+                )
               [:hr] ;; Player Sheet
               (if u
-                [:div (cprint/html-print-sheet u)]
+                [:div
+                 [:h3 "Character Sheet"]
+                 (cprint/html-print-sheet u)]
                 nil
                 )
               [:hr] ;; Minions

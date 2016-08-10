@@ -41,9 +41,12 @@
   (s/keys :req-un [::description ::power]))
 (s/def ::accessRemaining integer?)
 (s/def ::name string?)
+(s/def ::genericString string?)
+(s/def ::msgs (s/coll-of ::genericString))
 (s/def ::playerCharacter
   (s/keys :req-un [::priStats ::secStats ::programGroup
-                   ::mutation ::accessRemaining ::name]))
+                   ::mutation ::accessRemaining ::name]
+          :opt-un [::msgs]))
 
 ;; Now onto scenario types
 (s/def ::zone string?)

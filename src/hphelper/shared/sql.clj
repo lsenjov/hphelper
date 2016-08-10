@@ -239,7 +239,7 @@
   (:sg_name (first (query "SELECT sg_name FROM sg WHERE sg_id = ?;" sgId))))
 
 (defn get-ss-by-id
-  "Gets service group by sg_id"
+  "Gets secret society name by ss_id"
   [ssId]
   (:ss_name (first (query "SELECT ss_name FROM ss WHERE ss_id = ?;" ssId))))
 
