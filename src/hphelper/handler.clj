@@ -19,6 +19,9 @@
             [hphelper.shared.saveload :as sl]
             [hiccup.core :refer :all]
 
+            ;; Sector Generator
+            [hphelper.sectorgen.generator :as secgen]
+
             ;; Live paranoia
             [hphelper.live.view :as lview]
             [hphelper.live.api :as lapi]
@@ -105,11 +108,18 @@
       (println (:hps scen))
       (sprint/html-print-player-sheet scen ((:hps scen) (Integer/parseInt (:p_id params))))))
 
+  ;; Hacky way to print a player's entire player sheet
   (GET "/player/:scen_id/:p_id/" {{scen_id :scen_id p_id :p_id} :params baseURL :context}
       (let [scen (sl/load-fullscen-from-db (c/int-show (Integer/parseInt scen_id)))]
          (sprint/html-print-player-sheet scen ((:hps scen) (c/int-show (Integer/parseInt p_id))))))
+  ;; Prints the minion sheet from a single scenario
   (GET "/minions/:scen_id/" {{scen_id :scen_id} :params baseURL :context}
        (sprint/html-print-optional (sl/load-fullscen-from-db (c/int-show (Integer/parseInt scen_id))) '(:minions)))
+
+  ;; SECTORGEN
+  ;; Prints 7 randomly generated sectors
+  (GET "/sectorgen/" []
+       (secgen/html-print-neighbours 7))
 
   ;; LIVE
   (GET "/live/new/:scen_id/" {{scen_id :scen_id} :params baseURL :context}
@@ -176,6 +186,7 @@
            [:body
             [:a {:href (str baseURL "/scen/")} "Scenario Generator"][:br]
             [:a {:href (str baseURL "/char/")} "Character Generator"][:br]
+            [:a {:href (str baseURL "/sectorgen/")} "Sector Generator"][:br]
             [:br]
             [:a {:href "https://github.com/lsenjov/hphelper"} "Source Code"][:br]
             ]]))
