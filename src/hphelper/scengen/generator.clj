@@ -94,16 +94,53 @@
                                   (map :ss_id
                                        (sql/query "SELECT `ss_id` FROM `ss`;"))))))))
 
+(defn- add-minion-unique
+  "Adds a minion to a list of minions only if the minion name and clearance are unique"
+  [l m]
+  (if (some (fn [{mn1 :minion_name mc1 :minion_clearance}
+                 ]
+              (and (= mn1 (:minion_name m)) (= mc1 (:minion_clearance m)))
+              )
+            l
+            )
+    l
+    (conj l m)
+    )
+  )
+
+
+(defn- cull-duplicate-minions
+  "Given a sg record, makes sure the minions are unique with regards to name and clearance"
+  ([sg]
+   (cull-duplicate-minions '() (:minions sg) sg))
+  ;; In is a list of incoming, out is a list of minions to return, sg is the original list
+  ([out in sg]
+   (if (= 0 (count in))
+     (assoc sg :minions out)
+     (recur (add-minion-unique out (first in)) (rest in) sg)
+     )
+   )
+  )
+
 (defn- create-single-minion-list
   "Given a service group record, creates a minion list under a :minions keyword"
   ([{sgNum :sg_id :as sgRec}]
-   (assoc-in sgRec [:minions]
-             (remove nil? (set (map sql/get-single-minion-from-sg-and-skill ;; Grabs a minion with the skill from the service group
-                                    (repeat sgNum)
-                                    (map :skills_id (sql/query "SELECT `skills_id`
-                                                               FROM `sg_skill`
-                                                               WHERE `sg_id` = ?;"
-                                                               sgNum))))))))
+     ;; Get a list of the specialty skills of that service group
+     (->> (sql/query "SELECT `skills_id` FROM `sg_skill` WHERE `sg_id` = ?;"
+                     sgNum)
+          ;; Get a list of the ids
+          (map :skills_id)
+          ;; Get minions
+          (map sql/get-single-minion-from-sg-and-skill (repeat sgNum))
+          ;; Removes possible results from there not being a minion with that skill
+          (remove nil?)
+          ;; Put it back in the service group
+          (assoc sgRec :minions)
+          ;; Cull duplicates
+          (cull-duplicate-minions)
+     )
+   )
+  )
 
 (defn- add-additional-minions
   "Given a service group record, adds random minions till minimum minions have been reached,
@@ -114,11 +151,13 @@
      (recur
        minMinions
        (dec triesRemaining)
-       (assoc-in sgRec [:minions]
-                 (into #{} (conj minions
-                                 (sql/get-single-minion-from-sg
-                                   sgNum)))))
-       sgRec)))
+       (update-in sgRec
+                  [:minions]
+                  add-minion-unique
+                  (sql/get-single-minion-from-sg sgNum)
+                  )
+       )
+     sgRec)))
 
 (defn- sort-minion-list
   "Given a minion record, converts minions to a vector then sorts it by cost"
@@ -131,7 +170,7 @@
   ([scenRec]
    (assoc-in scenRec [:serviceGroups]
              (map (comp sort-minion-list
-                        (partial add-additional-minions 12 12) ;; Want at least 10 minions on each list
+                        (partial add-additional-minions 14 14) ;; Want at least 14 minions on each list
                         (partial create-single-minion-list))
                   (sql/query "SELECT * FROM `sg`;")))))
 
