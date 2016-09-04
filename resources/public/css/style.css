@@ -33,6 +33,12 @@ h3 {
 	margin-top: 5px;
 }
 
+/*------------------ACCORDIONS---------------------*/
+.dataItem {
+	display: none;
+	visibility: hidden;
+}
+
 /*------------------ICONS---------------------*/
 
 .glyphicon {
@@ -52,7 +58,7 @@ h3 {
 /*------------------HEADER---------------------*/
 
 header {
-	padding: 10px;
+	padding: 20px 10px;
 	background-color: #350156;
 	margin-bottom: 5px;
 }

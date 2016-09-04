@@ -3,7 +3,7 @@ var Cbay = function(game) {
 
 	var auctions = [];
 
-	this.updateAuctions = function () {
+	this.getAuctions = function () {
 		var link = "http://hp.trm.io/hphelper/api/public/" + game.getGameId() + "/cbay/";
 		$.getJSON(link, function(data) {
 			if (data.status === "ok") {

@@ -2,10 +2,10 @@ var Indicies = function(gameId) {
 	var indicies = {};
 
 	this.init = function () {
-	    this.updateIndicies();
+	    this.getIndicies();
     };
 
-	this.updateIndicies = function () {
+	this.getIndicies = function () {
 		var link = "http://hp.trm.io/hphelper/api/public/" + gameId + "/indicies/";
         //var link = "C:/Users/BlackCat/Documents/hphelper/resources/public/text/indicies.txt";
 		$.getJSON(link, function(data) {
@@ -44,7 +44,6 @@ var Indicies = function(gameId) {
         var count = 0;
         for (var prop in indicies) {
             if (indicies.hasOwnProperty(prop)) {
-                console.log(prop);
                 if (count !== 0 && (count%itemsInList) === 0) {
                     outerDiv.appendChild(list);
                     list = document.createElement("UL");
@@ -57,8 +56,7 @@ var Indicies = function(gameId) {
             }
         }
         outerDiv.appendChild(list);
-        console.log("done");
-	};
+   };
 
     var objSize = function(obj) {
         var count = 0;
@@ -67,7 +65,6 @@ var Indicies = function(gameId) {
                 count++;
             }
         }
-        console.log(count);
         return count;
     };
 
