@@ -20,6 +20,9 @@
 
                  ;; Json Deps
                  [org.clojure/data.json "0.2.6"]
+
+                 ;; Allowing cross-site requests
+                 [jumblerg/ring.middleware.cors "1.0.1"]
                  ]
   :plugins [[lein-ring "0.9.7"]
             [cider/cider-nrepl "0.10.1"]]

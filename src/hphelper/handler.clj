@@ -31,6 +31,9 @@
 
             ;; Since this will slowly be changing to an api, json is coming
             [clojure.data.json :as json]
+
+            ;; Allowing cross-site requests
+            [ring.middleware.cors :refer [wrap-cors]]
             )
   (:gen-class))
 
@@ -199,5 +202,7 @@
   (-> app-routes
       (wrap-defaults api-defaults)
       ring.middleware.session/wrap-session
+      ;; Allows cross-site requests for development purposes. Eventually will remove
+      (wrap-cors #".*")
       )
   )
