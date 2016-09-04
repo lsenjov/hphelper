@@ -23,7 +23,18 @@
                 game.init();
 
                 // Update game data every second
-                var gameUpdate = setInterval(game.update(), 1000);
+                var gameUpdate = setInterval(function() {game.update();}, 1000);
+
+                // Init chat and add submit button functionality
+                chat = new Chat();
+                chat.init();
+                document.getElementById("chatBtn").onclick = function() {
+                    // TODO: will need to be fixed to go through the server, probably go in chat.js
+                    var textarea = document.getElementById("chatTextarea");
+                    chat.addMessage(game.getPlayerName(), new Date().getTime(), textarea.value);
+                    textarea.value = "";
+
+                };
             };
 
             var accordion = function(id) {
@@ -127,10 +138,8 @@
 					<h2>Messenger</h2>
 					<div id="chatMessages"></div>
 					<div id="chatInput">
-						<form>
-							<textarea id="chatTextarea" rows="2"></textarea>
-							<input type="submit" value="Submit" id="chatBtn">
-						</form>
+                        <textarea id="chatTextarea" rows="2"></textarea>
+                        <input type="button" value="Submit" id="chatBtn">
 					</div>
 				</div>
 				
@@ -152,6 +161,7 @@
 		<script type="text/javascript" src="js/cbay.js" ></script>
 		<script type="text/javascript" src="js/serviceGroups.js" ></script>
 		<script type="text/javascript" src="js/chat.js" ></script>
+        <script type="text/javascript" src="js/news.js" ></script>
 	
 	</body>
 	

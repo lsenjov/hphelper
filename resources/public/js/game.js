@@ -6,6 +6,8 @@ var Game = function(gameId, playerId, startingPoolAccess) {
 	var player;
 	var cbay;
 	var lastUpdated;
+	var news;
+	var chat;
 
 	this.init = function() {
 		lastUpdated = new Date().getTime();
@@ -22,9 +24,13 @@ var Game = function(gameId, playerId, startingPoolAccess) {
 		player = new Player(this, playerId);
 		player.init();
 
-		// Init Cbay
+		// Init cbay
 		cbay = new Cbay(this);
 		cbay.getAuctions();
+
+		// Init newsfeed
+		news = new News();
+		news.init();
 	};
 
 	var displayPoolAccess = function () {
@@ -33,8 +39,10 @@ var Game = function(gameId, playerId, startingPoolAccess) {
 	};
 
 	this.update = function() {
-		console.log("update");
-		indicies.getIndicies();
+		console.log("Update");
+		getGameUpdates();
+		player.getPlayerUpdates(lastUpdated);
+		lastUpdated = new Date().getTime();
 	};
 
 	this.getGameId = function() {
@@ -45,9 +53,8 @@ var Game = function(gameId, playerId, startingPoolAccess) {
 		var link = "http://hp.trm.io/hphelper/api/public/" + gameId + "/updates/" + lastUpdated;
 		$.getJSON(link, function (data) {
 			if (data.status === "okay" && objSize(data) > 2) {
-
+				console.log(data);
 			}
-
 		});
 	};
 
@@ -61,5 +68,7 @@ var Game = function(gameId, playerId, startingPoolAccess) {
 		return count;
 	};
 
-
+	this.getPlayerName = function() {
+		return player.getName();
+	};
 };

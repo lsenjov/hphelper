@@ -166,6 +166,8 @@ li {
 	min-height: 100px;
 	width: 100%;
 	border: 3px solid #ddd;
+	overflow-y: scroll;
+	color: #333;
 }
 
 #chatInput #chatTextarea, #news #newsfeed {
@@ -184,3 +186,11 @@ li {
 	color: #111;
 }
 
+#chatMessages p, #newsfeed p {
+	padding: 2px;
+	margin: 2px;
+}
+
+#newsfeed .newsItem {
+	border-bottom: 1px solid #ddd;
+}

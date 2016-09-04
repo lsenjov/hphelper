@@ -23,6 +23,15 @@ var Player = function(game, playerId) {
         getSocietyMissions();
     };
 
+    this.getPlayerUpdates = function(lastUpdated) {
+        var link = "http://hp.trm.io/hphelper/api/public/" + game.getGameId() + "/" + playerId + "/updates/" + lastUpdated;
+        $.getJSON(link, function (data) {
+            if (data.status === "okay" && objSize(data) > 2) {
+                console.log(data);
+            }
+        });
+    };
+
     var getCharsheet = function () {
         var link = "http://hp.trm.io/hphelper/api/player/" + game.getGameId() + "/" + playerId + "/charsheet/";
         $.getJSON(link, function (data) {
