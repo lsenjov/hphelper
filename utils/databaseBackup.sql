@@ -71,7 +71,7 @@ CREATE TABLE `crisis` (
   `c_desc` varchar(200) NOT NULL,
   PRIMARY KEY (`c_id`),
   UNIQUE KEY `c_id_UNIQUE` (`c_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=43 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -121,6 +121,7 @@ INSERT INTO `crisis` VALUES (38,'both','Citizens! Lenin-##ZON## has escaped from
 INSERT INTO `crisis` VALUES (39,'both','Citizens! Today you have the opportunity to hold an Initialday Party for Citizen Right-U-ARE! Please fulfill their requests as ably as possible.');
 INSERT INTO `crisis` VALUES (40,'both','Citizens! Compliance Index falling at unacceptable rate. Please identify cause and rectify. This information is classified YELLOW.');
 INSERT INTO `crisis` VALUES (41,'both','*No Announcement*');
+INSERT INTO `crisis` VALUES (42,'both','Alert! Recover scoutbot ##SUB-0## from the outdoors. Scoutbot ##SUB-0## contains UV clearance information. Scoutbot ##SUB-0## is classified BLUE.');
 /*!40000 ALTER TABLE `crisis` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -218,6 +219,7 @@ INSERT INTO `crisis_tag` VALUES (40,'CPD');
 INSERT INTO `crisis_tag` VALUES (40,'HIU');
 INSERT INTO `crisis_tag` VALUES (40,'PLU');
 INSERT INTO `crisis_tag` VALUES (41,'RDD');
+INSERT INTO `crisis_tag` VALUES (42,'AFU');
 /*!40000 ALTER TABLE `crisis_tag` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -235,7 +237,7 @@ CREATE TABLE `crisis_text` (
   PRIMARY KEY (`ct_id`),
   KEY `fk_crisis_text_1_idx` (`c_id`),
   CONSTRAINT `fk_crisis_text_1` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=156 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=159 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -397,6 +399,9 @@ INSERT INTO `crisis_text` VALUES (152,41,'It cleans by converting the food to pu
 INSERT INTO `crisis_text` VALUES (153,41,'It escaped from VIOLET lab ##SUB-RDLAB##, after a lab assistant walked in with a spot of food on his jumpsuit, ##CIT-V##.');
 INSERT INTO `crisis_text` VALUES (154,41,'If the nanobots aren\'t actively cleaning something, they become airborne, looking for the next thing to clean.');
 INSERT INTO `crisis_text` VALUES (155,41,'Note: Since players are used to having three crisises, only two announcements should make experienced player more paranoid than usual.');
+INSERT INTO `crisis_text` VALUES (156,42,'Scoutbot ##SUB-0## is a relay for a High Programmer, sending information to Beta Complex. To cover their tracks, the scoutbot has been integrated into AFP ##SUB-AF##.');
+INSERT INTO `crisis_text` VALUES (157,42,'AFP ##SUB-AF## is a project that locks an artillery system onto a signal, firing automatically.');
+INSERT INTO `crisis_text` VALUES (158,42,'The Scoutbot was shot down in the outdoors, and has not transmitted its information to beta complex, nor its location to the artillery.');
 /*!40000 ALTER TABLE `crisis_text` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -3730,7 +3735,7 @@ CREATE TABLE `news` (
   PRIMARY KEY (`news_id`),
   KEY `fk_news_1_idx` (`c_id`),
   CONSTRAINT `fk_news_1` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=58 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -3796,6 +3801,7 @@ INSERT INTO `news` VALUES (54,'Citizens eagerly await announcement of a record-b
 INSERT INTO `news` VALUES (55,'Right-U-ARE has 16th Initialday today! Celebrations expected across the sector!',39);
 INSERT INTO `news` VALUES (56,'(B) Internal Security concentrate on low clearance areas to crack down on societies.',40);
 INSERT INTO `news` VALUES (57,'Internal Security retasked to high clearance areas to protect against the commie threat!',40);
+INSERT INTO `news` VALUES (58,'(B) AFP ##SUB-AF## halted due to technical issues.',42);
 /*!40000 ALTER TABLE `news` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -4089,7 +4095,7 @@ CREATE TABLE `sgm` (
   KEY `index_c` (`c_id`),
   CONSTRAINT `fk_sgm_1` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_sgm_2` FOREIGN KEY (`sg_id`) REFERENCES `sg` (`sg_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=184 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=188 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4278,6 +4284,10 @@ INSERT INTO `sgm` VALUES (180,'Clones aren\'t eating enough, so they aren\'t get
 INSERT INTO `sgm` VALUES (181,'We want to do some nutritional research. Have clones eat at least 50% more by the end of the daycycle.',7,41);
 INSERT INTO `sgm` VALUES (182,'We\'re behind on our traitor detection quota. Have clones eat at least 25% less by the end of the daycycle.',8,41);
 INSERT INTO `sgm` VALUES (183,'We\'ve been seeing worrying fluctuations in the amount clones eat. Keep consumption steady.',2,41);
+INSERT INTO `sgm` VALUES (184,'AFP ##SUB-AF## is keyed to Scoutbot ##SUB-0##. Repair the bot outside the complex. Do NOT allow it to be brought inside the complex.',1,42);
+INSERT INTO `sgm` VALUES (185,'Scoutbot ##SUB-0## contains information that will lead to the termination of a High Programmer. Get us that infomation.',8,42);
+INSERT INTO `sgm` VALUES (186,'Scoutbot ##SUB-0## has been heavily modified, and we want to study it. Get it to us in good condition.',7,42);
+INSERT INTO `sgm` VALUES (187,'Scoutbot ##SUB-0## contains vital information. Get its bot brain to us so we can prove we\'re the superior service group!',6,42);
 /*!40000 ALTER TABLE `sgm` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -4540,7 +4550,7 @@ CREATE TABLE `ssm` (
   KEY `fk_ssm_2_idx` (`ss_id`),
   CONSTRAINT `fk_ssm_1` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_ssm_2` FOREIGN KEY (`ss_id`) REFERENCES `ss` (`ss_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=232 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=238 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4778,6 +4788,12 @@ INSERT INTO `ssm` VALUES (228,11,40,'With the security away, it is the perfect t
 INSERT INTO `ssm` VALUES (229,15,40,'Today we strike! Get us an industrial drill and keep the security in the low clearance areas.');
 INSERT INTO `ssm` VALUES (230,13,40,'We\'ve almost finished a project, but need 40 tons rocket fuel to test it. Get that fuel to ##LOC-PT## for us to pick up, and keep security away from the high clearance areas.');
 INSERT INTO `ssm` VALUES (231,18,40,'Construction work is going well. Keep security out of the high clearance areas, and cause a short blackout so we can hide the start of our power drain.');
+INSERT INTO `ssm` VALUES (232,2,42,'We\'ve heard that Scoutbot ##SUB-0## was carrying a rare prototype. Get it to us at ##LOC-1##');
+INSERT INTO `ssm` VALUES (233,9,42,'Da information on Scoutbot ##SUB-0## is valuable, see? Get it to us so we can make a killing!');
+INSERT INTO `ssm` VALUES (234,11,42,'The information in Scoutbot ##SUB-0## will help the revolution! Get it to us.');
+INSERT INTO `ssm` VALUES (235,5,42,'Y0! We need the information from scoutbot ##SUB-0##! Get it to us!');
+INSERT INTO `ssm` VALUES (236,15,42,'One of the High Programmers left incriminating evidence in the Scoutbot ##SUB-0##. Get it to us.');
+INSERT INTO `ssm` VALUES (237,19,42,'We shot down an annoying drone near one of our ourdoor bases. Anyway, can you get us some supplies? We\'re at grid ref 391073/616900.');
 /*!40000 ALTER TABLE `ssm` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -4847,4 +4863,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-09-03 12:47:26
+-- Dump completed on 2016-09-04 16:16:56
