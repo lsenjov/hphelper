@@ -5,8 +5,11 @@ var Game = function(gameId, playerId, startingPoolAccess) {
 	var indicies;
 	var player;
 	var cbay;
+	var lastUpdated;
 
 	this.init = function() {
+		lastUpdated = new Date().getTime();
+
 		// Init access
 		poolAccess = startingPoolAccess;
 		displayPoolAccess();
@@ -37,5 +40,26 @@ var Game = function(gameId, playerId, startingPoolAccess) {
 	this.getGameId = function() {
 		return gameId;
 	};
+
+	var getGameUpdates = function() {
+		var link = "http://hp.trm.io/hphelper/api/public/" + gameId + "/updates/" + lastUpdated;
+		$.getJSON(link, function (data) {
+			if (data.status === "okay" && objSize(data) > 2) {
+
+			}
+
+		});
+	};
+
+	var objSize = function(obj) {
+		var count = 0;
+		for (var prop in obj) {
+			if (obj.hasOwnProperty(prop)) {
+				count++;
+			}
+		}
+		return count;
+	};
+
 
 };

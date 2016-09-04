@@ -11,13 +11,16 @@ var Player = function(game, playerId) {
         serviceGroups: [],
         bids: {},
         accessRemaining: 0,
-        accessHistory: ""
+        accessHistory: "",
+        serviceGroupMissions: [],
+        societyMissions: []
     };
 
     this.init = function () {
         getCharsheet();
         // TODO: make this update properly
         getServiceGroups();
+        getSocietyMissions();
     };
 
     var getCharsheet = function () {
@@ -45,6 +48,18 @@ var Player = function(game, playerId) {
                 }
             }
             displayServiceGroups();
+        });
+    };
+
+    var getSocietyMissions = function () {
+        var link = "http://hp.trm.io/hphelper/api/player/" + game.getGameId() + "/" + playerId + "/societymissions/";
+        $.getJSON(link, function (data) {
+            if (data.status === "ok") {
+                for (var mission = 0; mission < data.missions.length; mission++) {
+                    player.societyMissions.push(data.missions[mission]);
+                }
+            }
+            displaySocietyMissions();
         });
     };
 
@@ -149,6 +164,15 @@ var Player = function(game, playerId) {
                 }
                 outerDiv.appendChild(minionList);
             }
+        }
+    };
+
+    var displaySocietyMissions = function() {
+        var list = document.getElementById("societyMissions");
+        for (var mission = 0; mission < player.societyMissions.length; mission++) {
+            var listItem = document.createElement("LI");
+            listItem.innerHTML = "PlaceholderName: " + player.societyMissions[mission].ssm_text;
+            list.appendChild(listItem);
         }
     };
 
