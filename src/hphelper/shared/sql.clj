@@ -197,20 +197,35 @@
   (into [] (map (comp (partial interpret-line zone crisisId) :ct_desc)
                 (query "SELECT `ct_desc` FROM `crisis_text` WHERE `c_id` = ?;" crisisId))))
 
+(defn- update-secret-society-mission
+  "Updates a society mission record to include the society's name under ss_name, and to interpret the text"
+  [zone crisisId ssmrec]
+  (-> ssmrec
+      (update-in [:ssm_text] (partial interpret-line zone crisisId))
+      (assoc-in [:ss_name]
+                (-> (query "SELECT ss_name FROM ss WHERE ss_id = ?;" (:ss_id ssmrec))
+                    first
+                    :ss_name)
+                )
+      )
+  )
+
 (defn get-secret-society-missions
   "Selects all the secret society missions of a single crisis"
   [zone crisisId]
-  (map update-in
+  (map (partial update-secret-society-mission zone crisisId)
        (query "SELECT * FROM `ssm` WHERE `c_id` = ?;" crisisId)
-       (repeat [:ssm_text])
-       (repeat (partial interpret-line zone crisisId))))
+       )
+  )
 
 (defn get-secret-socity-mission-unused
   "Selects a single secret society mission not associated to a crisis"
   [zone ssId]
-  (update-in (get-random-item (query "SELECT * FROM `ssm` WHERE `ss_id` = ? AND `c_id` IS NULL;" ssId))
-             [:ssm_text]
-             (partial interpret-line zone)))
+  (->> (query "SELECT * FROM `ssm` WHERE `ss_id` = ? AND `c_id` IS NULL;" ssId)
+      get-random-item
+      (update-secret-society-mission zone nil)
+      )
+  )
 
 (defn get-directive-crisis
   "Selects directives related to a single crisis"
