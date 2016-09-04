@@ -33,6 +33,12 @@ h3 {
 	margin-top: 5px;
 }
 
+/*------------------ACCORDIONS---------------------*/
+.dataItem {
+	display: none;
+	visibility: hidden;
+}
+
 /*------------------ICONS---------------------*/
 
 .glyphicon {
@@ -52,7 +58,7 @@ h3 {
 /*------------------HEADER---------------------*/
 
 header {
-	padding: 10px;
+	padding: 20px 10px;
 	background-color: #350156;
 	margin-bottom: 5px;
 }
@@ -94,6 +100,15 @@ h1 {
 
 .dataItem {
 	padding: 5px;
+	width: 100%;
+}
+
+.splitList {
+	display: inline-block;
+	list-style-type: none;
+	float: left;
+	width: 30%;
+	min-width: 80px;
 }
 
 .splitListLeft {
@@ -102,6 +117,7 @@ h1 {
 	list-style-type: none;
 	float: left;
 	width: 25%;
+	min-width: 120px;
 }
 
 .splitListRight {
