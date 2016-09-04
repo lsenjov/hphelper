@@ -52,7 +52,7 @@
 (s/def ::zone string?)
 (s/def ::cbay (s/coll-of string?))
 (s/def ::news (s/coll-of string?))
-(s/def ::societyMissionSingle (s/keys :req-un [::ssm_id ::ss_id ::c_id ::ssm_text]))
+(s/def ::societyMissionSingle (s/keys :req-un [::ssm_id ::ss_id ::c_id ::ssm_text ::ss_name]))
 ; Has this minion been paid for by a player?
 (s/def ::bought? boolean?)
 (s/def ::mskills string?)
