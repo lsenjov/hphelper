@@ -57,8 +57,10 @@
 				<!--- ACCESS --->
 				<h2 class="dataHeading accordion" id="access" onclick="return accordion('accessData');"><span class="glyphicon glyphicon-usd" aria-hidden="true"></span> ACCESS</h2>
 				<div class="dataItem" id="accessData">
-					<h3>Public Pool: <span id="poolAccessData"></span></h3>
-                    <h3>My Access: <span id="characterAccessData"></span></h3>
+                    <ul>
+                        <li>Public Pool: <span id="poolAccessData"></span></li>
+                        <li>My Access: <span id="characterAccessData"></span></li>
+                    </ul>
 				</div>
 				
 				<!--- INDICIES --->
@@ -87,24 +89,19 @@
 				
 				<!--- SERVICE GROUPS --->
 				<h2 class="dataHeading accordion" id="serviceGroups" onclick="return accordion('serviceGroupsData');"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Service Groups</h2>
-				<div class="dataItem" id="serviceGroupsData">
-					<h3>Owned Service Groups</h3>
-					<div class="splitListDiv"></div>
-					
-					<h3>Other Service Groups</h3>
-					<div class="splitListDiv"></div>
-				</div>
+				<div class="dataItem" id="serviceGroupsData"></div>
 				
 				<!--- MISSIONS --->
 				<h2 class="dataHeading accordion" id="missions" onclick="return accordion('missionsData');"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> Missions</h2>
 				<div class="dataItem" id="missionsData">
 				</div>
 				
-				<!--- MINIONS --->
+				<!--- ACTIVE MINIONS --->
 				<h2 class="dataHeading accordion" id="minions" onclick="return accordion('minionsData');">
 					<span id="minionIcons"><span class="glyphicon glyphicon-user" aria-hidden="true"></span><sup><span class="glyphicon glyphicon-user" aria-hidden="true"></span></sup><span class="glyphicon glyphicon-user" aria-hidden="true"></span></span>
-					 Minions</h2>
+					 Active Minions</h2>
 				<div class="dataItem" id="minionsData">
+                    <p>This will eventually contain a list of all your activated minions.</p>
 				</div>
 				
 				<!--- CBAY --->

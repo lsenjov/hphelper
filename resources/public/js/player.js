@@ -129,10 +129,11 @@ var Player = function(game, playerId) {
     };
 
     var displayServiceGroups = function() {
-        var outerDiv = document.getElementById("minionsData");
+        var outerDiv = document.getElementById("serviceGroupsData");
         for (var sg in player.serviceGroups) {
             if (player.serviceGroups.hasOwnProperty(sg)) {
-                var sgName = document.createTextNode(player.serviceGroups[sg].sg_name);
+                var sgName = document.createElement("H3");
+                sgName.innerHTML = player.serviceGroups[sg].sg_name;
                 outerDiv.appendChild(sgName);
                 var minionList = document.createElement("UL");
                 var sgMinions = player.serviceGroups[sg].minions;
