@@ -9,7 +9,7 @@ var Chat = function() {
 	};
 
 	this.getMessages = function() {
-		// TODO
+		// TODO: check server for messages
 	};
 
 	this.addMessage = function(player, time, message) {
