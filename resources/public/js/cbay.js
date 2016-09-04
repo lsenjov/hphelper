@@ -1,16 +1,26 @@
 // ----------------CHARACTER CONSTRUCTOR-------------------
-var Cbay = function(auctions) {
-	this.auctions = auctions;
-};
+var Cbay = function(game) {
 
-Cbay.prototype.updateAuctions = function(newAuctions) {
-	this.auctions = newAuctions;
-};
+	var auctions = [];
 
-Cbay.prototype.displayAuctions = function() {
-	var auctionsCode = "";
-	for (var i = 0; i < this.auctions.length; i++) {
-		auctionsCode += "<li>" + this.auctions[i] + "</li>";
-	}
-	document.getElementById("cbayAuctions").innerHTML = auctionsCode;
+	this.updateAuctions = function () {
+		var link = "http://hp.trm.io/hphelper/api/public/" + game.getGameId() + "/cbay/";
+		$.getJSON(link, function(data) {
+			if (data.status === "ok") {
+				for (var prop in data) {
+					auctions = data.cbay;
+				}
+				displayAuctions();
+			}
+		});
+	};
+
+	var displayAuctions = function () {
+		var list = document.getElementById("cbayAuctions");
+		for (var i = 0; i < auctions.length; i++) {
+			var listItem = document.createElement("LI");
+			listItem.innerHTML = auctions[i];
+			list.appendChild(listItem);
+		}
+	};
 };

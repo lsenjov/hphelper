@@ -94,6 +94,15 @@ h1 {
 
 .dataItem {
 	padding: 5px;
+	width: 100%;
+}
+
+.splitList {
+	display: inline-block;
+	list-style-type: none;
+	float: left;
+	width: 30%;
+	min-width: 80px;
 }
 
 .splitListLeft {
@@ -102,6 +111,7 @@ h1 {
 	list-style-type: none;
 	float: left;
 	width: 25%;
+	min-width: 120px;
 }
 
 .splitListRight {

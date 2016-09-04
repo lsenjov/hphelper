@@ -13,6 +13,7 @@
 		<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
 		<link rel="stylesheet" type="text/css" href="css/reset.css">
 		<link rel="stylesheet" type="text/css" href="css/style.css">
+
 	</head>
 	
 	<body>
@@ -28,29 +29,29 @@
 				<!--- ACCESS --->
 				<h2 class="dataHeading accordion" id="access" onclick="return accordion('accessData');"><span class="glyphicon glyphicon-usd" aria-hidden="true"></span> ACCESS</h2>
 				<div class="dataItem" id="accessData">
-					<h3 id="characterAccessData"></h3>
-					<h3 id="poolAccessData"></h3>
+					<h3>Public Pool: <span id="poolAccessData"></span></h3>
+                    <h3>My Access: <span id="characterAccessData"></span></h3>
 				</div>
 				
-				<!--- INDICES --->
-				<h2 class="dataHeading accordion" id="indices" onclick="return accordion('indicesData');"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Indices</h2>
-				<div class="dataItem" id="indicesData"></div>
+				<!--- INDICIES --->
+				<h2 class="dataHeading accordion" id="indicies" onclick="return accordion('indiciesData');"><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Indicies</h2>
+				<div class="dataItem" id="indiciesData"></div>
 				
 				<!--- CHARACTER --->
-				<h2 class="dataHeading accordion" id="character" onclick="return accordion('characterData');"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Character</h2>
+				<h2 class="dataHeading accordion" id="character" onclick="return accordion('characterData');"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> <span id="characterName">Character</span></h2>
 				<div class="dataItem" id="characterData">
-					<h3 class="characterDataHeading" id="characterName"></h3>
 					<h3 class="characterDataHeading">Primary Statistics</h3>
-					<div class="splitListDiv">
-						<ul id="mainStatsList1" class="splitListLeft"></ul>
-						<ul id="mainStatsList2" class="splitListRight"></ul>
+					<div class="splitListDiv" id="priStatsDiv">
 					</div>
 					
 					<h3 class="characterDataHeading">Secondary Statistics</h3>
-					<ul id="sndStats"></ul>
+					<ul id="secStats"></ul>
 					
 					<h3 class="characterDataHeading">Societies</h3>
 					<ul id="societies"></ul>
+
+                    <h3 class="characterDataHeading">Mutation</h3>
+                    <ul id="mutation"></ul>
 					
 					<h3 class="characterDataHeading">Drawbacks</h3>
 					<ul id="drawbacks"></ul>
@@ -124,8 +125,8 @@
 		
 		<script type="text/javascript" src="js/accordion.js" ></script>
 		<script type="text/javascript" src="js/game.js" ></script>
-		<script type="text/javascript" src="js/character.js" ></script>
-		<script type="text/javascript" src="js/indices.js" ></script>
+		<script type="text/javascript" src="js/player.js" ></script>
+		<script type="text/javascript" src="js/indicies.js" ></script>
 		<script type="text/javascript" src="js/cbay.js" ></script>
 		<script type="text/javascript" src="js/serviceGroups.js" ></script>
 		<script type="text/javascript" src="js/chat.js" ></script>

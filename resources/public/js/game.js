@@ -1,41 +1,71 @@
 // ---------------GAME CONSTRUCTOR-----------------
-var Game = function(indices, poolAccess, cbay, character) {
+var Game = function(gameId, playerId, startingPoolAccess) {
 	/* Constructor for game object 
-	* Inputs:
-	* 	- indices = Indices obj, mutable
-	* 	- poolAccess = int, mutable
-	* 	- cbay = string array, mutable?
-	* 	- character = Character obj
-	* Other vars:
-	* 	- poolAccessHistory = string, mutable
-	* 	- calls = string array?, mutable
-	* 	- chatLog = Chat obj, mutable
-	*/
-	this.indices = indices;
-	this.poolAccess = poolAccess;
-	this.poolAccessHistory = "";
-	this.cbay = cbay;
-	this.calls = [];
-	this.chatLog = "";
-};
+	 * Inputs:
+	 * 	- indices = Indices obj, mutable
+	 * 	- poolAccess = int, mutable
+	 * 	- cbay = string array, mutable?
+	 * 	- character = Character obj
+	 * Other vars:
+	 * 	- poolAccessHistory = string, mutable
+	 * 	- calls = string array?, mutable
+	 * 	- chatLog = Chat obj, mutable
+	 */
+
+	var poolAccess = 0;
+	var indicies;
+	var player;
+	var cbay;
+
+	this.getGameId = function() {
+		return gameId;
+	};
+
+	this.init = function() {
+		// Init access
+		poolAccess = startingPoolAccess;
+		displayPoolAccess();
+
+		// Init indicies
+		indicies = new Indicies(gameId);
+		indicies.init();
+
+		// Init player
+		player = new Player(this, playerId);
+		player.init();
+
+		// Init Cbay
+		cbay = new Cbay(this);
+		cbay.updateAuctions();
+	}
+
+	var displayPoolAccess = function () {
+		document.getElementById("poolAccessData").innerHTML = poolAccess;
+		//document.getElementById("poolAccessHistory").innerHTML = this.poolAccessHistory;
+	};
 
 
-// ---------------INDICES METHODS-----------------
-// Note that Indices obj is in indices.js
-Game.prototype.updateIndices = function() {
-	// Make this update the indices via the functions below
-};
+
+	// Init service groups
+
+	// this.poolAccess = poolAccess;
+	// this.poolAccessHistory = "";
+	// this.cbay = cbay;
+	// this.calls = [];
+	// this.chatLog = "";
+
+	this.update = function() {
+		console.log("update");
+		indicies.updateIndicies();
+	};
+
+	/* --- POOL ACCESS METHODS --- */
+	// this.updatePoolAccess = function (newAccess) {
+	// 	this.poolAccessHistory += "<li>" + this.poolAccess + "</li>";
+	// 	this.poolAccess = newAccess;
+	// 	// Update displayed data
+	// 	this.displayPoolAccess();
+	// };
 
 
-// ---------------POOL ACCESS METHODS-----------------
-Game.prototype.updatePoolAccess = function(newAccess) {
-	this.poolAccessHistory += "<li>" + this.poolAccess + "</li>";
-	this.poolAccess = newAccess;
-	// Update displayed data
-	this.displayPoolAccess();
-}
-
-Game.prototype.displayPoolAccess = function() {
-	document.getElementById("poolAccessData").innerHTML = "Access Pool: " + this.poolAccess;
-	//document.getElementById("poolAccessHistory").innerHTML = this.poolAccessHistory;
 };

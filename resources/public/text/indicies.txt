@@ -1,0 +1,1 @@
+{"status":"ok","indicies":{"RD":-4,"PS":1,"HI":2,"AF":2,"TS":2,"IS":2,"SI":-1,"CP":3,"CI":-1,"TD":0,"PL":2,"HP":0,"LI":-1}}
