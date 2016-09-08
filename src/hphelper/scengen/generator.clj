@@ -215,12 +215,12 @@
   [{cbay :cbay :as scenRec}] ;; Cbay may or may not exist
   (assoc-in scenRec [:cbay]
             (into []
-                  (let [items (concat (sql/get-random-cbay-items (scenRec :zone) 3)
+                  (let [items (concat (sql/get-random-cbay-items (scenRec :zone) 5)
                                       cbay)] ;; If cbay does not exist, will be as before.
                     (map str
                          items
                          (repeat " ")
-                         (generate-times 30 120 (count items)))))))
+                         (generate-times 15 150 (count items)))))))
 
 (defn add-character
   "Adds a high programmer character to the record under :hps"
