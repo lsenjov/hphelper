@@ -138,9 +138,9 @@
                )))
 
 (defn- fuzzify-number
-  "Takes a number as a string, fuzzifies it by 10%, returns it with two decimal places.
+  "Takes a number as a string, fuzzifies it by 10%, returns it with the specified decimal places.
   Returns '0' if it's not an integer"
-  ([^String token]
+  ([^String token decimals]
    (log/trace "fuzzify-number:" token)
    (if-let [n (parse-int token)]
      ;; Creates a number between 0.9 and 1.1, multiplies it by the number in the token
@@ -149,7 +149,7 @@
          (/ 100)
          (+ 1)
          (* n)
-         ((partial format "%.2f"))
+         ((partial format (str "%." decimals "f")))
          str
          )
      "0"
@@ -170,7 +170,14 @@
       "LOC" (get-or-create-name (partial get-random-resource "LOC") token)
       "RES" (get-or-create-name (partial get-random-resource "RES") token)
       "SUB" (get-or-create-name create-random-sub token)
-      "NUM" (get-or-create-name (partial fuzzify-number (second (clojure.string/split token #"-"))) token)
+      "NUM" (get-or-create-name (partial fuzzify-number
+                                         (second (clojure.string/split token #"-"))
+                                         2)
+                                token)
+      "INT" (get-or-create-name (partial fuzzify-number
+                                         (second (clojure.string/split token #"-"))
+                                         0)
+                                token)
       (do
         (log/error "Incorrect token form:" token)
         token)
