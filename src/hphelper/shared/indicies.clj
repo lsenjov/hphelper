@@ -34,11 +34,11 @@
                              inds)))))
 
 (defn create-base-indicies-list
-  "Combines the base indicies with sg indicies, and sets them all to 0"
+  "Combines the base indicies with sg indicies, sets sector indices to 0 and sg indicies to random number between -70 and 70"
   []
   (merge
    (reduce merge (map (fn [k] {k 0}) sectorIndicies))
-   (reduce merge (map (fn [k] {k 0}) (map (comp keyword :sg_abbr)
+   (reduce merge (map (fn [k] {k (- (rand-int 141) 70)}) (map (comp keyword :sg_abbr)
                                           (sql/query "SELECT sg_abbr FROM sg"))))))
 
 (defn normalise-specific-indicies
@@ -68,7 +68,8 @@
 (defn fuzzify-indicies
   "Randomly adds, subtracts, or leaves alone each of the indicies"
   [indicies]
-  ((apply comp (map (fn [kw] (fn [ind] (update-in ind [kw] + (dec (rand-int 3)))))
+  ((apply comp (map (fn [kw] (fn [ind]
+                               (update-in ind [kw] + (dec (rand-int 3)))))
                     (keys indicies))
           )
    indicies))
