@@ -34,6 +34,9 @@
 
             ;; Allowing cross-site requests
             [ring.middleware.cors :refer [wrap-cors]]
+
+            ;; For turning on and off asserts
+            [clojure.spec :as s]
             )
   (:gen-class))
 
@@ -193,6 +196,12 @@
             [:br]
             [:a {:href "https://github.com/lsenjov/hphelper"} "Source Code"][:br]
             ]]))
+
+  ;; Turn on or off trace logging
+  (GET "/admin/tracking/trace/" [] (do (log/set-level! :trace) "Logging set to trace."))
+  (GET "/admin/tracking/info/" [] (do (log/set-level! :info) "Logging set to info."))
+  (GET "/admin/spec/on/" [] (do (s/check-asserts true) "Asserts turned on."))
+  (GET "/admin/spec/off/" [] (do (s/check-asserts false) "Asserts turned off."))
   (route/resources "/")
   (route/not-found
     (json/write-str {:status "error" :message "Invalid endpoint"}))

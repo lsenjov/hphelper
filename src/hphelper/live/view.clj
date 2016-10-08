@@ -84,7 +84,7 @@
              [:head
               [:title "Sector View"]
               [:meta {:http-equiv "refresh" :content 5}]
-              [:link {:rel "stylesheet" :href (str "/css/style.css")}]
+              [:link {:rel "stylesheet" :href (str baseURL "/css/style.css")}]
               [:style ".data {background-color: #270140; padding: 10px; border-right: 10px solid black; border-bottom: 5px solid black;}"]
               ]
              [:body
