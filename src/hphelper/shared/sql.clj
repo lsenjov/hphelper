@@ -205,6 +205,7 @@
        )))))
 
 ;; Naming done, now onto the rest of it
+;; These are all SQL frontends
 (defn get-crisis-by-id
   "Gets a specific crisis by its id, returns a map, or nil if the crisis does not exist"
   [zone crisisId]
@@ -310,6 +311,10 @@
                        (int (Math/ceil (* (Math/random)
                                           fCount)))))))
 
+(defn get-random-skill
+  "Gets a completely random skill from the database"
+  []
+  (rand-nth (query "select * from skills;")))
 
 (defn get-random-society
   "Gets a random secret society from the database. Returns a map."
