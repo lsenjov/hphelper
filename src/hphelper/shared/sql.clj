@@ -341,6 +341,11 @@
   []
   (get-random-row "mutations" "id"))
 
+(defn get-mutation-all
+  "Gets all mutations in a list"
+  []
+  (query "SELECT * FROM mutations;"))
+
 (defn get-news-crisis
   "Gets the news articles from a crisis, returns a vector"
   [zone crisisId]

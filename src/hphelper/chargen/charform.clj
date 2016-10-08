@@ -45,6 +45,21 @@
          ]
         ]
 
+       ;; Mutations
+       [:div "Select mutation:"
+        [:select {:name "mutation"}
+         (concat '([:option {:value ""} "Randomly select"])
+                 (map (fn [{n :name desc :desc}]
+                        [:option
+                         {:value (str n ": " desc "*")}
+                         (str n ": " desc)]
+                        )
+                      (sql/get-mutation-all)
+                      )
+                 )
+         ]
+        ]
+
        ;; Drawbacks
        [:div "Select number of drawbacks:"
         [:select {:name "DrawbackCount"}
@@ -74,6 +89,15 @@
   [params target]
   (if (> (count (:name params)) 0)
     (assoc target :name (:name params))
+    target))
+
+(defn- assoc-mutation
+  "If a mutation field exists, move it to the target"
+  [{mutation :mutation} target]
+  (if (and mutation (> (count mutation) 0))
+    (assoc target :mutation {:description mutation
+                             :power 10}
+                             )
     target))
 
 (defn- assoc-stat
@@ -129,6 +153,7 @@
   (->> {}
        (assoc-name params)
        (assoc-stats params)
+       (assoc-mutation params)
        (generate-drawbacks params)
        (assoc-public-standing params)
        (assoc-societies params)
