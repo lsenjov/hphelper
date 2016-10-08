@@ -2,6 +2,7 @@
   (:require [taoensso.timbre :as log]
             [hphelper.shared.sql :as sql]
             [clojure.spec :as s]
+            [hphelper.shared.spec :as ss]
             ))
 
 (def ^:private chance
@@ -201,6 +202,7 @@
                  (create-minion-list-medium sgskills)
                  (create-minion-list-high sgskills))
          (map convert-mskills)
+         (map #(assoc % :minion_name "No Name"))
          )
     )
   )
@@ -227,10 +229,11 @@
        )
   )
 
-
 (defn create-sg-list-full
   "Creates a minion list without names for each service group"
   []
+  {:post [(s/valid? ::ss/serviceGroups %)]
+   }
   (map (fn [{:keys [sg_id sg_name] :as sg}]
          (assoc sg :minions (create-minion-list-for-sg sg_id))
          )
@@ -238,12 +241,13 @@
        )
   )
 
-(->> (create-sg-list-full)
-     minion-list-to-csv
-     (interpose \newline)
-     (apply str)
-     (spit "sglist.csv")
-     )
-
-
-(def slist (get-sg-skills 1))
+(defn print-new-sg-list
+  [fname]
+  "Creates a minion list and prints it to fname"
+  (->> (create-sg-list-full)
+       minion-list-to-csv
+       (interpose \newline)
+       (apply str)
+       (spit fname)
+       )
+  )

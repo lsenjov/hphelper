@@ -57,8 +57,8 @@
 (s/def ::bought? boolean?)
 (s/def ::mskills string?)
 (s/def ::serviceGroupMinion
-  (s/keys :req-un [::minion_id ::minion_name ::minion_clearance ::minion_cost ::mskills]
-          :opt-un [::bought? ::sg_id]
+  (s/keys :req-un [::minion_name ::minion_clearance ::minion_cost ::mskills]
+          :opt-un [::bought? ::sg_id ::minion_id]
           ))
 (s/def ::minions (s/coll-of ::serviceGroupMinion))
 ; The owner is the HP name, not the uid
