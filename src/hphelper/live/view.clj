@@ -55,7 +55,7 @@
 (defn- print-service-group
   "Prints a single service group in a html format"
   [g]
-  (html [:div
+  (html [:div {:class "data"}
          [:h3 (str (:sg_name g) ": " (:owner g))]
          (map (fn [r] [:div (str (:minion_name r)
                                  " -- " (:minion_clearance r)
@@ -84,28 +84,32 @@
              [:head
               [:title "Sector View"]
               [:meta {:http-equiv "refresh" :content 5}]
+              [:link {:rel "stylesheet" :href (str "/css/style.css")}]
+              [:style ".data {background-color: #270140; padding: 10px; border-right: 10px solid black; border-bottom: 5px solid black;}"]
               ]
              [:body
+              [:header
+               [:h1 "Sector " (:zone g) ": " (indicies/html-print-indicies (first (:indicies g)))
+                ]
+               ]
               [:table
-               [:tr
+               [:tr {:style "vertical-align: top;"}
                 [:td ;; Left column Begin
-                 [:div
-                  [:h3 "Current Sector Indicies"]
-                  (html-print-indicies-table (first (:indicies g)) 13)
-                  ]
-                 [:div
+                 ;; Moved these to the header
+                 ;;[:div [:h3 "Current Sector Indicies"] (html-print-indicies-table (first (:indicies g)) 13) ]
+                 [:div {:class "data"}
                   [:h3 "Sector News"]
                   (map (fn [n] [:div n])
                        (:news g))
                   ]
-                 [:div
+                 [:div {:class "data"}
                   [:h3 "Upcoming cbay auctions"]
                   (map (fn [^String i] [:div i]) (:cbay g))
                   ]
                  ;; Society messages
                  (if-let [missions (:missions (lapi/get-player-society-missions guid uuid))]
                    (do
-                     [:div
+                     [:div {:class "data"}
                       [:h3 "Private message summary"]
                       (map (fn [{ss_id :ss_id text :ssm_text}]
                              [:div (str (sql/get-ss-by-id ss_id) ": " text)])
@@ -119,9 +123,9 @@
                     (map (fn [^String msg] [:div msg]) messages)
                     ]
                    )
-                 [:hr] ;; Player Sheet
+                 ;; Player Sheet
                  (if u
-                   [:div
+                   [:div {:class "data"}
                     [:h3 "Character Sheet"]
                     (cprint/html-print-sheet u)]
                    nil
