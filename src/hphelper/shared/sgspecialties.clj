@@ -203,6 +203,8 @@
                  (create-minion-list-high sgskills))
          (map convert-mskills)
          (map #(assoc % :minion_name "No Name"))
+         (sort-by :minion_cost)
+         (sort-by #(clearance-costs (:minion_clearance %)))
          )
     )
   )
