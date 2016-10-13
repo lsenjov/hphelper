@@ -119,7 +119,8 @@
                    )
                  ;; Extra Messages
                  (if-let [messages (:msgs u)]
-                   [:div
+                   [:div {:class "data"}
+                    [:h3 "Additional Messages"]
                     (map (fn [^String msg] [:div msg]) messages)
                     ]
                    )
