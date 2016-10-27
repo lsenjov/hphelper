@@ -79,68 +79,6 @@
       (setup-last-updated (current-time))
       )
   )
-(defn- get-single-crisis-keywords
-  "Returns a list of all keywords associated with this crisis"
-  [^Integer cid]
-  {:post [(s/valid? (s/coll-of string?) %)]}
-  (let [ending (str "-" cid)
-        nameKeys (set (filter #(clojure.string/ends-with? % ending)
-                              (keys @sql/namedItems)))
-        ]
-    (->> @sql/namedItems
-         (filter (fn [[k v]] (nameKeys k)))
-         (map second)
-         )
-    )
-  )
-(defn- get-random-keywords
-  "Returns n random keywords from all keywords"
-  [^Integer n]
-  {:post [(s/valid? (s/coll-of string?) %)]}
-  (->> @sql/namedItems
-       (vals)
-       (shuffle)
-       (take n)
-       )
-  )
-(defn fuzz-number-by-one
-  "Randomly changes a single integer by one, either up, down, or leave"
-  [^Integer n]
-  (-> n
-       (- 1)
-       (+ (rand-int 2))
-       )
-  )
-(defn- create-random-keywords
-  "Returns n randomly created keywords of each CIT, RES, and LOC"
-  [^String zone ^Integer n]
-  {:post [(s/valid? (s/coll-of string?) %)]}
-  (map (comp (partial sql/interpret-line zone)
-             (partial sql/interpret-token zone))
-       (concat (for [c (take (fuzz-number-by-one n) (shuffle sql/allClearances))]
-                 (str "CIT-" c "-"))
-               (take (fuzz-number-by-one n) (repeatedly #(str "RES-" (rand-int 100) "-")))
-               (take (fuzz-number-by-one n) (repeatedly #(str "LOC-" (rand-int 100) "-")))
-               (take (fuzz-number-by-one n) (repeatedly #(str "SUB-" (rand-int 100) "-")))
-               )
-       )
-  )
-
-
-(defn- assoc-crisis-keywords
-  "Gets all name keywords ending with '-num' from names"
-  [{:keys [crisises zone] :as game}]
-  (assoc game
-         :keywords
-         (->> (mapcat get-single-crisis-keywords
-                         (conj (map :c_id crisises) 0)
-                         )
-              (map (partial sql/interpret-line zone))
-              (concat (create-random-keywords zone 2))
-              (shuffle)
-              )
-         )
-  )
 
 (defn new-game
   "Creates a new game, either from an existing map or straight 0s. Returns the generated uid"
@@ -165,7 +103,6 @@
                            (player-all-setup)
                            ;; Make sure cbay exists, even if it's just an empty list
                            (update-in [:cbay] (partial concat []))
-                           (assoc-crisis-keywords)
                        )))
   ([]
    (new-game {:indicies (indicies/create-base-indicies-list)})))
