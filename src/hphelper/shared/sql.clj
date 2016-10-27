@@ -1,6 +1,7 @@
 (ns hphelper.shared.sql
   (:require [clojure.java.jdbc :as jdb]
             [taoensso.timbre :as log]
+            [clojure.spec :as s]
             ))
 
 (def db {:subprotocol "mysql"
@@ -27,11 +28,18 @@
 
 ;; Until reset, this will save all references. The same number crisis will
 ;; continue to return the same names for ##REF-TAGS##
-;; It is done this way so names aren't overwritten during frequent updating
-;; (resaving source files will re-load them into memory)
+;; Done this way so updating ring doesn't clear the cache
 (def namedItems
   "A map atom with references as keys and named items as values"
-  (atom {}))
+  (if (bound? (resolve 'namedItems))
+    ;; Already exists
+    namedItems
+    ;; Doesn't exist.
+    (atom {})
+    )
+  )
+(log/trace "Defined namedItems")
+(log/trace "namedItems is" namedItems)
 
 (defn reset-named-items!
   "Resets the namedItems atom"
@@ -157,7 +165,7 @@
    )
   )
 
-(defn- interpret-token
+(defn interpret-token
   "Takes a string of format ABC-TAGS-AND-OTHERS and looks at the first part, choosing which
   function to call, then calls get-or-create-name. On an error logs and returns the token."
   [zoneName token]
@@ -190,8 +198,12 @@
   ([zoneName line]
    (interpret-line zoneName 0 line))
   ([zoneName crisisId line]
+   {:pre [(s/valid? string? zoneName)
+          (s/valid? (s/or :nil nil? :int integer?) crisisId)
+          (s/valid? string? line)
+          ]
+    }
    (log/trace "interpret-line. zoneName:" zoneName "crisisId:" crisisId "line:" line)
-   (assert (string? line) (str "Line to look at is not a string! Is actually:" line))
    (let [tokenised (clojure.string/split line #"##" 3)]
      (case (count tokenised)
        1 line

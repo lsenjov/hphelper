@@ -41,6 +41,8 @@
   (:gen-class))
 
 (log/set-level! :trace)
+(log/info "Compile asserts is set to:" s/*compile-asserts*)
+(log/info "System property is:" (System/getProperty "clojure.spec.compile-asserts"))
 
 (defn- parse-long
   "Parses a long, returns 0 if fails"

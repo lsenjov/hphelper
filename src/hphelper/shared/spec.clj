@@ -76,8 +76,9 @@
 (s/def ::access (s/coll-of (s/map-of string? integer?)))
 (s/def ::updated (s/map-of keyword? integer?))
 (s/def ::hps (s/map-of string? ::playerCharacter))
+(s/def ::keywords (s/coll-of string?))
 (s/def ::liveScenario
-  (s/keys :req-un [::cbay ::hps ::indicies ::news ::access ::updated ]
-          :opt-un [ ::directives ::societies ::zone ::serviceGroups ::crisises ]
+  (s/keys :req-un [::cbay ::hps ::indicies ::news ::access ::updated]
+          :opt-un [::directives ::societies ::zone ::serviceGroups ::crisises ::keywords]
           )
   )

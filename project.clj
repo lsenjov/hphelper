@@ -29,4 +29,7 @@
   :ring {:handler hphelper.handler/app}
   :profiles
   {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
-                        [ring/ring-mock "0.3.0"]]}})
+                        [ring/ring-mock "0.3.0"]]}
+   :prod {:jvm-opts ["-Dclojure.spec.compile-asserts=false"]}
+   }
+  )

@@ -21,7 +21,6 @@
 (defn html-print-indicies
   "Prints the indicies in html format"
   [inds]
-  (assert (:HI inds) "Not linking the correct item")
   (concat (sort (map html-print-single-index
                      (filter (partial some
                                       (into #{}

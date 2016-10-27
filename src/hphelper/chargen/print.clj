@@ -41,7 +41,7 @@
   "Returns the program group of a character in a readable format"
   [charRec]
   (html [:div
-            [:b "Program Group"][:br]
+            [:b "Program Group (secret society contacts)"][:br]
             [:table {:style "width:100%"}
              [:tr [:td "Society"] [:td "Skills"] [:td "Cover Identity"]]
              (for [ss (or (charRec :programGroup) (charRec "Program Group"))]
@@ -115,10 +115,10 @@
     [:div {:style "page-break-before: always;"}
      (html-print-name charRec)
      (html-print-stats charRec)
+     (html-print-program-group charRec)
      (html-print-secondary charRec)
      (html-print-mutation charRec)
      (html-print-public-standing charRec)
-     (html-print-program-group charRec)
      (html-print-drawbacks charRec)
      (html-print-service-groups)
      (html-print-remaining-access charRec)

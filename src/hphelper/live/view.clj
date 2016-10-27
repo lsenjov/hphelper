@@ -13,6 +13,7 @@
 
             [hphelper.scengen.print :as sprint]
             [hphelper.chargen.print :as cprint]
+            [hphelper.shared.helpers :as helpers]
             )
   (:gen-class)
   )
@@ -89,34 +90,53 @@
               ]
              [:body
               [:header
-               [:h1 "Sector " (:zone g) ": " (indicies/html-print-indicies (first (:indicies g)))
+               [:h2 "Sector " (:zone g)". " "High Programmer: " (:name u) [:br]
+                "Sector Indicies: " (indicies/html-print-indicies (first (:indicies g))) [:br]
+                (if (second (:indicies g))
+                  [:div "Last Shift:"
+                   (->> g
+                        (:indicies)
+                        (second)
+                        (map (fn [[k v]] (fn [m] (update-in m [k] - v))))
+                        (apply comp)
+                        (#(% (first (:indicies g))))
+                        (remove (fn [[k v]] (= 0 v)))
+                        indicies/html-print-indicies
+                        )
+                   ]
+                  )
                 ]
                ]
               [:table
                [:tr {:style "vertical-align: top;"}
                 [:td ;; Left column Begin
-                 ;; Moved these to the header
-                 ;;[:div [:h3 "Current Sector Indicies"] (html-print-indicies-table (first (:indicies g)) 13) ]
-                 [:div {:class "data"}
-                  [:h3 "Sector News"]
-                  (map (fn [n] [:div n])
-                       (:news g))
-                  ]
-                 [:div {:class "data"}
-                  [:h3 "Upcoming cbay auctions"]
-                  (map (fn [^String i] [:div i]) (:cbay g))
-                  ]
                  ;; Society messages
                  (if-let [missions (:missions (lapi/get-player-society-missions guid uuid))]
                    (do
                      [:div {:class "data"}
-                      [:h3 "Private message summary"]
+                      [:h3 "Private message summary (secret society missions)"]
                       (map (fn [{ss_id :ss_id text :ssm_text}]
                              [:div (str (sql/get-ss-by-id ss_id) ": " text)])
                            (sort-by :ss_id missions))
                       ]
                      )
                    )
+                 ;; Cbay Auctions
+                 [:div {:class "data"}
+                  [:h3 "Upcoming cbay auctions"]
+                  (map (fn [^String i] [:div i]) (:cbay g))
+                  ]
+                 ;; Keywords
+                 [:div {:class "data"}
+                  [:h3 "Keywords"]
+                  (interpose ", " (:keywords g))
+                  ]
+                 ;; Sector news
+                 [:div {:class "data"}
+                  [:h3 "Sector News"]
+                  (map (fn [n] [:div n])
+                       (:news g))
+                  ]
                  ;; Extra Messages
                  (if-let [messages (:msgs u)]
                    [:div {:class "data"}
@@ -133,6 +153,27 @@
                    )
                  ]
                 [:td ;; Right column Begin
+                 ;; Directives
+                 [:div {:class "data"}
+                  [:h3 "Directives"]
+                  (let [sgids (set (map :sg_id (filter #(= (:name u) (:owner %)) (:serviceGroups g)))) ]
+                    (->> (:directives g)
+                         (filter #(sgids (:sg_id %)))
+                         (map (fn [{text :sgm_text sgid :sg_id}]
+                                (html [:div
+                                       (get-in g [:serviceGroups (helpers/get-sg-index g (str sgid)) :sg_abbr])
+                                       ": "
+                                       text
+                                       [:br]
+                                       ]
+                                      )
+                                )
+                              )
+                         sort
+                         )
+                    )
+                  ;(:directives g)
+                  ]
                  ;; Minions
                  (map print-service-group (:serviceGroups (lapi/get-minions guid uuid)))
                  ]
