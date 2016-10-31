@@ -391,7 +391,7 @@ CREATE TABLE `resource` (
   `resource_type` varchar(3) NOT NULL,
   PRIMARY KEY (`resource_id`),
   KEY `index2` (`resource_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -400,7 +400,7 @@ CREATE TABLE `resource` (
 
 LOCK TABLES `resource` WRITE;
 /*!40000 ALTER TABLE `resource` DISABLE KEYS */;
-INSERT INTO `resource` VALUES (1,'Bubble Beverage Funball Stadium','LOC'),(2,'Compnode A','LOC'),(3,'Nuclear Waste','RES'),(4,'Left Boots','RES'),(5,'FunFoods MegaPark','LOC'),(6,'Abandoned Nuclear Plant','LOC'),(7,'New Nuclear Plant','LOC'),(8,'WasteRenewal Toilet Complex','LOC'),(9,'Hot Fun','RES'),(10,'Drinking Water','RES'),(11,'Plutonium','RES'),(12,'Soy','RES'),(13,'Copper Wire','RES'),(14,'##ZON## Splasherooni Fun Park','LOC'),(15,'Compnode B','LOC'),(16,'Compnode C','LOC'),(17,'Compnode D','LOC'),(18,'Compnode E','LOC'),(19,'Compnode F','LOC'),(20,'Compnode G','LOC'),(21,'Compnode H','LOC'),(22,'B3 Funball Stadium','LOC'),(23,'IR Cafeteria ##SUB-L1##','LOC'),(24,'R Cafeteria ##SUB-L2##','LOC'),(25,'O Cafeteria ##SUB-L3##','LOC'),(26,'IR EAP AC ##SUB-L4##','LOC'),(27,'R EAP AC ##SUB-L5##','LOC'),(28,'O EAP AC ##SUB-L6##','LOC'),(29,'Sewer Pipe ##SUB-L7##','LOC'),(30,'Food Vat ##SUB-L8##','LOC'),(31,'UltraMedia Studio ##SUB-L9##','LOC'),(32,'Captain Botaroo Amusement Park','LOC'),(33,'Autocar Garage ##SUB-L10##','LOC'),(34,'Blue Washroom ##SUB-L11##','LOC');
+INSERT INTO `resource` VALUES (1,'Bubble Beverage Funball Stadium','LOC'),(2,'Compnode A','LOC'),(3,'Nuclear Waste','RES'),(4,'Left Boots','RES'),(5,'FunFoods MegaPark','LOC'),(6,'Abandoned Nuclear Plant','LOC'),(7,'New Nuclear Plant','LOC'),(8,'WasteRenewal Toilet Complex','LOC'),(9,'Hot Fun','RES'),(10,'Drinking Water','RES'),(11,'Plutonium','RES'),(12,'Soy','RES'),(13,'Copper Wire','RES'),(14,'##ZON## Splasherooni Fun Park','LOC'),(15,'Compnode B','LOC'),(16,'Compnode C','LOC'),(17,'Compnode D','LOC'),(18,'Compnode E','LOC'),(19,'Compnode F','LOC'),(20,'Compnode G','LOC'),(21,'Compnode H','LOC'),(22,'B3 Funball Stadium','LOC'),(23,'IR Cafeteria ##SUB-L1##','LOC'),(24,'R Cafeteria ##SUB-L2##','LOC'),(25,'O Cafeteria ##SUB-L3##','LOC'),(26,'IR EAP AC ##SUB-L4##','LOC'),(27,'R EAP AC ##SUB-L5##','LOC'),(28,'O EAP AC ##SUB-L6##','LOC'),(29,'Sewer Pipe ##SUB-L7##','LOC'),(30,'Food Vat ##SUB-L8##','LOC'),(31,'UltraMedia Studio ##SUB-L9##','LOC'),(32,'Captain Botaroo Amusement Park','LOC'),(33,'Autocar Garage ##SUB-L10##','LOC'),(34,'Blue Washroom ##SUB-L11##','LOC'),(35,'Warehouse ##SUB-L12##','LOC'),(36,'Storage Depot ##SUB-L13##','LOC'),(37,'Bunker ##SUB-L14##','LOC'),(38,'IR Corridor ##SUB-L15##','LOC'),(39,'R Corridor ##SUB-L16##','LOC'),(40,'O Corridor ##SUB-L17##','LOC'),(41,'Y Corridor ##SUB-L18##','LOC'),(42,'G Corridor ##SUB-L19##','LOC'),(43,'B Corridor ##SUB-L20##','LOC'),(44,'I Corridor ##SUB-L21##','LOC'),(45,'V Corridor ##SUB-L22##','LOC'),(46,'Factory ##SUB-L23##','LOC'),(47,'Manufactorium ##SUB-L24##','LOC'),(48,'Barracks ##SUB-L25##','LOC'),(49,'##CIT-B-L26## Memorial','LOC'),(50,'Storage Facility ##SUB-L27##','LOC'),(51,'Confession Booth ##SUB-L28##','LOC'),(52,'Termination Booth ##SUB-L29##','LOC'),(53,'Nuclear Warheads','RES'),(54,'Warbot Parts','RES'),(55,'Laser Barrels','RES'),(56,'Paperclips','RES'),(57,'MREs','RES'),(58,'Bubble Wrap','RES'),(59,'Jackboots (left)','RES'),(60,'Jackboots (right)','RES');
 /*!40000 ALTER TABLE `resource` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -720,4 +720,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-10-15  9:06:06
+-- Dump completed on 2016-10-31 14:16:05
