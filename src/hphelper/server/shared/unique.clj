@@ -1,4 +1,4 @@
-(ns hphelper.shared.unique
+(ns hphelper.server.shared.unique
   (:require [taoensso.timbre :as log]
             )
   (:gen-class)

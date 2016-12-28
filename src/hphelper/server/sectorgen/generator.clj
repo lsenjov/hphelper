@@ -1,5 +1,5 @@
-(ns hphelper.sectorgen.generator
-  (:require [hphelper.shared.sql :as sql]
+(ns hphelper.server.sectorgen.generator
+  (:require [hphelper.server.shared.sql :as sql]
             [hiccup.core :refer :all]
             [taoensso.timbre :as log]
             ))

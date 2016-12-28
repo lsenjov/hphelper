@@ -1,19 +1,19 @@
-(ns hphelper.live.view
-  (:require [hphelper.live.control :as lcon]
-            [hphelper.live.api :as lapi]
-            [hphelper.shared.sql :as sql]
-            [hphelper.shared.saveload :as sl]
-            [hphelper.shared.unique :as uni]
-            [hphelper.shared.indicies :as indicies]
+(ns hphelper.server.live.view
+  (:require [hphelper.server.live.control :as lcon]
+            [hphelper.server.live.api :as lapi]
+            [hphelper.server.shared.sql :as sql]
+            [hphelper.server.shared.saveload :as sl]
+            [hphelper.server.shared.unique :as uni]
+            [hphelper.server.shared.indicies :as indicies]
             ;; For indicies
-            [hphelper.scengen.generator :as sgen]
+            [hphelper.server.scengen.generator :as sgen]
             [taoensso.timbre :as log]
 
             [hiccup.core :refer :all]
 
-            [hphelper.scengen.print :as sprint]
-            [hphelper.chargen.print :as cprint]
-            [hphelper.shared.helpers :as helpers]
+            [hphelper.server.scengen.print :as sprint]
+            [hphelper.server.chargen.print :as cprint]
+            [hphelper.server.shared.helpers :as helpers]
             )
   (:gen-class)
   )

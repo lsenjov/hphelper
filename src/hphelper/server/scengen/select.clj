@@ -1,13 +1,13 @@
-(ns hphelper.scengen.select
+(ns hphelper.server.scengen.select
   (:require 
     [taoensso.timbre :as log]
-    [hphelper.scengen.scenform :as sform]
-    [hphelper.scengen.generator :as sgen]
-    [hphelper.scengen.print :as sprint]
-    [hphelper.shared.saveload :as sl]
+    [hphelper.server.scengen.scenform :as sform]
+    [hphelper.server.scengen.generator :as sgen]
+    [hphelper.server.scengen.print :as sprint]
+    [hphelper.server.shared.saveload :as sl]
     [hiccup.core :refer :all]
-    [hphelper.shared.saveload :refer :all]
-    [hphelper.shared.encrypt :as c]
+    [hphelper.server.shared.saveload :refer :all]
+    [hphelper.server.shared.encrypt :as c]
     ))
 
 (defn print-select-page

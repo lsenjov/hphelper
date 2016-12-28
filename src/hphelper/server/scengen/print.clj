@@ -1,9 +1,9 @@
-(ns hphelper.scengen.print
+(ns hphelper.server.scengen.print
   (:require [hiccup.core :refer :all]
             [taoensso.timbre :as log]
-            [hphelper.shared.sql :as sql]
-            [hphelper.chargen.print :as cprint]
-            [hphelper.shared.indicies :refer :all]
+            [hphelper.server.shared.sql :as sql]
+            [hphelper.server.chargen.print :as cprint]
+            [hphelper.server.shared.indicies :refer :all]
             )
   (:gen-class)
   )

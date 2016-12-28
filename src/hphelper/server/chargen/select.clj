@@ -1,12 +1,12 @@
-(ns hphelper.chargen.select
+(ns hphelper.server.chargen.select
   (:require 
     [taoensso.timbre :as log]
-    [hphelper.chargen.charform :as cform]
-    [hphelper.chargen.generator :as cgen]
-    [hphelper.chargen.print :as cprint]
-    [hphelper.shared.saveload :as sl]
+    [hphelper.server.chargen.charform :as cform]
+    [hphelper.server.chargen.generator :as cgen]
+    [hphelper.server.chargen.print :as cprint]
+    [hphelper.server.shared.saveload :as sl]
     [hiccup.core :refer :all]
-    [hphelper.shared.saveload :refer :all]
+    [hphelper.server.shared.saveload :refer :all]
     ))
 
 (defn print-select-page

@@ -1,9 +1,9 @@
-(ns hphelper.scengen.generator
-  (:require [hphelper.shared.sql :as sql]
+(ns hphelper.server.scengen.generator
+  (:require [hphelper.server.shared.sql :as sql]
             [hiccup.core :refer :all]
-            [hphelper.chargen.generator :as cg]
+            [hphelper.server.chargen.generator :as cg]
             [taoensso.timbre :as log]
-            [hphelper.shared.indicies :refer :all]
+            [hphelper.server.shared.indicies :refer :all]
             [clojure.spec :as s]
             )
   (:gen-class)

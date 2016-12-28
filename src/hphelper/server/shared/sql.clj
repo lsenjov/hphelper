@@ -1,4 +1,4 @@
-(ns hphelper.shared.sql
+(ns hphelper.server.shared.sql
   (:require [clojure.java.jdbc :as jdb]
             [taoensso.timbre :as log]
             [clojure.spec :as s]
@@ -342,6 +342,11 @@
   "Returns the table of all secret socities"
   []
   (query "SELECT * FROM ss_skills;"))
+
+(defn get-drawback-all
+  "Gets all drawbacks from the database"
+  []
+  (query "SELECT * from drawbacks"))
 
 (defn get-random-drawback
   "Gets a random drawback from the database. Returns a string."

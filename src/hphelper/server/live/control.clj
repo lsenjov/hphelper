@@ -1,13 +1,13 @@
-(ns hphelper.live.control
-  (:require [hphelper.shared.sql :as sql]
-            [hphelper.shared.saveload :as sl]
-            [hphelper.shared.unique :as uni]
-            [hphelper.shared.indicies :as indicies]
+(ns hphelper.server.live.control
+  (:require [hphelper.server.shared.sql :as sql]
+            [hphelper.server.shared.saveload :as sl]
+            [hphelper.server.shared.unique :as uni]
+            [hphelper.server.shared.indicies :as indicies]
             [taoensso.timbre :as log]
             [clojure.spec :as s]
-            [hphelper.shared.spec :as ss]
+            [hphelper.server.shared.spec :as ss]
             [clojure.data.json :as json]
-            [hphelper.shared.helpers :as help]
+            [hphelper.server.shared.helpers :as help]
             )
   (:gen-class)
 )

@@ -1,6 +1,6 @@
-(ns hphelper.shared.helpers
+(ns hphelper.server.shared.helpers
   (:require [clojure.spec :as s]
-            [hphelper.shared.spec :as ss]
+            [hphelper.server.shared.spec :as ss]
             [taoensso.timbre :as log]
             )
   (:gen-class)

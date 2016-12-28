@@ -1,5 +1,5 @@
-(ns hphelper.shared.indicies
-  (:require [hphelper.shared.sql :as sql]
+(ns hphelper.server.shared.indicies
+  (:require [hphelper.server.shared.sql :as sql]
             [taoensso.timbre :as log]
             )
   (:gen-class)

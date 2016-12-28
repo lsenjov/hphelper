@@ -1,4 +1,4 @@
-(ns hphelper.shared.spec
+(ns hphelper.server.shared.spec
   (:require [clojure.spec :as s]
             )
   (:gen-class)

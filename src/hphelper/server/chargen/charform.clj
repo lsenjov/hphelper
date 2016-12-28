@@ -1,8 +1,8 @@
-(ns hphelper.chargen.charform
-  (:require [hphelper.shared.sql :as sql]
+(ns hphelper.server.chargen.charform
+  (:require [hphelper.server.shared.sql :as sql]
             [hiccup.core :refer :all]
             [ring.util.anti-forgery :refer [anti-forgery-field]]
-            [hphelper.chargen.generator :as cgen]
+            [hphelper.server.chargen.generator :as cgen]
             [taoensso.timbre :as log]
             ))
 

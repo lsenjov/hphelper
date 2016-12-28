@@ -1,4 +1,4 @@
-(ns hphelper.shared.saveload
+(ns hphelper.server.shared.saveload
   (:require [clojure.java.jdbc :as jdb]
             [clojure.edn :as edn]
             [taoensso.timbre :as log]

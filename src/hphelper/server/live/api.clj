@@ -1,11 +1,11 @@
-(ns hphelper.live.api
-  (:require [hphelper.shared.sql :as sql]
+(ns hphelper.server.live.api
+  (:require [hphelper.server.shared.sql :as sql]
             [taoensso.timbre :as log]
             [clojure.spec :as s]
-            [hphelper.shared.spec :as ss]
+            [hphelper.server.shared.spec :as ss]
             [clojure.data.json :as json]
-            [hphelper.live.control :refer [get-game] :as lcon]
-            [hphelper.shared.helpers :as help]
+            [hphelper.server.live.control :refer [get-game] :as lcon]
+            [hphelper.server.shared.helpers :as help]
             )
   (:gen-class)
 )

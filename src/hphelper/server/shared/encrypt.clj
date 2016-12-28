@@ -1,4 +1,4 @@
-(ns hphelper.shared.encrypt
+(ns hphelper.server.shared.encrypt
   (:require
     [taoensso.timbre :as log]
     )

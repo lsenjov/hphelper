@@ -1,4 +1,4 @@
-(ns hphelper.handler
+(ns hphelper.server.handler
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
@@ -6,28 +6,31 @@
             [clojure.data.json :as json]
 
             ;; Character handling
-            [hphelper.chargen.generator :as cgen]
-            [hphelper.chargen.charform :as cform]
-            [hphelper.chargen.print :as cprint]
-            [hphelper.chargen.select :as csel]
+            [hphelper.server.chargen.generator :as cgen]
+            [hphelper.server.chargen.charform :as cform]
+            [hphelper.server.chargen.print :as cprint]
+            [hphelper.server.chargen.select :as csel]
 
             ;; Scenario handling
-            [hphelper.scengen.scenform :as sform]
-            [hphelper.scengen.generator :as sgen]
-            [hphelper.scengen.print :as sprint]
-            [hphelper.scengen.select :as ssel]
-            [hphelper.shared.saveload :as sl]
+            [hphelper.server.scengen.scenform :as sform]
+            [hphelper.server.scengen.generator :as sgen]
+            [hphelper.server.scengen.print :as sprint]
+            [hphelper.server.scengen.select :as ssel]
+            [hphelper.server.shared.saveload :as sl]
             [hiccup.core :refer :all]
 
+            ;; Shared items
+            [hphelper.server.shared.sql :as sql]
+
             ;; Sector Generator
-            [hphelper.sectorgen.generator :as secgen]
+            [hphelper.server.sectorgen.generator :as secgen]
 
             ;; Live paranoia
-            [hphelper.live.view :as lview]
-            [hphelper.live.api :as lapi]
+            [hphelper.server.live.view :as lview]
+            [hphelper.server.live.api :as lapi]
 
             ;; For hiding items from players
-            [hphelper.shared.encrypt :as c]
+            [hphelper.server.shared.encrypt :as c]
 
             ;; Since this will slowly be changing to an api, json is coming
             [clojure.data.json :as json]
@@ -115,6 +118,24 @@
     (let [scen (sl/load-fullscen-from-db (Integer/parseInt (:scen_id params)))]
       (println (:hps scen))
       (sprint/html-print-player-sheet scen ((:hps scen) (Integer/parseInt (:p_id params))))))
+
+  ;; Character Creation
+  (GET "/edn/db/get-societies/" {params :params}
+       (log/trace "/edn/db/get-societies/")
+       (pr-str (sql/get-society-all))
+       )
+  (GET "/api/db/get-societies/" {params :params}
+       (log/trace "/api/db/get-societies/")
+       (json/write-str (sql/get-society-all))
+       )
+  (GET "/api/db/get-mutations/" {params :params}
+       (log/trace "/api/db/get-mutations/")
+       (json/write-str (sql/get-mutation-all))
+       )
+  (GET "/api/db/get-drawbacks/" {params :params}
+       (log/trace "/api/db/get-drawbacks/")
+       (json/write-str (sql/get-drawback-all))
+       )
 
   ;; Hacky way to print a player's entire player sheet
   (GET "/player/:scen_id/:p_id/" {{scen_id :scen_id p_id :p_id} :params baseURL :context}
@@ -214,6 +235,6 @@
       (wrap-defaults api-defaults)
       ring.middleware.session/wrap-session
       ;; Allows cross-site requests for development purposes. Eventually will remove
-      (wrap-cors #".*")
+      ;(wrap-cors #".*")
       )
   )

@@ -1,8 +1,8 @@
-(ns hphelper.chargen.print
-  (:require [hphelper.shared.sql :as sql]
+(ns hphelper.server.chargen.print
+  (:require [hphelper.server.shared.sql :as sql]
             [hiccup.core :refer :all]
             [taoensso.timbre :as log]
-            [hphelper.shared.indicies :refer :all]
+            [hphelper.server.shared.indicies :refer :all]
     )
   )
 

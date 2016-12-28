@@ -1,8 +1,8 @@
-(ns hphelper.chargen.generator
-  (:require [hphelper.shared.sql :as sql]
+(ns hphelper.server.chargen.generator
+  (:require [hphelper.server.shared.sql :as sql]
             [hiccup.core :refer :all]
             [taoensso.timbre :as log]
-            [hphelper.chargen.print :refer :all]
+            [hphelper.server.chargen.print :refer :all]
     )
   )
 

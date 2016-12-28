@@ -1,8 +1,8 @@
-(ns hphelper.shared.sgspecialties
+(ns hphelper.server.shared.sgspecialties
   (:require [taoensso.timbre :as log]
-            [hphelper.shared.sql :as sql]
+            [hphelper.server.shared.sql :as sql]
             [clojure.spec :as s]
-            [hphelper.shared.spec :as ss]
+            [hphelper.server.shared.spec :as ss]
             ))
 
 (def ^:private chance

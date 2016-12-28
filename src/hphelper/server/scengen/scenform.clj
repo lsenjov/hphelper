@@ -1,11 +1,11 @@
-(ns hphelper.scengen.scenform
-  (:require [hphelper.shared.sql :as sql]
+(ns hphelper.server.scengen.scenform
+  (:require [hphelper.server.shared.sql :as sql]
             [hiccup.core :refer :all]
             [ring.util.anti-forgery :refer [anti-forgery-field]]
-            [hphelper.chargen.generator :as cgen]
+            [hphelper.server.chargen.generator :as cgen]
             [taoensso.timbre :as log]
-            [hphelper.shared.saveload :as sl]
-            [hphelper.scengen.print :as sprint]
+            [hphelper.server.shared.saveload :as sl]
+            [hphelper.server.scengen.print :as sprint]
             )
   (:gen-class)
   )
