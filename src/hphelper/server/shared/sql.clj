@@ -28,36 +28,31 @@
 
 ;; Until reset, this will save all references. The same number crisis will
 ;; continue to return the same names for ##REF-TAGS##
-;; Done this way so updating ring doesn't clear the cache
-(def namedItems
-  "A map atom with references as keys and named items as values"
-  (if (bound? (resolve 'namedItems))
-    ;; Already exists
-    namedItems
-    ;; Doesn't exist.
-    (atom {})
-    )
+;; Used defonce so updating ring doesn't clear the cache
+(defonce namedItems
+  ^{:doc "A map atom with references as keys and named items as values"}
+  (atom {})
   )
 (log/trace "Defined namedItems")
 (log/trace "namedItems is" namedItems)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Named Items
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn reset-named-items!
   "Resets the namedItems atom"
   []
   (reset! namedItems {}))
-
 (defn get-name
   "Returns the referenced name from namedItems, or nil if not existing"
   [keyName]
   (get @namedItems keyName))
-
 (defn named-exists?
   "Returns true if the named item already exists in namedItems, else false"
   [refName]
   (if (some #{refName} (vals @namedItems))
     true
     false))
-
 (defn add-name
   "Adds the reference name pair to namedItems, overwriting any previous allocation.
   Returns the added name"
@@ -66,7 +61,6 @@
    valName)
   ([[keyRef valName]]
    (add-name keyRef valName)))
-
 (defn- create-name
   "Creates the name and checks for collisions. After tries runs out just returns the current guess.
   Adds the name to namedItems and returns the new name."
@@ -76,7 +70,6 @@
              (> triesRemaining 0))
       (recur nameGen nameRef (dec triesRemaining))
       (add-name nameRef currentTry))))
-
 (defn get-or-create-name
   "Takes a name generation function and a reference, and tries multiple times to create a non-colliding name
   for the reference. If the reference already exists, returns the associated name. After multiple collision attempts
@@ -85,23 +78,19 @@
    (if (get-name nameRef)
      (get-name nameRef) ;; It exists, return the name
      (create-name nameGen nameRef 10)))) ;; Otherwise, let's try and make this work
-
 (defn get-random-item
   "Gets a random item from a collection. Returns nil if the collection is empty"
   ([collection]
    (if (= (count collection) 0)
      nil
      (nth collection (int (Math/floor (* (Math/random) (count collection))))))))
-
 (def allClearances
   "All possible clearances for citizens"
   ["IR" "R" "O" "Y" "G" "B" "I" "V" "U"])
-
 (defn create-random-zone-name
   "Creates a random three letter zone name"
   []
   (apply str (repeatedly 3 (fn [] (char (+ (rand-int 26) (int \A)))))))
-
 (defn get-random-name
   "Gets a random name from the database. at a specified clearance level"
   ([clearance]
@@ -112,7 +101,6 @@
           clearance "-"
           (create-random-zone-name))))
   )
-
 (defn- interpret-citizen-name
   "Interprets a string in form ##CIT-V-TAGS##, where the second part is the clearance level"
   [token]
@@ -123,14 +111,12 @@
         (log/error "Citizen name token in incorrect form:" token "second token is" (second tokenised))
         token)
       (get-or-create-name (partial get-random-name (second tokenised)) token))))
-
 (defn- get-random-resource
   "Gets a random resource from the database"
   [resType]
   (:resource_name
    (rand-nth
     (query "SELECT resource_name FROM resource WHERE resource_type LIKE ?;" resType))))
-
 (defn- create-random-sub
   "Creates a random subdomain of type 123-45/A"
   []
@@ -144,7 +130,6 @@
                (repeatedly (+ 1 (rand-int 2))
                           (fn [] (char (+ (int \A) (rand-int 26)))))
                )))
-
 (defn- fuzzify-number
   "Takes a number as a string, fuzzifies it by 10%, returns it with the specified decimal places.
   Returns '0' if it's not an integer"
@@ -164,7 +149,6 @@
      )
    )
   )
-
 (defn interpret-token
   "Takes a string of format ABC-TAGS-AND-OTHERS and looks at the first part, choosing which
   function to call, then calls get-or-create-name. On an error logs and returns the token."
@@ -191,7 +175,6 @@
         token)
       )
     ))
-
 (defn interpret-line
   "Takes a string, and looks for ##ABC-TAGS##, replacing these tokens with the correct items.
   Also takes a zone name and optional crisisId. Returns the new line, or the old line if it has an error"
@@ -216,8 +199,35 @@
                      (nth tokenised 2))
        )))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Naming done, now onto the rest of it
 ;; These are all SQL frontends
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helpers
+(defn get-result
+  "Shorthand to return the first value of a single-result query"
+  [result]
+  (-> result (first) (first) (val)))
+(defn get-random-row
+  "Gets a random row from a table, returns a single map"
+  [table idField]
+  (let [fCount (get-result (query (str "SELECT COUNT(" idField ") FROM " table ";")))]
+    (first (query (str "SELECT * FROM " table " WHERE " idField " = ?;")
+                       (int (Math/ceil (* (Math/random)
+                                          fCount)))))))
+(defn get-random-from-table
+  "Gets a random value from a field in a table"
+  [table field idField]
+  (let [fCount (get-result (query (str "SELECT COUNT(" idField ") FROM " table ";")))]
+    (get-result (query (str "SELECT " field " FROM " table " WHERE " idField " = ?;")
+                       (int (Math/ceil (* (Math/random)
+                                          fCount)))))))
+(defn get-random-skill
+  "Gets a completely random skill from the database"
+  []
+  (rand-nth (query "select * from skills;")))
+
+;; Crisises
 (defn get-crisis-by-id
   "Gets a specific crisis by its id, returns a map, or nil if the crisis does not exist"
   [zone crisisId]
@@ -226,7 +236,6 @@
       nil
       (update-in crisis [:c_desc]
                  (partial interpret-line zone crisisId)))))
-
 (defn get-random-crisis
   "Gets a random crisis, returning a map"
   [zone]
@@ -234,134 +243,11 @@
   (update-in crisis
              [:c_desc]
              (partial interpret-line zone (crisis :c_id)))))
-
 (defn get-crisis-desc
   "Gets the descriptors from a single crisis, interprets, and returns a vector of strings"
   [zone crisisId]
   (into [] (map (comp (partial interpret-line zone crisisId) :ct_desc)
                 (query "SELECT `ct_desc` FROM `crisis_text` WHERE `c_id` = ?;" crisisId))))
-
-(defn- update-secret-society-mission
-  "Updates a society mission record to include the society's name under ss_name, and to interpret the text"
-  [zone crisisId ssmrec]
-  (-> ssmrec
-      (update-in [:ssm_text] (partial interpret-line zone crisisId))
-      (assoc-in [:ss_name]
-                (-> (query "SELECT ss_name FROM ss WHERE ss_id = ?;" (:ss_id ssmrec))
-                    first
-                    :ss_name)
-                )
-      )
-  )
-
-(defn get-secret-society-missions
-  "Selects all the secret society missions of a single crisis"
-  [zone crisisId]
-  (map (partial update-secret-society-mission zone crisisId)
-       (query "SELECT * FROM `ssm` WHERE `c_id` = ?;" crisisId)
-       )
-  )
-
-(defn get-secret-socity-mission-unused
-  "Selects a single secret society mission not associated to a crisis"
-  [zone ssId]
-  (->> (query "SELECT * FROM `ssm` WHERE `ss_id` = ? AND `c_id` IS NULL;" ssId)
-      get-random-item
-      (update-secret-society-mission zone nil)
-      )
-  )
-
-(defn get-directive-crisis
-  "Selects directives related to a single crisis"
-  [zone crisisId]
-  (map update-in
-       (query "SELECT * FROM `sgm` WHERE `c_id` = ?;" crisisId)
-       (repeat [:sgm_text])
-       (repeat (partial interpret-line zone crisisId))))
-
-(defn get-directive-unused
-  "Selects a single service group directive not associated to a crisis"
-  [zone sgId]
-  (update-in (get-random-item (query "SELECT * FROM `sgm` WHERE `sg_id` = ? AND `c_id` IS NULL;" sgId))
-             [:sgm_text]
-             (partial interpret-line zone)))
-
-(defn get-sgs
-  "Gets all service groups, keys sg_id, sg_name, sg_abbr"
-  []
-  (query "SELECT sg_id, sg_name, sg_abbr FROM sg;"))
-
-(defn get-sg-by-id
-  "Gets service group by sg_id"
-  [sgId]
-  (assert (integer? sgId))
-  (:sg_name (first (query "SELECT sg_name FROM sg WHERE sg_id = ?;" sgId))))
-
-(defn get-ss-by-id
-  "Gets secret society name by ss_id"
-  [ssId]
-  (:ss_name (first (query "SELECT ss_name FROM ss WHERE ss_id = ?;" ssId))))
-
-(defn get-result
-  "Shorthand to return the first value of a single-result query"
-  [result]
-  (-> result (first) (first) (val)))
-
-(defn get-random-row
-  "Gets a random row from a table, returns a single map"
-  [table idField]
-  (let [fCount (get-result (query (str "SELECT COUNT(" idField ") FROM " table ";")))]
-    (first (query (str "SELECT * FROM " table " WHERE " idField " = ?;")
-                       (int (Math/ceil (* (Math/random)
-                                          fCount)))))))
-
-(defn get-random-from-table
-  "Gets a random value from a field in a table"
-  [table field idField]
-  (let [fCount (get-result (query (str "SELECT COUNT(" idField ") FROM " table ";")))]
-    (get-result (query (str "SELECT " field " FROM " table " WHERE " idField " = ?;")
-                       (int (Math/ceil (* (Math/random)
-                                          fCount)))))))
-
-(defn get-random-skill
-  "Gets a completely random skill from the database"
-  []
-  (rand-nth (query "select * from skills;")))
-
-(defn get-random-society
-  "Gets a random secret society from the database. Returns a map."
-  []
-  (get-random-row "ss_skills" "ss_id"))
-
-(defn get-society
-  "Gets a secret society by id"
-  [ssId]
-  (first (query "SELECT * FROM ss_skills WHERE ss_id = ?;" ssId)))
-
-(defn get-society-all
-  "Returns the table of all secret socities"
-  []
-  (query "SELECT * FROM ss_skills;"))
-
-(defn get-drawback-all
-  "Gets all drawbacks from the database"
-  []
-  (query "SELECT * from drawbacks"))
-
-(defn get-random-drawback
-  "Gets a random drawback from the database. Returns a string."
-  []
-  (get-random-from-table "drawbacks" "text" "id"))
-
-(defn get-random-mutation
-  "Gets a random mutation from the database. Returns a map"
-  []
-  (get-random-row "mutations" "id"))
-
-(defn get-mutation-all
-  "Gets all mutations in a list"
-  []
-  (query "SELECT * FROM mutations;"))
 
 (defn get-news-crisis
   "Gets the news articles from a crisis, returns a vector"
@@ -370,26 +256,10 @@
                                           (rec :c_id)
                                           (rec :news_desc)))
                 (query "SELECT * FROM news WHERE c_id = ?;" crisisId))))
-
 (defn get-news-random-single
   "Gets a random unassociated news item"
   [zone]
   (interpret-line zone (:news_desc (rand-nth (query "SELECT * FROM news WHERE c_id IS NULL;")))))
-
-(defn- cbay-format-single
-  "Formats a single cbay record to a readable string"
-  [item]
-  (str (item :cbay_item) " " (item :cbay_cost) " ACCESS"))
-
-(defn get-cbay-random-single
-  "Gets a random unassociated cbay item, fuzzifies the cost"
-  [zone]
-  (-> (query "SELECT * FROM cbay WHERE c_id IS NULL;")
-       rand-nth
-       (update-in [:cbay_cost] fuzzify-number 0)
-       )
-  )
-
 (defn get-news-random
   "Gets up to numb news items unassociated with crisises. Returns a vector."
   ([zone numb]
@@ -399,6 +269,18 @@
      (into [] items) ;; Is done, return a vector
      (recur zone (dec numb) (conj items (get-news-random-single zone))))))
 
+(defn- cbay-format-single
+  "Formats a single cbay record to a readable string"
+  [item]
+  (str (item :cbay_item) " " (item :cbay_cost) " ACCESS"))
+(defn get-cbay-random-single
+  "Gets a random unassociated cbay item, fuzzifies the cost"
+  [zone]
+  (-> (query "SELECT * FROM cbay WHERE c_id IS NULL;")
+       rand-nth
+       (update-in [:cbay_cost] fuzzify-number 0)
+       )
+  )
 (defn get-random-cbay-items
   "Gets up to numb cbay items unassociated with crisises generated by f. Returns a vector."
   ([zone numb]
@@ -411,6 +293,80 @@
    )
   )
 
+;; Secret Society Missions
+(defn- update-secret-society-mission
+  "Updates a society mission record to include the society's name under ss_name, and to interpret the text"
+  [zone crisisId ssmrec]
+  (-> ssmrec
+      (update-in [:ssm_text] (partial interpret-line zone crisisId))
+      (assoc-in [:ss_name]
+                (-> (query "SELECT ss_name FROM ss WHERE ss_id = ?;" (:ss_id ssmrec))
+                    first
+                    :ss_name)
+                )
+      )
+  )
+(defn get-secret-society-missions
+  "Selects all the secret society missions of a single crisis"
+  [zone crisisId]
+  (map (partial update-secret-society-mission zone crisisId)
+       (query "SELECT * FROM `ssm` WHERE `c_id` = ?;" crisisId)
+       )
+  )
+(defn get-secret-socity-mission-unused
+  "Selects a single secret society mission not associated to a crisis"
+  [zone ssId]
+  (->> (query "SELECT * FROM `ssm` WHERE `ss_id` = ? AND `c_id` IS NULL;" ssId)
+      get-random-item
+      (update-secret-society-mission zone nil)
+      )
+  )
+
+;; Directives
+(defn get-directive-crisis
+  "Selects directives related to a single crisis"
+  [zone crisisId]
+  (map update-in
+       (query "SELECT * FROM `sgm` WHERE `c_id` = ?;" crisisId)
+       (repeat [:sgm_text])
+       (repeat (partial interpret-line zone crisisId))))
+(defn get-directive-unused
+  "Selects a single service group directive not associated to a crisis"
+  [zone sgId]
+  (update-in (get-random-item (query "SELECT * FROM `sgm` WHERE `sg_id` = ? AND `c_id` IS NULL;" sgId))
+             [:sgm_text]
+             (partial interpret-line zone)))
+
+;; Service Groups
+(defn get-sgs
+  "Gets all service groups, keys sg_id, sg_name, sg_abbr"
+  []
+  (query "SELECT sg_id, sg_name, sg_abbr FROM sg;"))
+(defn get-sg-by-id
+  "Gets service group by sg_id"
+  [sgId]
+  (assert (integer? sgId))
+  (:sg_name (first (query "SELECT sg_name FROM sg WHERE sg_id = ?;" sgId))))
+
+;; Secret Societies
+(defn get-ss-by-id
+  "Gets secret society name by ss_id"
+  [ssId]
+  (:ss_name (first (query "SELECT ss_name FROM ss WHERE ss_id = ?;" ssId))))
+(defn get-random-society
+  "Gets a random secret society from the database. Returns a map."
+  []
+  (get-random-row "ss_skills" "ss_id"))
+(defn get-society
+  "Gets a secret society by id"
+  [ssId]
+  (first (query "SELECT * FROM ss_skills WHERE ss_id = ?;" ssId)))
+(defn get-society-all
+  "Returns the table of all secret socities"
+  []
+  (query "SELECT * FROM ss_skills;"))
+
+;; Minion List Generation
 (defn get-single-minion-from-sg
   "Given a service group, returns a single minion from that group. Returns nil if invalid sg_id or no minions in that service group.
   Modifies minion cost up or down 2, to a minimum of 1"
@@ -427,7 +383,6 @@
       (update-in [:minion_cost] (fn [^Integer cost] (max 1 (+ (rand-int 5) -2 cost))))
       )
   )
-
 (defn get-single-minion-from-sg-and-skill
   "Given a skill id and service group id, get a random minion with those parameters. Returns nil if none found"
   [^Integer sg_id ^Integer skill_id]
@@ -446,3 +401,21 @@
         (update-in [:minion_cost] (fn [^Integer cost] (max 1 (+ (rand-int 5) -2 cost))))
         )
     nil))
+
+;; Character Creation Endpoints
+(defn get-drawback-all
+  "Gets all drawbacks from the database"
+  []
+  (query "SELECT * from drawbacks"))
+(defn get-random-drawback
+  "Gets a random drawback from the database. Returns a string."
+  []
+  (get-random-from-table "drawbacks" "text" "id"))
+(defn get-mutation-all
+  "Gets all mutations in a list"
+  []
+  (query "SELECT * FROM mutations;"))
+(defn get-random-mutation
+  "Gets a random mutation from the database. Returns a map"
+  []
+  (get-random-row "mutations" "id"))
