@@ -13,12 +13,8 @@
 )
 
 ;; If currentGames exists, and is an atom, leave it alone
-(def currentGames (if (and (resolve 'currentGames)
-                           ;; This line is needed, as during the def currentGames is added to the symbol table,
-                           ;; but as an unbound. Need to make sure it's actually an atom
-                           (instance? clojure.lang.Atom currentGames))
-                    currentGames
-                    (atom {})))
+(defonce currentGames
+  (atom {}))
 
 (defn current-time
   "Returns the current time as a long"
@@ -81,7 +77,7 @@
   )
 
 (defn new-game
-  "Creates a new game, either from an existing map or straight 0s. Returns the generated uid"
+  "Creates a new game, either from an existing map or straight 0s."
   ([valMap]
    {:post (s/valid? ::ss/liveScenario)}
    (uni/add-uuid-atom! currentGames
@@ -135,7 +131,6 @@
         )
     )
   )
-
 (defn modify-index
   "Modifys an index by a certain amount, returns the map, or nil if the game doesn't exist"
   [^String uid index amount]
@@ -167,8 +162,6 @@
       (assoc-in [:updated :serviceGroups] (current-time))
       )
   )
-
-;; TODO test
 (defn set-sg-owner
   "Sets the owner of a service group, returns the sg_id, or nil if failure.
   sg can be either the name, id, or abbreviation"
@@ -190,7 +183,6 @@
   "Adds a single news item to a game"
   [uid ^String newsItem]
   (swap-game! uid update-in [:news] conj newsItem))
-
 (defn get-news
   "Gets the news list of a game"
   [uid]

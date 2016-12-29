@@ -407,29 +407,20 @@
 (defn character-creation
   "Page for creating characters"
   []
-  (let [c character-atom page-atom (atom :name)]
+  (let [c character-atom page-atom (atom {:page :name})]
     (fn []
       [:div
        ;; Page chooser
        [:div {:class "btn-group"}
-        (doall
-          (map (fn [[k label]]
-                 ^{:key k}
-                 [:span {:class (if (= @page-atom k) "btn btn-default btn-success" "btn btn-default")
-                         :onClick #(reset! page-atom k)
-                         }
-                  label
-                  ]
-                 )
-               [[:name "Name"] [:stats "Statistics"] [:public "Public Standing"] [:mutation "Mutation"]
-                [:societies "Secret Societies"] [:drawbacks "Drawbacks"] [:finalize "Finalize Character"]]
-               )
-          )
+        (shared/switcher-toolbar page-atom [:page]
+                                 [[:name "Name"] [:stats "Statistics"] [:public "Public Standing"] [:mutation "Mutation"]
+                                  [:societies "Secret Societies"] [:drawbacks "Drawbacks"] [:finalize "Finalize Character"]]
+                                 )
         ]
        ;; TODO
        ;; Page viewer
        [:div
-        (case @page-atom
+        (case (:page @page-atom)
           :name [name-component c]
           :stats [stats-component c]
           :public [public-standing-component c]
@@ -453,16 +444,7 @@
     [:div
      [:div
       ;; Selection bar
-      [:span {:class (if (= page :create) "btn btn-success" "btn btn-default")
-              :onClick #(swap! system-atom assoc :page :create)
-              }
-       "Character Creation"
-       ]
-      [:span {:class (if (= page :select) "btn btn-success" "btn btn-default")
-              :onClick #(swap! system-atom assoc :page :select)
-              }
-       "Character Selection"
-       ]
+      (shared/switcher-toolbar system-atom [:page] [[:create "Character Creation"] [:select "Character Selection"]])
       ]
      [:div
       ;; Data

@@ -165,9 +165,18 @@
        (lview/view-game-player baseURL guid uuid))
 
   ;; API
+  ;; User login/logout
+  (GET "/api/user/login/"
+       {{:keys [email password]} :params}
+       ;(json/write-str {:error "Not Implemented"})) ;TODO
+       (json/write-str {:apiKey "testKey" :user_email "email1@email.com" :user_name "testName"})) ;TODO change away from being mocked
+
   ;; Public endpoints
   (GET "/api/public/:gameUuid/updates/:lastUpdated/"
        {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}
+       (json/write-str (lapi/get-updated-public gameUuid (parse-long lastUpdated))))
+  (GET "/api/public/updates/"
+       {{:keys [gameUuid userUuid lastUpdated]} :params}
        (json/write-str (lapi/get-updated-public gameUuid (parse-long lastUpdated))))
   (GET "/api/public/:gameUuid/indicies/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}
@@ -179,6 +188,9 @@
 
   ;; Player endpoints
   (GET "/api/player/:gameUuid/:userUuid/updates/:lastUpdated/"
+       {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}
+       (json/write-str (lapi/get-updated-player gameUuid userUuid (parse-long lastUpdated))))
+  (GET "/api/player/updates/"
        {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}
        (json/write-str (lapi/get-updated-player gameUuid userUuid (parse-long lastUpdated))))
   (GET "/api/player/:gameUuid/:userUuid/charsheet/"
@@ -195,6 +207,9 @@
   (GET "/api/admin/:gameUuid/:userUuid/debug/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}
        (lapi/admin-debug gameUuid userUuid))
+  (GET "/api/admin/updates/"
+       {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}
+       (json/write-str (lapi/get-updated-player gameUuid userUuid (parse-long lastUpdated))))
   (GET "/api/admin/:gameUuid/:userUuid/valid/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}
        (lapi/admin-validate-spec gameUuid userUuid))

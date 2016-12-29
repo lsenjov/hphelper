@@ -52,7 +52,7 @@
 (defn update-char
   "Replaces the char_file in the db with the new character file"
   [id char-file]
-  (jdb/update! db :chars {:char_file (pr-str obj)} ["char_id = ?" id]))
+  (jdb/update! db :chars {:char_file (pr-str char-file)} ["char_id = ?" id]))
 (defn load-char-from-db
   "Takes an integer key, gets the data object from the database."
   [k]
@@ -67,7 +67,7 @@
   (jdb/query db ["SELECT char_id, char_name FROM chars"]))
 
 ;; Users
-(defn save-user-to-db
+(defn save-user-to-db ;; TODO bcrypt
   "Takes a data object, saves it to the database.
   Returns the user with the new id, or nil on error"
   [{:keys [user_email user_pass user_name] :as user}]
@@ -104,3 +104,15 @@
   Returns the user, or nil"
   [email]
   (first (jdb/query db ["SELECT * FROM user WHERE user_email LIKE ?;" email])))
+(defn user-log-in ;; TODO bcrypt
+  "Loads a user from the database, checks password, and if successful returns the user object without the password field.
+  Returns nil on error."
+  [email password]
+  (if-let [u (load-user-by-email email)]
+    (if (= password (:user_pass u))
+      (dissoc u :user_pass)
+      nil
+      )
+    nil
+    )
+  )

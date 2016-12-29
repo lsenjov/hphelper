@@ -3,7 +3,8 @@
             [reagent.core :as reagent :refer [atom]]
             [ajax.core :refer [GET POST] :as ajax]
             [hphelper.frontend.chargen]
-            [hphelper.frontend.shared :refer [wrap-context] :as shared]
+            [hphelper.frontend.play]
+            [hphelper.frontend.shared :refer [wrap-context add-button-size] :as shared]
             ))
 
 (enable-console-print!)
@@ -26,41 +27,41 @@
   "The first container"
   []
   (fn []
-    [:div {:class "container"}
-     ;; Page Selection
-     [:div
-      [:span {:class "btn btn-default"
-              :onClick #(swap! system-info assoc :page :character)
-              }
-       "Character Tools"
+    (let [p (:page @system-info)]
+      [:div {:class "container"}
+       ;; Page Selection
+       [:div {:class "navbar navbar-default navbar-fixed-top"}
+        [:div {:class "container"}
+         [:div {:class "navbar-header"}
+          (shared/switcher-toolbar system-info
+                                   [:page]
+                                   [[:character "Character Tools"] [:scenario "Scenario Tools"]
+                                    [:sector "Sector Tools"] [:play "Play Paranoia"]
+                                    ]
+                                   )
+          [shared/user-bar-component]
+          ]
+         ]
+        ]
+       ;; Page display
+       [:div {:class "container"}
+        [:div {:class "page-header"}
+         [:br] [:br]
+         (case p
+           :character [hphelper.frontend.chargen/character-page]
+           :scenario [:div "Scenario not implemented"]
+           :sector [:div "Sector not implemented"]
+           :play [hphelper.frontend.play/play-component]
+           [:div "Please make a page selection above"]
+           )
+         ]
+        ]
+       ;; Debug data
+       [:div
+        (shared/init)
+        ]
        ]
-      [:span {:class "btn btn-default"
-              :onClick #(swap! system-info assoc :page :scenario)
-              }
-       "Scenario Tools"
-       ]
-      [:span {:class "btn btn-default"
-              :onClick #(swap! system-info assoc :page :sector)
-              }
-       "Sector Tools"
-       ]
-      ]
-     ;; Page display
-     [:div {:class "container"}
-      (let [p (:page @system-info)]
-        (case p
-          :character [hphelper.frontend.chargen/character-page]
-          :scenario [:div "Scenario not implemented"]
-          :sector [:div "Sector not implemented"]
-          [:div "Please make a page selection above"]
-          )
-        )
-      ]
-     ;; Debug data
-     [:div
-      (shared/init)
-      ]
-     ]
+      )
     )
   )
 

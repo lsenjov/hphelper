@@ -30,7 +30,7 @@
   "Gets the indicies of a game"
   [^String gUid]
   (log/trace "get-indicies:" gUid)
-  (if-let [gi (first (:indicies (get-game gUid)))]
+  (if-let [gi (:indicies (get-game gUid))]
     {:status "ok" :indicies gi}
     (:invalidGame errors)
     ))
@@ -137,7 +137,7 @@
   "Returns a player's character sheet"
   [^String gUid ^String uUid]
   (if-let [p (-> (get-game gUid) :hps (get uUid))]
-    p
+    {:character p}
     (:login errors)
     ))
 
