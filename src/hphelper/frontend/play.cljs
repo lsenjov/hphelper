@@ -31,7 +31,7 @@
     (do
       (swap! play-atom dissoc :error)
       (swap! play-atom assoc :playing true)
-      (reset! game-atom m)
+      (swap! game-atom merge m)
       )
     )
   )
@@ -53,17 +53,21 @@
   []
   (let [expand-atom (atom false)]
     (fn []
-      [:div {:class "panel panel-info"}
+      [:div {:class "panel-info"}
        [:div {:class "panel-heading"
               :onClick #(swap! expand-atom not)}
         "News"
         ]
        (if @expand-atom
-         [:div {:class "panel-body"}
-          (doall (map (fn [cbi] ^{:key cbi} [:div cbi])
-                      (:news @game-atom)
-                      )
-                 )
+         [:div {:class ""}
+          [:table {:class "table-striped table-hover"}
+           [:tbody
+            (doall (map (fn [cbi] ^{:key cbi} [:tr>td cbi])
+                        (:news @game-atom)
+                        )
+                   )
+            ]
+           ]
           ]
          )
        ]
@@ -75,17 +79,21 @@
   []
   (let [expand-atom (atom false)]
     (fn []
-      [:div {:class "panel panel-info"}
+      [:div {:class "panel-info"}
        [:div {:class "panel-heading"
               :onClick #(swap! expand-atom not)}
         "Cbay"
         ]
        (if @expand-atom
-         [:div {:class "panel-body"}
-          (doall (map (fn [cbi] ^{:key cbi} [:div cbi])
-                      (:cbay @game-atom)
-                      )
-                 )
+         [:div {:class ""}
+          [:table {:class "table-striped table-hover"}
+           [:tbody
+            (doall (map (fn [cbi] ^{:key cbi} [:tr>td cbi])
+                        (:cbay @game-atom)
+                        )
+                   )
+            ]
+           ]
           ]
          )
        ]
@@ -102,22 +110,47 @@
     (apply str)
     )
   )
+(defn calculate-diffs
+  "Given 2 maps, returns a map with the numerical differences between both, (- first second)"
+  [[f s]]
+  (apply merge {} (map (fn [[k v]] {k (- (get f k) v)}) s))
+  )
 (defn access-component
   "Component for displaying cbay items (and later bidding on them)" ;; TODO cbay bids
   []
   (let [expand-atom (atom false)]
     (fn []
-      [:div {:class "panel panel-info"}
+      [:div {:class "panel-info"}
        [:div {:class "panel-heading"
               :onClick #(swap! expand-atom not)}
         (map-to-str (first (:access @game-atom)))
         ]
        (if @expand-atom
-         [:div {:class "panel-body"}
-          (doall (map (fn [am] ^{:key am} [:div (map-to-str am)])
-                      (take 10 (rest (:access @game-atom)))
+         [:div {:class ""}
+          [:table {:class "table table-striped table-hover"}
+           [:thead>tr
+            (doall (map (fn [[k _]] [:th (name k)]) (->> @game-atom :access first)))
+            ]
+           [:tbody
+            (->> @game-atom
+                 :access
+                 (take 10)
+                 (partition 2 1)
+                 (map calculate-diffs)
+                 (sort-by first)
+                 (map (fn [im]
+                        [:tr (doall
+                               (map
+                                 (fn [[_ v]] [:td (if (= 0 v) "" v)])
+                                 im
+                                 )
+                               )
+                         ]
+                        )
                       )
                  )
+            ]
+           ]
           ]
          )
        ]
@@ -129,17 +162,65 @@
   []
   (let [expand-atom (atom false)]
     (fn []
-      [:div {:class "panel panel-info"}
+      [:div {:class "panel-info"}
        [:div {:class "panel-heading"
               :onClick #(swap! expand-atom not)}
         (map-to-str (first (:indicies @game-atom)))
         ]
        (if @expand-atom
-         [:div {:class "panel-body"}
-          (doall (map (fn [am] ^{:key am} [:div (map-to-str am)])
-                      (take 10 (rest (:indicies @game-atom)))
+         [:div {:class ""}
+          [:table {:class "table table-striped table-hover"}
+           [:thead>tr
+            (doall (map (fn [[k _]] [:th (name k)]) (->> @game-atom :indicies first sort)))
+            ]
+           [:tbody
+            (->> @game-atom
+                 :indicies
+                 (take 10)
+                 (partition 2 1)
+                 (map calculate-diffs)
+                 (map (partial sort-by first))
+                 (map (fn [im]
+                        [:tr (doall
+                               (map
+                                 (fn [[_ v]] [:td (if (= 0 v) "" v)])
+                                 im
+                                 )
+                               )
+                         ]
+                        )
                       )
                  )
+            ]
+           ]
+          ]
+         )
+       ]
+      )
+    )
+  )
+(defn display-single-society-mission
+  [{:keys [ssm_id ss_id c_id ssm_text ss_name]}]
+  ^{:key ssm_id} [:tr [:td ss_name] [:td ssm_text]]
+  )
+(defn society-missions-component
+  "Component for displaying secret society missions (and later marking them as done)" ;; TODO cbay bids
+  []
+  (let [expand-atom (atom false)]
+    (fn []
+      [:div {:class "panel-info"}
+       [:div {:class "panel-heading"
+              :onClick #(swap! expand-atom not)}
+        "Secret Society Missions"
+        ]
+       (if @expand-atom
+         [:div {:class ""}
+          [:table {:class "table-striped table-hover"}
+           [:tbody
+            (doall (map display-single-society-mission
+                        (sort-by :ss_name (:missions @game-atom))))
+            ]
+           ]
           ]
          )
        ]
@@ -157,8 +238,8 @@
   (let [expand-atom (atom false)]
     (fn []
       [:div {:class (if (= owner (get-in @game-atom [:character :name]))
-                      "panel panel-success"
-                      "panel panel-info"
+                      "panel-success"
+                      "panel-info"
                       )
              }
        [:div {:class "panel-heading"
@@ -166,12 +247,19 @@
         (str sg_name ". Owner: " owner)
         ]
        (if (and @expand-atom (not (= 0 (count minions))))
-         [:table {:class "table table_striped"}
+         [:table {:class "table-striped table-hover"}
           [:thead
            [:tr [:th "Name"] [:th "Clearance"] [:th "Cost"] [:th "Skills"]]
            ]
           [:tbody
-           (doall (map display-single-minion minions))
+           (doall (map display-single-minion
+                       (->> minions
+                            (sort-by :minion_name)
+                            (sort-by :minion_cost >)
+                            (sort-by (comp {"IR" 8 "R" 7 "O" 6 "Y" 5 "G" 4 "B" 3 "I" 2 "V" 1} :minion_clearance))
+                            )
+                       )
+                  )
            ]
           ]
          )
@@ -180,20 +268,161 @@
     )
   )
 (defn service-group-component
-  "Component for displaying cbay items (and later bidding on them)"
+  "Component for displaying service group minions (And later purchasing them)" ;; TODO purchasing
+  []
+  [:div
+   (map (fn [sg] [single-service-group-component sg])
+        (sort-by :sg_id (:serviceGroups @game-atom))
+        )
+   ]
+  )
+(defn get-sg-name
+  "Gets the name of a service group by service group id"
+  [id]
+  (->> @game-atom
+       :serviceGroups
+       (some (fn [{:keys [sg_id sg_name]}] (if (= id sg_id) sg_name nil)))
+       )
+  )
+(defn display-single-directive
+  [{:keys [sgm_id sgm_text sg_id c_id]}]
+  ^{:key sgm_id} [:tr [:td (get-sg-name sg_id)] [:td sgm_text]]
+  )
+(defn directives-component
+  "Component for displaying directives (and later marking them as done)" ;; TODO marking as done
   []
   (let [expand-atom (atom false)]
     (fn []
-      [:div {:class "panel panel-info"}
+      [:div {:class "panel-info"}
        [:div {:class "panel-heading"
               :onClick #(swap! expand-atom not)}
-        "Service Groups"
+        "Directives"
+        ]
+       (if @expand-atom
+         [:div {:class ""}
+          [:table {:class "table-striped table-hover"}
+           [:tbody
+            (doall (map display-single-directive
+                        (sort-by :sg_id (:directives @game-atom))))
+            ]
+           ]
+          ]
+         )
+       ]
+      )
+    )
+  )
+(defn missions-component
+  "Component for displaying both secret society missions and directives"
+  []
+  (let [expand-atom (atom false)]
+    (fn []
+      [:div {:class "panel-info"}
+       [:div {:class "panel-heading"
+              :onClick #(swap! expand-atom not)}
+        "Directive and Society Missions"
+        ]
+       (if @expand-atom
+         [:div {:class ""}
+          [society-missions-component]
+          [directives-component]
+          ]
+         )
+       ]
+      )
+    )
+  )
+(defn keywords-component
+  "Displays all the keywords for the mission"
+  []
+  (let [expand-atom (atom false)]
+    (fn []
+      [:div {:class "panel-info"}
+       [:div {:class "panel-heading"
+              :onClick #(swap! expand-atom not)}
+        "Keywords"
+        ]
+       (if @expand-atom
+         [:div {:class ""}
+          (->> @game-atom
+               :keywords
+               (interpose ", ")
+               )
+          ]
+         )
+       ]
+      )
+    )
+  )
+(defn program-group-component
+  "Displays a single service group"
+  []
+  (let [expand-atom (atom false)]
+    (fn []
+      [:div {:class "panel-info"}
+       [:div {:class "panel-heading"
+              :onClick #(swap! expand-atom not)}
+        "Program Group"
+        ]
+       (if @expand-atom
+         [:div
+          "Reminder: These are treasonous secret societies! Always call using a cover identity!"
+          [:table {:class "table-striped table-hover"}
+           [:thead
+            [:tr [:th "Name"] [:th "Skills"]]
+            ]
+           [:tbody
+            (doall (map
+                     (fn [{:keys [ss_id ss_name sskills] :as ss}]
+                       ^{:key ss_id}
+                       [:tr [:td ss_name] [:td sskills]]
+                       )
+                     (->> @game-atom :character :programGroup)
+                     )
+                   )
+            ]
+           ]
+          ]
+         )
+       ]
+      )
+    )
+  )
+
+(defn character-component
+  "Component for displaying a character sheet"
+  []
+  (let [expand-atom (atom false)]
+    (fn []
+      [:div {:class "panel-info"}
+       [:div {:class "panel-heading"
+              :onClick #(swap! expand-atom not)}
+        (get-in @game-atom [:character :name]) "'s character sheet."
         ]
        (if @expand-atom
          [:div {:class "panel-body"}
-          (map (fn [sg] [single-service-group-component sg])
-               (sort-by :sg_id (:serviceGroups @game-atom))
-               )
+          [:div {:class "panel-default"}
+           [:div {:class "panel-heading"}
+            "Statistics"
+            ]
+           [:div
+            (doall (map (fn [[stat value]] ^{:key stat} [:div stat ": " value])
+                        (sort-by key (get-in @game-atom [:character :priStats]))))
+            ]
+           ]
+          [:div {:class "panel-default"}
+           [:div {:class "panel-heading"}
+            "Mutation"
+            ]
+           [:div
+            "Mutation Strength: "
+            (get-in @game-atom [:character :mutation :power])
+            ]
+           [:div ;; TODO Multiple mutations?
+            "Mutations: "
+            (get-in @game-atom [:character :mutation :description])
+            ]
+           ]
           ]
          )
        ]
@@ -204,21 +433,38 @@
 (defn game-component
   "Component for displaying and playing a game"
   [^Atom g]
-  [:table
+  [:table {:class "table-striped"}
+   [:thead
+    [:tr
+     [:th>h5 "Welcome High Programmer " (get-in @game-atom [:character :name]) " to zone " (:zone @game-atom)]
+     ]
+    ]
    [:tbody
     [:tr
      [:td {:style {:width "50%"}}
       [access-component]
+      ;[missions-component] ;; Removed due to figuring out how to remove the borders easily
+      [directives-component]
+      [society-missions-component]
       [indicies-component]
       [cbay-component]
       [news-component]
+      [keywords-component]
+      [character-component]
       ]
      [:td {:style {:width "50%"}}
+      [program-group-component]
       [service-group-component]
       ]
      ]
+    [:tr>td
+     [:div {:class "btn btn-warning"
+            :onClick get-updates
+            }
+      "Update"
+      ]
+     ]
     ]
-   "Game goes here for zone " (:zone @g)
    ]
   )
 (defn play-component

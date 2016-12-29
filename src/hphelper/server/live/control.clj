@@ -57,7 +57,7 @@
   [sMap ^Integer t]
   (log/trace "setup-last-updated. time:" t)
   (-> sMap
-      (assoc :updated (reduce merge {} (map (fn [k] {k t}) (keys sMap))))
+      (assoc :updated (reduce merge {} (map (fn [k] {k t}) (conj (keys sMap) :missions :hps))))
       )
   )
 (defn- player-all-setup

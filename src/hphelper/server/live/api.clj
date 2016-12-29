@@ -43,6 +43,14 @@
     {:status "ok" :cbay gc}
     (:invalidGame errors)
     ))
+(defn get-keywords
+  "Gets the cbay items of a game"
+  [^String gUid]
+  (log/trace "get-keywords:" gUid)
+  (if-let [gc (:keywords (get-game gUid))]
+    {:status "ok" :keywords gc}
+    (:invalidGame errors)
+    ))
 
 (defn get-news
   "Gets the news items of a game"
@@ -125,13 +133,16 @@
         p (-> g :hps (get uUid))]
     (if p
       {:status "ok"
-                       :missions (filter (fn [mission]
-                                           (some #{(mission :ss_id)}
-                                                 (map :ss_id
-                                                      (or (:programGroup p) (get p "Program Group")))))
-                                         (g :societies))
-                       }
-      (:login errors))))
+       :missions (filter (fn [mission]
+                           (some #{(mission :ss_id)}
+                                 (map :ss_id
+                                      (or (:programGroup p) (get p "Program Group")))))
+                         (g :societies))
+       }
+      (:login errors)
+      )
+    )
+  )
 
 (defn get-player-character-sheet
   "Returns a player's character sheet"
@@ -191,6 +202,27 @@
     )
   )
 
+(defn get-player-directives
+  "Gets the directives of a player's service group"
+  [^String gUid ^String uUid]
+  (let [g (get-game gUid)
+        log1 (log/info "Got game")
+        p (-> g :hps (get uUid))
+        log2 (log/info "Got player:" p)
+        sgids (set (map :sg_id (filter #(= (:name p) (:owner %)) (:serviceGroups g))))
+        log3 (log/info "Got sgids:" (pr-str sgids))
+        ret (->> (:directives g)
+                 (filter #(sgids (:sg_id %)))
+                 )
+        log4 (log/info "ret:" (pr-str ret))
+        ]
+    (if p
+      {:directives ret}
+      (:login errors)
+      )
+    )
+  )
+
 (defn- get-index
   "Gets the data from an index, returns a map. Returns an empty map if no result"
   [^String gUid ^String uUid ind]
@@ -202,10 +234,12 @@
     :indicies (get-indicies gUid)
     :access (get-current-access gUid)
     :zone (get-current-zone gUid)
+    :keywords (get-keywords gUid)
 
     ;; Players
     :hps (get-player-character-sheet gUid uUid)
     :missions (get-player-society-missions gUid uUid)
+    :directives (get-player-directives gUid uUid)
     :serviceGroups (get-minions gUid uUid)
     (do (log/trace "Could not do index in get-index:" ind) {})
     ))
