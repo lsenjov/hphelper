@@ -54,7 +54,7 @@
             [cider/cider-nrepl "0.10.1"]
             ]
 
-  :source-paths ["src/server" "src/shared"]
+  :source-paths ["src/hphelper/server" "src/hphelper/shared"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
