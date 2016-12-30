@@ -3,14 +3,14 @@
   (:require [taoensso.timbre :as log]
             [reagent.core :as reagent :refer [atom]]
             [ajax.core :refer [GET POST] :as ajax]
-            [hphelper.frontend.shared :refer [wrap-context] :as shared]
+            [hphelper.frontend.shared :refer [wrap-context add-button-size] :as shared]
             ))
 
 (defonce system-atom
   (atom {:page nil})
   )
 
-(def character-atom
+(defonce character-atom
   (atom {})
   )
 
@@ -190,7 +190,22 @@
          ]
         ;; No bad messages from elsewhere
         :all-is-well
-        [:div "Saving not yet implemented"]
+        [:div {:class (add-button-size "btn btn-success")
+               :onClick #(ajax/POST (wrap-context "/api/char/new/")
+                                   {:response-format (ajax/json-response-format {:keywords? true})
+                                    :format :text
+                                    :handler (fn [m]
+                                               (log/info "Get char:" m)
+                                               ;; TODO Load completed char
+                                               )
+                                    :params {:newchar (pr-str @character-atom)
+                                             :debug "asdf"
+                                             } ;; Move :lastUpdated somewhere
+                                    }
+                                   )
+               }
+         "Save Character"
+         ]
         )
       )
     )
@@ -431,7 +446,7 @@
           )
         ]
        ;; Debug
-       @c
+       "Character atom:" @c
        ]
       )
     )

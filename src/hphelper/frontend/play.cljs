@@ -187,31 +187,35 @@
                         )
                    )
               ;; Players get buttons to send access to anyone but themselves
-              (for [change [1 2 3 4 5 10 20]]
-                [:tr
-                 (for [player players]
-                   [:td ^{:key player}
-                    (if (= player (get-in @game-atom [:character :name]))
-                      ;; Don't send to yourself
-                      [:td]
-                      ;; Other players
-                      [:td>span {:class "btn btn-warning btn-xs"
-                                 :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
-                                                     {:response-format (ajax/json-response-format {:keywords? true})
-                                                      :handler (fn [m]
-                                                                 (log/info "Modified access")
-                                                                 (get-updates)
-                                                                 )
-                                                      :params (merge @play-atom {:playerto (name player)
-                                                                                 :amount change
-                                                                                 })})
-                                 }
-                       change
-                       ]
-                      )
-                    ]
-                   )
-                 ]
+              (doall
+                (for [change [1 2 3 4 5 10 20]]
+                  [:tr
+                   (doall
+                     (for [player players]
+                       [:td ^{:key player}
+                        (if (= player (get-in @game-atom [:character :name]))
+                          ;; Don't send to yourself
+                          [:td]
+                          ;; Other players
+                          [:td>span {:class "btn btn-warning btn-xs"
+                                     :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
+                                                         {:response-format (ajax/json-response-format {:keywords? true})
+                                                          :handler (fn [m]
+                                                                     (log/info "Modified access")
+                                                                     (get-updates)
+                                                                     )
+                                                          :params (merge @play-atom {:playerto (name player)
+                                                                                     :amount change
+                                                                                     })})
+                                     }
+                           change
+                           ]
+                          )
+                        ]
+                       )
+                     )
+                   ]
+                  )
                 )
               ]
              ]

@@ -100,25 +100,45 @@
                                                     (charRec :drawbacks)
                                                     #{(sql/get-random-drawback)})))
 
-
 (defn- create-drawbacks
   "Checks minimum access.
   If not enough, adds a drawback up to three and adds access.
   If above minimum access, has a small chance of adding another drawback"
   [charRec ^Integer minimumAccess]
-  (if (>= (count (charRec :drawbacks)) 3)
-    charRec ;; Already at 3 drawbacks
-    (if (< (calc-access-remaining charRec) minimumAccess)
-      (recur (create-drawback charRec) minimumAccess)
-      charRec)))
+  (log/trace "create-drawbacks. drawbackCount:" (:drawbackCount charRec) "drawbacks:" (:drawbacks charRec))
+  (if-let [c (:drawbackCount charRec)]
+    ;; From the web api, generate drawbacks. Overwrites any ones that may already be here
+    (-> charRec
+        (assoc-in [:drawbacks]
+                  (->> (sql/get-drawback-all)
+                       shuffle
+                       (take c)))
+        (dissoc :drawbackCount)
+        )
+    ;; As per normal, check spent access
+    (if (>= (count (charRec :drawbacks)) 3)
+      charRec ;; Already at 3 drawbacks
+      (if (< (calc-access-remaining charRec) minimumAccess)
+        (recur (create-drawback charRec) minimumAccess)
+        charRec)
+      )
+    )
+  )
 
 (defn- create-mutation
   "Creates a mutation at the specified power level."
   [charRec ^Integer powerLevel]
-  (if (charRec :mutation)
+  (log/trace "create-mutation. desc:" (get-in charRec [:mutation :description]) "total:" (get-in charRec [:mutation :total]))
+  (log/trace "mutation total:" (:mutation charRec))
+  (if (get-in charRec [:mutation :description])
     charRec
-    (let [mut (sql/get-random-mutation)]
-      (assoc charRec :mutation {:description (str (mut :name) ": " (mut :desc)) :power powerLevel}))))
+    (if-let [t (get-in charRec [:mutation :total])]
+      ;; From api
+      (assoc-in charRec [:mutation :description]
+                (->> (sql/get-mutation-all) shuffle (take t)))
+      ;; From old
+      (let [mut (sql/get-random-mutation)]
+        (assoc charRec :mutation {:description (str (mut :name) ": " (mut :desc)) :power powerLevel})))))
 
 (defn- check-name
   "Makes sure the character has a name, even if it is unnamed"

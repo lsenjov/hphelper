@@ -79,6 +79,22 @@
                (sl/load-char-from-db)
                (cprint/html-print-sheet-one-page))
            ]))
+  (POST "/api/char/new/"
+        {{:keys [newchar] :as params} :params body :body :as request}
+        (log/trace "body:" body)
+        (log/trace "newchar:" newchar) 
+        (-> request
+            ring.util.request/body-string
+            clojure.edn/read-string
+            :newchar
+            clojure.edn/read-string
+            (cgen/create-character)
+            (#(do (log/trace "create-char:" %) %))
+            (sl/save-char-to-db)
+            (sl/load-char-from-db)
+            (#(do (log/trace "response:" %) %))
+            )
+        )
   ;; Display a character
   (GET "/char/print/" {params :params}
     (cprint/html-print-sheet-one-page (sl/load-char-from-db (:char_id params))))
