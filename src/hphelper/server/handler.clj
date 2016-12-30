@@ -213,6 +213,12 @@
   (GET "/api/admin/set-sg-owner/"
        {{:keys [gameUuid userUuid sgid newOwner]} :params}
        (json/write-str (lapi/admin-set-sg-owner gameUuid userUuid sgid newOwner)))
+  (GET "/api/admin/modify-index/"
+       {{:keys [gameUuid userUuid ind amount]} :params}
+       (lapi/admin-modify-index gameUuid userUuid ind amount))
+  (GET "/api/admin/modify-access/"
+       {{:keys [gameUuid userUuid player amount]} :params}
+       (lapi/admin-modify-access gameUuid userUuid player amount))
   ;; Old api
   (GET "/api/admin/:gameUuid/:userUuid/debug/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}

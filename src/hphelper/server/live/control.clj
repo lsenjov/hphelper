@@ -115,6 +115,41 @@
   (log/trace "swap-game! uid:" uid "func:" func)
   (apply uni/swap-uuid! currentGames uid (comp #(s/assert ::ss/liveScenario %) func) args))
 
+(defn modify-access-inner
+  "Modifies an index by a certain amount, and fuzzifies the indices"
+  [scenMap player ^Integer amount]
+  (log/trace "modify-access-inner. player:" player "amount:" amount "access:" (-> scenMap :access first))
+  (let [newAccess (-> (first (:access scenMap))
+                      (update-in [player] + amount)
+                      )]
+    (log/trace "modify-index-inner. newAccess:" newAccess)
+    (-> scenMap
+        (update-in [:access] (partial cons newAccess))
+        (assoc-in [:updated :access] (current-time))
+        )
+    )
+  )
+(defn modify-access
+  "Modifys an index by a certain amount, returns the map, or nil if the game doesn't exist"
+  [^String uid player amount]
+  (log/trace "modify-access:" uid player amount)
+  (if (string? amount)
+    (modify-access uid
+                  player
+                  (try (Integer/parseInt amount)
+                       (catch Exception e ;; If fails to parse, return 0 so it won't do anything
+                         (do
+                           (log/debug "modify-item: could not parse" amount)
+                           0))))
+    (if (-> @currentGames (get uid) :access first (get player))
+      (do
+        (log/trace "modify-access. Modifying access.")
+        (swap-game! uid modify-access-inner player amount)
+        )
+      (do
+        (log/error "modify-access. Could not find game.")
+        nil))
+  ))
 (defn modify-index-inner
   "Modifies an index by a certain amount, and fuzzifies the indices"
   [scenMap index ^Integer amount]

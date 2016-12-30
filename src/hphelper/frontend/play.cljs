@@ -134,40 +134,70 @@
   []
   (let [expand-atom (atom false)]
     (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        (map-to-str (first (:access @game-atom)))
-        ]
-       (if @expand-atom
-         [:div {:class ""}
-          [:table {:class "table table-striped table-hover"}
-           [:thead>tr
-            (doall (map (fn [[k _]] [:th (name k)]) (->> @game-atom :access first)))
-            ]
-           [:tbody
-            (->> @game-atom
-                 :access
-                 (take 10)
-                 (partition 2 1)
-                 (map calculate-diffs)
-                 (sort-by first)
-                 (map (fn [im]
-                        [:tr (doall
-                               (map
-                                 (fn [[_ v]] [:td (if (= 0 v) "" v)])
-                                 im
-                                 )
-                               )
-                         ]
-                        )
-                      )
-                 )
-            ]
-           ]
+      (let [players (->> @game-atom :access first (map first) (map name) sort)]
+        (log/info "players is: " players)
+        [:div {:class "panel-info"}
+         [:div {:class "panel-heading"
+                :onClick #(swap! expand-atom not)}
+          (map-to-str (first (:access @game-atom)))
           ]
-         )
-       ]
+         (if @expand-atom
+           [:div {:class ""}
+            [:table {:class "table-striped table-hover"
+                     :style {:width "100%"}
+                     }
+             [:thead>tr
+              (doall (map (fn [k] [:th (take 5 k)]) players))
+              ]
+             [:tbody
+              ;; If admin, add buttons for changing access. Will change values by the amount listed
+              (if (= (:userlevel @play-atom) "admin")
+                (for [change [10 5 -1 -2 -3 -4 -5 -6 -7 -8 -9 -10 -20]]
+                  [:tr
+                   (for [player players]
+                     [:td [:span {:class "btn btn-warning btn-xs"
+                                  :onClick #(ajax/GET (wrap-context "/api/admin/modify-access/")
+                                                      {:response-format (ajax/json-response-format {:keywords? true})
+                                                       :handler (fn [m]
+                                                                  (log/info "Modified access")
+                                                                  (get-updates)
+                                                                  )
+                                                       :params (merge @play-atom {:player (name player)
+                                                                                  :amount change
+                                                                                  })
+                                                       }
+                                                      )
+                                  }
+                           change
+                           ]
+                      ]
+                     )
+                   ]
+                  )
+                nil
+                )
+              (->> @game-atom
+                   :access
+                   (take 10)
+                   (partition 2 1)
+                   (map calculate-diffs)
+                   (map (fn [im]
+                          [:tr (doall
+                                 (map
+                                   (fn [[_ v]] [:td (if (= 0 v) "" v)])
+                                   (sort-by first im)
+                                   )
+                                 )
+                           ]
+                          )
+                        )
+                   )
+              ]
+             ]
+            ]
+           )
+         ]
+        )
       )
     )
   )
@@ -188,13 +218,36 @@
             (doall (map (fn [[k _]] [:th (name k)]) (->> @game-atom :indicies first sort)))
             ]
            [:tbody
+            ;; If admin, add buttons for changing. Will change values by the amount listed +-up to 3
+            (for [change [-20 -10 -5 0 +5 +10 +20]]
+              [:tr
+               (for [ind (->> @game-atom :indicies first keys (map name) sort)]
+                 [:td [:span {:class "btn btn-warning btn-xs"
+                                 :onClick #(ajax/GET (wrap-context "/api/admin/modify-index/")
+                                                     {:response-format (ajax/json-response-format {:keywords? true})
+                                                      :handler (fn [m]
+                                                                 (log/info "Modified index")
+                                                                 (get-updates)
+                                                                 )
+                                                      :params (merge @play-atom {:ind (name ind)
+                                                                                 :amount (-> (rand-int 7) (+ -3) (+ change))
+                                                                                             })
+                                                      }
+                                                     )
+                              }
+                       change
+                       ]
+                  ]
+                 )
+               ]
+              )
             (->> @game-atom
                  :indicies
                  (take 10)
                  (partition 2 1)
                  (map calculate-diffs)
                  (map (partial sort-by first))
-                 (map (fn [im]
+                 (map (fn [im] ^{:key im}
                         [:tr (doall
                                (map
                                  (fn [[_ v]] [:td (if (= 0 v) "" v)])
@@ -204,6 +257,7 @@
                          ]
                         )
                       )
+                 doall
                  )
             ]
            ]

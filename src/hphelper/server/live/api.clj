@@ -163,7 +163,7 @@
   [^String gUid ^String uUid]
   (log/trace "admin-debug. gUid:" gUid "uUid:" uUid)
   (if-let [g (is-admin-get-game gUid uUid)]
-      (json/write-str g)
+      (pr-str g)
       (:login errors)
     ))
 
@@ -191,6 +191,23 @@
       (json/write-str {:status "error" :message "modify-index failed"}))
     (:login errors)
     ))
+
+(defn admin-modify-access
+  "Modifies an index by the required amount"
+  [^String gUid ^String uUid ^String player ^String amount]
+  (log/trace "admin-modify-index." gUid uUid player amount)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (if (lcon/modify-access gUid
+                            player
+                            (try (Integer/parseInt amount)
+                                 (catch Exception e
+                                   (log/debug "Could not parse:" amount "Defaulting to 0")
+                                   0)))
+      (json/write-str {:status "ok"})
+      (json/write-str {:status "error" :message "modify-index failed"}))
+    (:login errors)
+    ))
+
 
 (defn admin-set-sg-owner
   "Changes the owner of a service group"
