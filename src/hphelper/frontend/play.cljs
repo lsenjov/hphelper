@@ -300,7 +300,7 @@
   "Displays a single minion"
   [{:keys [minion_id minion_name minion_clearance minion_cost mskills bought?] :as minion} sgid]
   ^{:key minion_id}
-  [:tr
+  [:tr {:class (if bought? "success" "")}
    [:td minion_name]
    [:td minion_clearance]
    [:td minion_cost]
@@ -344,7 +344,7 @@
           ]
          (if (and @expand-atom (not (= 0 (count minions))))
            [:div
-            [:table {:class "table-striped table-hover"}
+            [:table {:class "table table-striped table-hover"}
              [:thead
               [:tr [:th "Name"] [:th "Clear"] [:th "Cost"] [:th "Skills"] [:th "Buy"]]
               ]
