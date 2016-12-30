@@ -226,6 +226,10 @@
   "Gets a completely random skill from the database"
   []
   (rand-nth (query "select * from skills;")))
+(defn get-skills-all
+  "Gets all skills from the database"
+  []
+  (query "SELECT * FROM skills;"))
 
 ;; Crisises
 (defn get-crisis-by-id

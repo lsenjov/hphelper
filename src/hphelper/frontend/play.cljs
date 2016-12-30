@@ -41,11 +41,23 @@
   (ajax/GET (wrap-context (str "/api/" (:userlevel @play-atom) "/updates/"))
             {:response-format (ajax/json-response-format {:keywords? true})
              :handler (fn [m]
+                        (log/info "Get update:" m)
                         (load-updates m)
                         )
-             :params (assoc @play-atom :lastUpdated 0) ;; Move :lastUpdated somewhere
+             :params (assoc @play-atom :lastUpdated (if-let [t (:updated @game-atom)] t 0)) ;; Move :lastUpdated somewhere
              }
             )
+  )
+(defn loop-updates
+  "Continuously calls get-updates while :playing is true"
+  []
+  (log/info "loop-updates sending call.")
+  (get-updates)
+  ;(Thread/sleep 5000) ;; TODO Figure out how to make a thread sleep
+  (if (:playing @play-atom)
+    (recur)
+    nil
+    )
   )
 
 (defn news-component
@@ -234,36 +246,41 @@
   )
 (defn single-service-group-component
   "Displays a single service group"
-  [{:keys [sg_id sg_name sg_abbr minions owner] :as sg}]
+  [{service-group-id :sg_id}]
   (let [expand-atom (atom false)]
     (fn []
-      [:div {:class (if (= owner (get-in @game-atom [:character :name]))
-                      "panel-success"
-                      "panel-info"
-                      )
-             }
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        (str sg_name ". Owner: " owner)
-        ]
-       (if (and @expand-atom (not (= 0 (count minions))))
-         [:table {:class "table-striped table-hover"}
-          [:thead
-           [:tr [:th "Name"] [:th "Clearance"] [:th "Cost"] [:th "Skills"]]
-           ]
-          [:tbody
-           (doall (map display-single-minion
-                       (->> minions
-                            (sort-by :minion_name)
-                            (sort-by :minion_cost >)
-                            (sort-by (comp {"IR" 8 "R" 7 "O" 6 "Y" 5 "G" 4 "B" 3 "I" 2 "V" 1} :minion_clearance))
-                            )
-                       )
-                  )
-           ]
+      (let [{:keys [sg_id sg_name sg_abbr minions owner] :as sg}
+            (some #(if (= service-group-id (:sg_id %)) % nil)
+                  (:serviceGroups @game-atom))
+            ]
+        [:div {:class (if (= owner (get-in @game-atom [:character :name]))
+                        "panel-success"
+                        "panel-info"
+                        )
+               }
+         [:div {:class "panel-heading"
+                :onClick #(swap! expand-atom not)}
+          (str sg_name ". Owner: " owner)
           ]
-         )
-       ]
+         (if (and @expand-atom (not (= 0 (count minions))))
+           [:table {:class "table-striped table-hover"}
+            [:thead
+             [:tr [:th "Name"] [:th "Clearance"] [:th "Cost"] [:th "Skills"]]
+             ]
+            [:tbody
+             (doall (map display-single-minion
+                         (->> minions
+                              (sort-by :minion_name)
+                              (sort-by :minion_cost >)
+                              (sort-by (comp {"IR" 8 "R" 7 "O" 6 "Y" 5 "G" 4 "B" 3 "I" 2 "V" 1} :minion_clearance))
+                              )
+                         )
+                    )
+             ]
+            ]
+           )
+         ]
+        )
       )
     )
   )

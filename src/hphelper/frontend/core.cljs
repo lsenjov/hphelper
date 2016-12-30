@@ -2,9 +2,10 @@
   (:require [taoensso.timbre :as log]
             [reagent.core :as reagent :refer [atom]]
             [ajax.core :refer [GET POST] :as ajax]
+            [hphelper.frontend.shared :refer [wrap-context add-button-size] :as shared]
             [hphelper.frontend.chargen]
             [hphelper.frontend.play]
-            [hphelper.frontend.shared :refer [wrap-context add-button-size] :as shared]
+            [hphelper.frontend.reference]
             ))
 
 (enable-console-print!)
@@ -36,7 +37,7 @@
           (shared/switcher-toolbar system-info
                                    [:page]
                                    [[:character "Character Tools"] [:scenario "Scenario Tools"]
-                                    [:sector "Sector Tools"] [:play "Play Paranoia"]
+                                    [:sector "Sector Tools"] [:reference "Paranoiapedia"] [:play "Play Paranoia"]
                                     ]
                                    )
           [shared/user-bar-component]
@@ -52,6 +53,7 @@
            :scenario [:div "Scenario not implemented"]
            :sector [:div "Sector not implemented"]
            :play [hphelper.frontend.play/play-component]
+           :reference [hphelper.frontend.reference/reference-component]
            [:div "Please make a page selection above"]
            )
          ]

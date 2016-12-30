@@ -266,7 +266,9 @@
   (if-let [g (get-game gUid)]
     (let [retKeys (keys (filter (fn [[k lastUpdate]] (< t lastUpdate)) (:updated g)))]
       (reduce merge
-              {:status "ok" :updated t}
+              {:status "ok"
+               ;; Returns the max value of the keys
+               :updated (reduce max 0 (vals (:updated g)))}
               (map (partial get-index gUid uUid) retKeys)))
     (:invalidGame errors)
     ))

@@ -136,6 +136,10 @@
        (log/trace "/api/db/get-drawbacks/")
        (json/write-str (sql/get-drawback-all))
        )
+  (GET "/api/db/get-skills/" {params :params}
+       (log/trace "/api/db/get-skills/")
+       (json/write-str (sql/get-skills-all))
+       )
 
   ;; Hacky way to print a player's entire player sheet
   (GET "/player/:scen_id/:p_id/" {{scen_id :scen_id p_id :p_id} :params baseURL :context}

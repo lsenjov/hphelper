@@ -35,7 +35,7 @@
   [^Atom a ^Vec path ^Vec items]
   [:div {:class "btn-group"}
    (doall (map (fn [[k v]]
-                 ^{:key k}
+                 ^{:key (if k k :nil-key)}
                  [:span {:class (add-button-size (if (= (get-in @a path) k)
                                                    "btn btn-success"
                                                    "btn btn-default"
