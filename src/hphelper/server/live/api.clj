@@ -133,13 +133,19 @@
         p (-> g :hps (get uUid))]
     (if p
       {:status "ok"
-       :missions (filter (fn [mission]
-                           (some #{(mission :ss_id)}
-                                 (map :ss_id
-                                      (or (:programGroup p) (get p "Program Group")))))
-                         (g :societies))
+       :missions (filter
+                   (fn [mission]
+                     (some #{(mission :ss_id)}
+                           (map :ss_id
+                                (or (:programGroup p)
+                                    (get p "Program Group")))))
+                   (g :societies))
        }
-      (:login errors)
+      (if (= uUid (:adminPass g))
+        ;; If we're an admin, return all the society missions
+        {:missions (:societies g)}
+        (:login errors)
+        )
       )
     )
   )
@@ -205,20 +211,23 @@
 (defn get-player-directives
   "Gets the directives of a player's service group"
   [^String gUid ^String uUid]
-  (let [g (get-game gUid)
-        log1 (log/info "Got game")
-        p (-> g :hps (get uUid))
-        log2 (log/info "Got player:" p)
-        sgids (set (map :sg_id (filter #(= (:name p) (:owner %)) (:serviceGroups g))))
-        log3 (log/info "Got sgids:" (pr-str sgids))
-        ret (->> (:directives g)
-                 (filter #(sgids (:sg_id %)))
-                 )
-        log4 (log/info "ret:" (pr-str ret))
-        ]
-    (if p
-      {:directives ret}
-      (:login errors)
+  (let [g (get-game gUid)]
+    (if-let [p (-> g :hps (get uUid))]
+      (let
+        [sgids (set (map :sg_id (filter #(= (:name p) (:owner %)) (:serviceGroups g))))
+         ret (->> (:directives g)
+                  (filter #(sgids (:sg_id %)))
+                  )
+         ]
+        {:directives ret}
+        )
+      ;; Not a player, maybe an admin?
+      (if (= (:adminPass g) uUid)
+        ;; We're an admin
+        {:directives (:directives g)}
+        ;; Wrong login
+        (:login errors)
+        )
       )
     )
   )
@@ -273,3 +282,21 @@
     (:invalidGame errors)
     ))
 
+(defn get-updated-admin
+  "Gets the updated items for an admin"
+  [^String gUid ^String uUid ^Integer t]
+  (log/trace "get-updated-admin. gUid:" gUid "uUid:" uUid "time:" t)
+  (if-let [g (get-game gUid)]
+    (let [retKeys (keys (filter (fn [[k lastUpdate]] (< t lastUpdate)) (:updated g)))]
+      (->> retKeys
+           (map (partial get-index gUid uUid))
+           (reduce merge {})
+           (merge {:status "ok"
+                   ;; Returns the max value of the keys
+                   :updated (reduce max 0 (vals (:updated g)))}
+                  )
+           )
+      )
+    (:invalidGame errors)
+    )
+  )

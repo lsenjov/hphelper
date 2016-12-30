@@ -22,15 +22,17 @@
 (defn load-updates
   "Loads a map of updates into the game atom"
   [m]
-  ;; TODO currently just replaces the game atom with the map
-  (if (= "error" (:status m))
+  (if (not (:updated m))
     (do
       (swap! play-atom assoc :error (:message m))
-      (log/info "Could not load updates. Error:" m)
+      (log/info "Could not load updates. Error:" (:message m))
       )
     (do
+      ;; If we're good, dissoc the error message
       (swap! play-atom dissoc :error)
+      ;; Set playing to true, if we're not already
       (swap! play-atom assoc :playing true)
+      ;; Merge any updated keys
       (swap! game-atom merge m)
       )
     )
@@ -263,20 +265,48 @@
           (str sg_name ". Owner: " owner)
           ]
          (if (and @expand-atom (not (= 0 (count minions))))
-           [:table {:class "table-striped table-hover"}
-            [:thead
-             [:tr [:th "Name"] [:th "Clearance"] [:th "Cost"] [:th "Skills"]]
+           [:div
+            [:table {:class "table-striped table-hover"}
+             [:thead
+              [:tr [:th "Name"] [:th "Clearance"] [:th "Cost"] [:th "Skills"]]
+              ]
+             [:tbody
+              (doall (map display-single-minion
+                          (->> minions
+                               (sort-by :minion_name)
+                               (sort-by :minion_cost >)
+                               (sort-by (comp {"IR" 8 "R" 7 "O" 6 "Y" 5 "G" 4 "B" 3 "I" 2 "V" 1} :minion_clearance))
+                               )
+                          )
+                     )
+              ]
              ]
-            [:tbody
-             (doall (map display-single-minion
-                         (->> minions
-                              (sort-by :minion_name)
-                              (sort-by :minion_cost >)
-                              (sort-by (comp {"IR" 8 "R" 7 "O" 6 "Y" 5 "G" 4 "B" 3 "I" 2 "V" 1} :minion_clearance))
-                              )
+            ;; If admin, show the switcher
+            (if (= "admin" (:userlevel @play-atom))
+              [:div {:class "alert alert-warning"}
+               "Set Owner:"
+               [:div {:class "btn-group btn-group-justified"}
+                (doall
+                  (map (fn [char-name]
+                         ^{:key char-name}
+                         [:span {:class (add-button-size "btn btn-danger")
+                                 :onClick #(ajax/GET (wrap-context "/api/admin/set-sg-owner/")
+                                                     {:response-format (ajax/json-response-format {:keywords? true})
+                                                      :handler (fn [m] (log/info "Set sg owner"))
+                                                      :params (merge @play-atom {:sgid sg_id :newOwner (name char-name)})
+                                                      }
+                                                     )
+                                 }
+                          char-name
+                          ]
                          )
-                    )
-             ]
+                       (keys (first (:access @game-atom)))
+                       )
+                  )
+                ]
+               ]
+              nil
+              )
             ]
            )
          ]
@@ -467,7 +497,10 @@
       [cbay-component]
       [news-component]
       [keywords-component]
-      [character-component]
+      (case (:userlevel @play-atom)
+        "player" [character-component]
+        nil
+        )
       ]
      [:td {:style {:width "50%"}}
       [program-group-component]

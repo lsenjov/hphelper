@@ -120,10 +120,6 @@
       (sprint/html-print-player-sheet scen ((:hps scen) (Integer/parseInt (:p_id params))))))
 
   ;; Character Creation
-  (GET "/edn/db/get-societies/" {params :params}
-       (log/trace "/edn/db/get-societies/")
-       (pr-str (sql/get-society-all))
-       )
   (GET "/api/db/get-societies/" {params :params}
        (log/trace "/api/db/get-societies/")
        (json/write-str (sql/get-society-all))
@@ -191,10 +187,12 @@
   (GET "/api/public/:gameUuid/minions/" {{gameUuid :gameUuid userUuid :userUuid} :params} (json/write-str (lapi/get-minions gameUuid)))
 
   ;; Player endpoints
-  (GET "/api/player/:gameUuid/:userUuid/updates/:lastUpdated/"
-       {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}
-       (json/write-str (lapi/get-updated-player gameUuid userUuid (parse-long lastUpdated))))
+  ;; New api
   (GET "/api/player/updates/"
+       {{:keys [gameUuid userUuid lastUpdated]} :params}
+       (json/write-str (lapi/get-updated-player gameUuid userUuid (parse-long lastUpdated))))
+  ;; Old api
+  (GET "/api/player/:gameUuid/:userUuid/updates/:lastUpdated/"
        {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}
        (json/write-str (lapi/get-updated-player gameUuid userUuid (parse-long lastUpdated))))
   (GET "/api/player/:gameUuid/:userUuid/charsheet/"
@@ -208,12 +206,17 @@
        (json/write-str (lapi/get-minions gameUuid userUuid)))
 
   ;; Admin endpoints
+  ;; New api
+  (GET "/api/admin/updates/"
+       {{:keys [gameUuid userUuid lastUpdated]} :params}
+       (json/write-str (lapi/get-updated-admin gameUuid userUuid (parse-long lastUpdated))))
+  (GET "/api/admin/set-sg-owner/"
+       {{:keys [gameUuid userUuid sgid newOwner]} :params}
+       (json/write-str (lapi/admin-set-sg-owner gameUuid userUuid sgid newOwner)))
+  ;; Old api
   (GET "/api/admin/:gameUuid/:userUuid/debug/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}
        (lapi/admin-debug gameUuid userUuid))
-  (GET "/api/admin/updates/"
-       {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}
-       (json/write-str (lapi/get-updated-player gameUuid userUuid (parse-long lastUpdated))))
   (GET "/api/admin/:gameUuid/:userUuid/valid/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}
        (lapi/admin-validate-spec gameUuid userUuid))
