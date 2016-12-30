@@ -150,6 +150,48 @@
         (log/error "modify-access. Could not find game.")
         nil))
   ))
+
+(defn send-access-inner
+  "Actually sends access, adding a single line to access and updating :updated"
+  [g ^String player-from ^String player-to ^Integer amount]
+  (log/trace "send-access-inner" player-from player-to amount (type amount))
+  (let [newAccess (-> (first (:access g))
+                      (update-in [player-from] + (- amount))
+                      (update-in [player-to] + amount)
+                      )]
+    (log/trace "send-access-inner. newAccess:" newAccess)
+    (-> g
+        (update-in [:access] (partial cons newAccess))
+        (assoc-in [:updated :access] (current-time))
+        )
+    )
+  )
+(defn send-access
+  "Sends access from one player to another"
+  [^String uid ^String player-from ^String player-to amount]
+  (let [g (get-game uid)
+        am (help/parse-int amount)]
+    (log/trace "send-access" uid player-from player-to "amount:" amount "parsedamount:" am (type am))
+    (cond
+      ;; game invalid
+      (not g)
+      nil
+      ;; Couldn't parse amount
+      (not am)
+      nil
+      ;; Players don't exist
+      (not (and (help/is-hp-name? g player-from)
+                (help/is-hp-name? g player-to)
+                )
+           )
+      nil
+      ;; All is well, do it
+      :all-good
+      (swap-game! uid send-access-inner player-from player-to am)
+      )
+    )
+  )
+
 (defn modify-index-inner
   "Modifies an index by a certain amount, and fuzzifies the indices"
   [scenMap index ^Integer amount]

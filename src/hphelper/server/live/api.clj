@@ -237,6 +237,29 @@
     )
   )
 
+(defn player-send-access
+  "Sends the amount of access to another player"
+  [^String gUid ^String uUid ^String player-to ^String amount]
+  (log/trace "player-send-access:" gUid uUid player-to amount)
+  (let [g (get-game gUid)
+        p (-> g :hps (get uUid) :name)]
+    (cond
+      ;; Game doesn't exist
+      (not g)
+      (:invalidGame errors)
+      ;; Invalid player
+      (not p)
+      (:login errors)
+      ;; All seems good
+      :all-good
+      (if (lcon/send-access gUid p player-to amount)
+        {:status "okay"}
+        {:status "error" :message "Sending access failed"}
+        )
+      )
+    )
+  )
+
 (defn admin-set-sg-owner
   "Changes the owner of a service group"
   [^String gUid ^String uUid ^String serviceGroup ^String newOwner]

@@ -194,6 +194,9 @@
   (GET "/api/player/purchaseminion/"
        {{:keys [gameUuid userUuid sgid minionid]} :params}
        (json/write-str (lapi/player-buy-minion gameUuid userUuid sgid minionid)))
+  (GET "/api/player/sendaccess/"
+       {{:keys [gameUuid userUuid playerto amount]} :params}
+       (json/write-str (lapi/player-send-access gameUuid userUuid playerto amount)))
   ;; Old api
   (GET "/api/player/:gameUuid/:userUuid/updates/:lastUpdated/"
        {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}

@@ -165,18 +165,11 @@
                                                               )
                                                    :params (merge @play-atom {:player (name player)
                                                                               :amount change
-                                                                              })
-                                                   }
-                                                  )
+                                                                              })})
                               }
                        change
-                       ]
-                      ]
-                     )
-                   ]
-                  )
-                nil
-                )
+                       ]])])
+                nil)
               (->> @game-atom
                    :access
                    (take 10)
@@ -193,6 +186,33 @@
                           )
                         )
                    )
+              ;; Players get buttons to send access to anyone but themselves
+              (for [change [1 2 3 4 5 10 20]]
+                [:tr
+                 (for [player players]
+                   [:td ^{:key player}
+                    (if (= player (get-in @game-atom [:character :name]))
+                      ;; Don't send to yourself
+                      [:td]
+                      ;; Other players
+                      [:td>span {:class "btn btn-warning btn-xs"
+                                 :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
+                                                     {:response-format (ajax/json-response-format {:keywords? true})
+                                                      :handler (fn [m]
+                                                                 (log/info "Modified access")
+                                                                 (get-updates)
+                                                                 )
+                                                      :params (merge @play-atom {:playerto (name player)
+                                                                                 :amount change
+                                                                                 })})
+                                 }
+                       change
+                       ]
+                      )
+                    ]
+                   )
+                 ]
+                )
               ]
              ]
             ]
@@ -286,7 +306,7 @@
         ]
        (if @expand-atom
          [:div {:class ""}
-          [:table {:class "table-striped table-hover"}
+          [:table {:class "table table-striped table-hover"}
            [:tbody
             (doall (map display-single-society-mission
                         (sort-by :ss_name (:missions @game-atom))))
@@ -346,7 +366,8 @@
                }
          [:div {:class "panel-heading"
                 :onClick #(swap! expand-atom not)}
-          (str sg_name ". Owner: " owner)
+          (str sg_name ". Owner: " owner ". ")
+          (if (not @expand-atom) (str "Active: " (count (filter :bought? minions))) "")
           ]
          (if (and @expand-atom (not (= 0 (count minions))))
            [:div
@@ -435,7 +456,7 @@
         ]
        (if @expand-atom
          [:div {:class ""}
-          [:table {:class "table-striped table-hover"}
+          [:table {:class "table table-striped table-hover"}
            [:tbody
             (doall (map display-single-directive
                         (sort-by :sg_id (:directives @game-atom))))
