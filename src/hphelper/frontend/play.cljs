@@ -147,7 +147,7 @@
                      :style {:width "100%"}
                      }
              [:thead>tr
-              (doall (map (fn [k] [:th (take 5 k)]) players))
+              (doall (map (fn [k] ^{:key k} [:th (take 5 k)]) players))
               ]
              [:tbody
               ;; If admin, add buttons for changing access. Will change values by the amount listed
@@ -155,21 +155,22 @@
                 (for [change [10 5 -1 -2 -3 -4 -5 -6 -7 -8 -9 -10 -20]]
                   [:tr
                    (for [player players]
-                     [:td [:span {:class "btn btn-warning btn-xs"
-                                  :onClick #(ajax/GET (wrap-context "/api/admin/modify-access/")
-                                                      {:response-format (ajax/json-response-format {:keywords? true})
-                                                       :handler (fn [m]
-                                                                  (log/info "Modified access")
-                                                                  (get-updates)
-                                                                  )
-                                                       :params (merge @play-atom {:player (name player)
-                                                                                  :amount change
-                                                                                  })
-                                                       }
-                                                      )
-                                  }
-                           change
-                           ]
+                     [:td ^{:key player}
+                      [:span {:class "btn btn-warning btn-xs"
+                              :onClick #(ajax/GET (wrap-context "/api/admin/modify-access/")
+                                                  {:response-format (ajax/json-response-format {:keywords? true})
+                                                   :handler (fn [m]
+                                                              (log/info "Modified access")
+                                                              (get-updates)
+                                                              )
+                                                   :params (merge @play-atom {:player (name player)
+                                                                              :amount change
+                                                                              })
+                                                   }
+                                                  )
+                              }
+                       change
+                       ]
                       ]
                      )
                    ]
@@ -297,8 +298,31 @@
   )
 (defn display-single-minion
   "Displays a single minion"
-  [{:keys [minion_id minion_name minion_clearance minion_cost mskills] :as minion}]
-  ^{:key minion_id} [:tr [:td minion_name] [:td minion_clearance] [:td minion_cost] [:td mskills]]
+  [{:keys [minion_id minion_name minion_clearance minion_cost mskills bought?] :as minion} sgid]
+  ^{:key minion_id}
+  [:tr
+   [:td minion_name]
+   [:td minion_clearance]
+   [:td minion_cost]
+   [:td mskills]
+   (if bought?
+     ;; Already bought
+     [:td ]
+     [:td>span {:class "btn-success"
+                :onClick #(ajax/GET (wrap-context "/api/player/purchaseminion/")
+                                    {:response-format (ajax/json-response-format {:keywords? true})
+                                     :handler (fn [m]
+                                                (log/info "Purchased minion")
+                                                (get-updates)
+                                                )
+                                     :params (merge @play-atom {:sgid sgid :minionid minion_id})
+                                     }
+                                    )
+                }
+      "buy"
+      ]
+     )
+   ]
   )
 (defn single-service-group-component
   "Displays a single service group"
@@ -322,7 +346,7 @@
            [:div
             [:table {:class "table-striped table-hover"}
              [:thead
-              [:tr [:th "Name"] [:th "Clearance"] [:th "Cost"] [:th "Skills"]]
+              [:tr [:th "Name"] [:th "Clear"] [:th "Cost"] [:th "Skills"] [:th "Buy"]]
               ]
              [:tbody
               (doall (map display-single-minion
@@ -331,6 +355,7 @@
                                (sort-by :minion_cost >)
                                (sort-by (comp {"IR" 8 "R" 7 "O" 6 "Y" 5 "G" 4 "B" 3 "I" 2 "V" 1} :minion_clearance))
                                )
+                          (repeat service-group-id)
                           )
                      )
               ]
@@ -339,14 +364,17 @@
             (if (= "admin" (:userlevel @play-atom))
               [:div {:class "alert alert-warning"}
                "Set Owner:"
-               [:div {:class "btn-group btn-group-justified"}
+               [:div {:class "btn-group"}
                 (doall
                   (map (fn [char-name]
                          ^{:key char-name}
                          [:span {:class (add-button-size "btn btn-danger")
                                  :onClick #(ajax/GET (wrap-context "/api/admin/set-sg-owner/")
                                                      {:response-format (ajax/json-response-format {:keywords? true})
-                                                      :handler (fn [m] (log/info "Set sg owner"))
+                                                      :handler (fn [m]
+                                                                 (log/info "Set sg owner")
+                                                                 (get-updates)
+                                                                 )
                                                       :params (merge @play-atom {:sgid sg_id :newOwner (name char-name)})
                                                       }
                                                      )

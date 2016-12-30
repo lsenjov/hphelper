@@ -208,6 +208,34 @@
     (:login errors)
     ))
 
+(defn player-buy-minion
+  [^String gUid ^String uUid ^String sgid ^String minionid]
+  (log/trace "player-buy-minion:" gUid uUid sgid minionid)
+  (let [g (get-game gUid)
+        p (-> g :hps (get uUid) :name)
+        sg (help/parse-int sgid)
+        m (help/parse-int minionid)
+        ]
+    (cond
+      ;; Game doesn't exist
+      (not g)
+      (:invalidGame errors)
+      ;; Invalid player
+      (not p)
+      (:login errors)
+      ;; couldn't parse sgid or minionid
+      (not (and sg m))
+      {:status "error" :message "Could not parse argument"}
+      ;; TODO ensure they player owns the minion
+      ;; All seems good
+      :all-good
+      (if (lcon/purchase-minion gUid p sg m)
+        {:status "okay"}
+        {:status "error" :message "Purchasing minion failed"}
+        )
+      )
+    )
+  )
 
 (defn admin-set-sg-owner
   "Changes the owner of a service group"

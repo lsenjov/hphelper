@@ -13,10 +13,10 @@
   (first
     (keep-indexed
       (fn [index i]
-        (log/trace "Searching at index" index "in item" i)
+        ;(log/trace "Searching at index" index "in item" i)
         (if (or (= n (:sg_abbr i))
                 (= n (:sg_name i))
-                (= n (str (:sg_id i)))
+                (= (str n) (str (:sg_id i)))
                 )
           index
           nil
@@ -39,4 +39,15 @@
       (do (log/trace "is-hp-name? returned false.") nil)
       )
     )
+  )
+
+(defn parse-int
+  "Parses an integer. Returns the integer, or nil if invalid"
+  [i]
+  (try (int (Integer/parseInt i))
+       (catch NumberFormatException e
+         (log/trace "Could not parse:" i)
+         nil
+         )
+       )
   )

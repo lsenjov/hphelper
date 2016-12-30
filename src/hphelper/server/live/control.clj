@@ -223,3 +223,82 @@
   [uid]
   ((uni/get-uuid-atom currentGames uid) :news))
 
+(defn- set-minion-bought-status
+  "Sets a minion's status to bought or not"
+  [g ^Integer sgid ^Integer minionid bought?]
+  (log/trace "set-minion-bought-status:" sgid minionid bought?)
+  (let [sgindex (help/get-sg-index g sgid)]
+    (log/trace "sgindex:" sgindex)
+    (-> g
+        (update-in [:serviceGroups (help/get-sg-index g sgid) :minions]
+                   (fn [ms]
+                     (doall
+                       (map (fn [{minion_id :minion_id :as m}]
+                              (if (= minion_id minionid)
+                                ;; Minion we're after
+                                (let [ret (assoc m :bought? bought?)]
+                                  (log/trace "bought minion:" ret)
+                                  ret
+                                  )
+                                ;; Not after this one
+                                (do
+                                  ;(log/trace "Didn't edit minion:" m)
+                                  m
+                                  )
+                                )
+                              )
+                            ms
+                            )
+                       )
+                     )
+                   )
+        (assoc-in [:updated :serviceGroups] (current-time))
+        )
+    )
+  )
+
+(defn purchase-minion-inner
+  "Actually purchases the minion for the player."
+  [g ^String player ^Integer sgid ^Integer minionid ^Integer cost]
+  (log/trace "purchase-minion-inner:" player sgid minionid cost)
+  (-> g
+      (set-minion-bought-status sgid minionid true)
+      (modify-access-inner player (- cost))
+      )
+  )
+(defn purchase-minion
+  "Has a player purchase a minion. Deducting the required amount of access, and setting :bought on the minion"
+  [^String uid ^String player ^Integer sgid ^Integer minionid]
+  (log/trace "purchase-minion:" uid player sgid minionid)
+  (let [g (get-game uid)
+        minion (->> g
+                    :serviceGroups 
+                    ;; Get the service group
+                    (some (fn [{sg_id :sg_id :as sg}]
+                            (if (= sgid sg_id)
+                              sg
+                              nil)))
+                    ;; We have the service group, now to get the minion
+                    :minions
+                    (some (fn [{minion_id :minion_id :as m}]
+                            (if (= minion_id minionid)
+                              m
+                              nil)))
+                    )
+        ]
+    (cond
+      ;; Does the minion exist?
+      (not minion)
+      (do (log/trace "Minion does not exist.") nil)
+      ;; Is the minion already purchased?
+      (:bought? minion)
+      (do (log/trace "Minion is already bought.") nil)
+      ;; Does the character not exist?
+      (not (help/is-hp-name? g player))
+      (do (log/trace "Character" player "does not exist.") nil)
+      ;; All seems well
+      :all-well
+      (swap-game! uid purchase-minion-inner player sgid minionid (:minion_cost minion))
+      )
+    )
+  )
