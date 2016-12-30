@@ -89,10 +89,10 @@
             :newchar
             clojure.edn/read-string
             (cgen/create-character)
-            (#(do (log/trace "create-char:" %) %))
             (sl/save-char-to-db)
             (sl/load-char-from-db)
             (#(do (log/trace "response:" %) %))
+            (json/write-str)
             )
         )
   ;; Display a character
