@@ -220,27 +220,29 @@
             ]
            [:tbody
             ;; If admin, add buttons for changing. Will change values by the amount listed +-up to 3
-            (for [change [-20 -10 -5 0 +5 +10 +20]]
-              [:tr
-               (for [ind (->> @game-atom :indicies first keys (map name) sort)]
-                 [:td [:span {:class "btn btn-warning btn-xs"
-                                 :onClick #(ajax/GET (wrap-context "/api/admin/modify-index/")
-                                                     {:response-format (ajax/json-response-format {:keywords? true})
-                                                      :handler (fn [m]
-                                                                 (log/info "Modified index")
-                                                                 (get-updates)
-                                                                 )
-                                                      :params (merge @play-atom {:ind (name ind)
-                                                                                 :amount (-> (rand-int 7) (+ -3) (+ change))
-                                                                                             })
-                                                      }
-                                                     )
-                              }
-                       change
-                       ]
-                  ]
-                 )
-               ]
+            (if (= "admin" (:userlevel @play-atom))
+              (for [change [-20 -10 -5 0 +5 +10 +20]]
+                [:tr
+                 (for [ind (->> @game-atom :indicies first keys (map name) sort)]
+                   [:td [:span {:class "btn btn-warning btn-xs"
+                                :onClick #(ajax/GET (wrap-context "/api/admin/modify-index/")
+                                                    {:response-format (ajax/json-response-format {:keywords? true})
+                                                     :handler (fn [m]
+                                                                (log/info "Modified index")
+                                                                (get-updates)
+                                                                )
+                                                     :params (merge @play-atom {:ind (name ind)
+                                                                                :amount (-> (rand-int 7) (+ -3) (+ change))
+                                                                                })
+                                                     }
+                                                    )
+                                }
+                         change
+                         ]
+                    ]
+                   )
+                 ]
+                )
               )
             (->> @game-atom
                  :indicies
@@ -288,6 +290,10 @@
            [:tbody
             (doall (map display-single-society-mission
                         (sort-by :ss_name (:missions @game-atom))))
+            (doall (map (fn [i] [:tr [:td] [:td i]])
+                        (get-in @game-atom [:character :msgs])
+                        )
+                   )
             ]
            ]
           ]
