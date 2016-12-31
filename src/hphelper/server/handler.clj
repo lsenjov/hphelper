@@ -82,18 +82,23 @@
   (POST "/api/char/new/"
         {{:keys [newchar] :as params} :params body :body :as request}
         (log/trace "body:" body)
-        (log/trace "newchar:" newchar) 
-        (-> request
-            ring.util.request/body-string
-            clojure.edn/read-string
-            :newchar
-            clojure.edn/read-string
-            (cgen/create-character)
-            (sl/save-char-to-db)
-            (sl/load-char-from-db)
-            (#(do (log/trace "response:" %) %))
-            (json/write-str)
-            )
+        (log/trace "newchar:" newchar)
+        (let [charid
+              (-> request
+                  ring.util.request/body-string
+                  clojure.edn/read-string
+                  :newchar
+                  clojure.edn/read-string
+                  (cgen/create-character)
+                  (sl/save-char-to-db)
+                  )]
+          (-> charid
+              (sl/load-char-from-db)
+              ;; Add the id from the database to the character
+              (assoc :char_id charid)
+              (json/write-str)
+              )
+          )
         )
   ;; Display a character
   (GET "/char/print/" {params :params}

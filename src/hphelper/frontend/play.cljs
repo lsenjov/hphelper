@@ -187,34 +187,36 @@
                         )
                    )
               ;; Players get buttons to send access to anyone but themselves
-              (doall
-                (for [change [1 2 3 4 5 10 20]]
-                  [:tr
-                   (doall
-                     (for [player players]
-                       [:td ^{:key player}
-                        (if (= player (get-in @game-atom [:character :name]))
-                          ;; Don't send to yourself
-                          [:td]
-                          ;; Other players
-                          [:td>span {:class "btn btn-warning btn-xs"
-                                     :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
-                                                         {:response-format (ajax/json-response-format {:keywords? true})
-                                                          :handler (fn [m]
-                                                                     (log/info "Modified access")
-                                                                     (get-updates)
-                                                                     )
-                                                          :params (merge @play-atom {:playerto (name player)
-                                                                                     :amount change
-                                                                                     })})
-                                     }
-                           change
-                           ]
-                          )
-                        ]
+              (if (= "player" (:userlevel @play-atom))
+                (doall
+                  (for [change [1 2 3 4 5 10 20]]
+                    [:tr
+                     (doall
+                       (for [player players]
+                         [:td ^{:key player}
+                          (if (= player (get-in @game-atom [:character :name]))
+                            ;; Don't send to yourself
+                            [:td]
+                            ;; Other players
+                            [:td>span {:class "btn btn-warning btn-xs"
+                                       :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
+                                                           {:response-format (ajax/json-response-format {:keywords? true})
+                                                            :handler (fn [m]
+                                                                       (log/info "Modified access")
+                                                                       (get-updates)
+                                                                       )
+                                                            :params (merge @play-atom {:playerto (name player)
+                                                                                       :amount change
+                                                                                       })})
+                                       }
+                             change
+                             ]
+                            )
+                          ]
+                         )
                        )
-                     )
-                   ]
+                     ]
+                    )
                   )
                 )
               ]
@@ -240,7 +242,7 @@
          [:div {:class ""}
           [:table {:class "table table-striped table-hover"}
            [:thead>tr
-            (doall (map (fn [[k _]] [:th (name k)]) (->> @game-atom :indicies first sort)))
+            (doall (map (fn [[k _]] [:th (-> k name shared/wrap-any)]) (->> @game-atom :indicies first sort)))
             ]
            [:tbody
             ;; If admin, add buttons for changing. Will change values by the amount listed +-up to 3
@@ -296,7 +298,7 @@
   )
 (defn display-single-society-mission
   [{:keys [ssm_id ss_id c_id ssm_text ss_name]}]
-  ^{:key ssm_id} [:tr [:td ss_name] [:td ssm_text]]
+  ^{:key ssm_id} [:tr [:td (shared/wrap-any ss_name)] [:td ssm_text]]
   )
 (defn society-missions-component
   "Component for displaying secret society missions (and later marking them as done)" ;; TODO cbay bids
@@ -334,7 +336,7 @@
    [:td minion_name]
    [:td minion_clearance]
    [:td minion_cost]
-   [:td mskills]
+   [:td (shared/wrap-any mskills)]
    (if bought?
      ;; Already bought
      [:td ]
@@ -535,7 +537,10 @@
             (doall (map
                      (fn [{:keys [ss_id ss_name sskills] :as ss}]
                        ^{:key ss_id}
-                       [:tr [:td ss_name] [:td sskills]]
+                       [:tr
+                        [:td (shared/wrap-any ss_name)]
+                        [:td (shared/wrap-any sskills)]
+                        ]
                        )
                      (->> @game-atom :character :programGroup)
                      )
@@ -566,7 +571,7 @@
             "Statistics"
             ]
            [:div
-            (doall (map (fn [[stat value]] ^{:key stat} [:div stat ": " value])
+            (doall (map (fn [[stat value]] ^{:key stat} [:div (shared/wrap-any (name stat)) ": " value])
                         (sort-by key (get-in @game-atom [:character :priStats]))))
             ]
            ]

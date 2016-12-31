@@ -10,6 +10,7 @@
   (atom {:page nil})
   )
 
+;; Where the character is stored. If it has a :char_id tag, is actually loaded from the database and we need to restrict options
 (defonce character-atom
   (atom {})
   )
@@ -44,7 +45,7 @@
         [:span {:class "btn btn-default btn-xs" :onClick #(swap! c assoc-in  stat-vec nil)} "Reset"]
         [:span {:class "btn btn-default btn-xs" :onClick #(swap! c update-in stat-vec (fn [i] (min maximum (if i (inc i) minimum))))} "+"]
         [:span {:class "btn btn-default btn-xs" :onClick #(swap! c update-in stat-vec (fn [i] (max minimum (if i (dec i) maximum))))} "-"]
-        label " "
+        (shared/wrap-any label ", ") " "
         [:span {:class (if (and required (not v))
                          "label label-info"
                          "label"
@@ -196,7 +197,8 @@
                                     :format :text
                                     :handler (fn [m]
                                                (log/info "Get char:" m)
-                                               ;; TODO Load completed char
+                                               ;; Load completed char
+                                               (reset! character-atom m)
                                                )
                                     :params {:newchar (pr-str @character-atom)
                                              :debug "asdf"
@@ -271,7 +273,7 @@
         ]
        [:td ss_name ]
        [:td ss_type ]
-       [:td sskills ]
+       [:td (shared/wrap-any sskills ", ") ]
        [:td ss_desc ]
        ]
       )
@@ -452,23 +454,108 @@
     )
   )
 
+(defn character-sheet-component
+  "Displays all the non-modifiable objects from a character sheet"
+  [^Atom c]
+  [:div
+   [:h5 "Citizen " (:name @c)]
+   ;; Public Standing
+   [:div {:class "col-lg-4"}
+    [:div {:class "panel panel-default"}
+     [:div {:class "panel-heading"}
+      "Public Standing"
+      ]
+     [:div {:class "panel-body"}
+      (if (:publicStanding @c)
+        (:publicStanding @c)
+        "None"
+        )
+      ]
+     ]
+    ]
+   ;; Mutations
+   [:div {:class "col-lg-4"}
+    [:div {:class "panel panel-default"}
+     [:div {:class "panel-heading"}
+      "Mutations"
+      ]
+     [:div {:class "panel-body"}
+      [:div "Mutation Power:" (get-in @c [:mutation :power])]
+      [:div "Mutations:"]
+      (->> (get-in @c [:mutation :description])
+           (map (fn [{id :id m-name :name m-desc :desc}]
+                  ^{:key id}
+                  [:div m-name ": " m-desc]))
+           doall
+           )
+      ]
+     ]
+    ]
+   ;; Drawbacks
+   [:div {:class "col-lg-4"}
+    [:div {:class "panel panel-default"}
+     [:div {:class "panel-heading"}
+      "Drawbacks"
+      ]
+     [:div {:class "panel-body"}
+      (->> (get-in @c [:drawbacks])
+           (map :text)
+           (map (fn [t] ^{:key t} [:div t]))
+           doall
+           )
+      ]
+     ]
+    ]
+   ]
+  )
+
+(defn character-modification
+  "Modifies a character from the database"
+  []
+  (let [c character-atom page-atom (atom {:page :sheet})]
+    (fn []
+      [:div
+       ;; Page chooser
+       [:div {:class "btn-group"}
+        (shared/switcher-toolbar page-atom [:page]
+                                 [[:sheet "Display Sheet"] [:stats "Statistics"]
+                                  [:societies "Secret Societies"] [:finalize "Finalize Character"]]
+                                 )
+        ]
+       ;; TODO
+       ;; Page viewer
+       [:div
+        (case (:page @page-atom)
+          ;; TODO
+          :sheet [character-sheet-component c]
+          :name [name-component c]
+          :stats [stats-component c]
+          :public [public-standing-component c]
+          :mutation [mutation-component c]
+          :societies [societies-component c]
+          :drawbacks [drawbacks-component c]
+          :finalize [final-page-component c]
+          [:div "Make a selection"]
+          )
+        ]
+       ;; Debug
+       "Character atom:" @c
+       ]
+      )
+    )
+  )
+
 (defn character-page
   "Top level page for creating and viewing characters"
   []
   (let [page (:page @system-atom)]
     [:div
-     [:div
-      ;; Selection bar
-      (shared/switcher-toolbar system-atom [:page] [[:create "Character Creation"] [:select "Character Selection"]])
-      ]
-     [:div
-      ;; Data
-      (case (get @system-atom :page)
-        :create [character-creation]
-        :select [:div "Select not implemented"]
-        [:div "Make your selection"]
-        )
-      ]
+     (if (:char_id @character-atom)
+       ;; Creation
+       [character-modification]
+       [character-creation]
+       )
+     [:div "System info:" [shared/get-debug]]
      ]
     )
   )

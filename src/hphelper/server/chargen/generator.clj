@@ -91,7 +91,13 @@
 (defn- set-remaining-access
   "Sets the access remaining in the character record"
   [charRec]
-  (assoc charRec :accessRemaining (calc-access-remaining charRec)))
+  (if (:accessRemaining charRec)
+    ;; From web api. Sums have changed slightly, so let's not recalculate it
+    charRec
+    ;; From old, need to calculate
+    (assoc charRec :accessRemaining (calc-access-remaining charRec))
+    )
+  )
 
 (defn create-drawback
   "Creates a single drawback in a character record"

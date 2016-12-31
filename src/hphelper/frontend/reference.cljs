@@ -6,28 +6,12 @@
             [hphelper.frontend.shared :refer [wrap-context add-button-size] :as shared]
             ))
 
-(def keyword-dict
-  "Map of keywords to definitions in different categories.
-  Some items may have extra tags."
-  (atom
-    {:skills {"Management" {;; Description of the skill
-                            :skills_desc "Management Definition."
-                            ;; The initial used
-                            :init "M"}
-              "Violence" {:skills_desc "Violence Definition."
-                          :init "V"
-                          }
-              }
-     }
-    )
-  )
-
 (defn specialties-component
   "Component for rendering specialties"
   []
   (let [filter-atom (atom {:skills_parent nil})]
     (fn []
-      (let [specialties (:specialties @keyword-dict)]
+      (let [specialties (shared/get-specialties)]
         [:div
          [:div
           (shared/switcher-toolbar filter-atom
@@ -90,14 +74,3 @@
     )
   )
 
-;; Get the skills from the database
-(if (not (:specialties @keyword-dict))
-  (ajax/GET (wrap-context "/api/db/get-skills/")
-            {:response-format (ajax/json-response-format {:keywords? true})
-             :handler (fn [m]
-                        (log/info "Got specialties.")
-                        (swap! keyword-dict assoc :specialties m)
-                        )
-             }
-            )
-  )

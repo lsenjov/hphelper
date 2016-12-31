@@ -190,8 +190,8 @@
   "Returns a string with a game's uid and the player's uid for logging in"
   [baseURL uid player]
   (str "Player: " (:name player)
-       ". Player uid: " (:password player)
-       ". Player link: " (html [:a {:href (str baseURL "/live/playerview/" uid "/" (:password player) "/")} (:name player)])
+       " Player uid: " (:password player)
+       " Player link: " (html [:a {:href (str baseURL "/live/playerview/" uid "/" (:password player) "/")} (:name player)])
        )
   )
 
@@ -215,11 +215,12 @@
     (let [uid (lcon/new-game (sl/load-fullscen-from-db scenId))]
       (html [:html
              [:body
-              [:a {:href (str baseURL "/live/view/" uid "/")} "Player Link"]
-              [:br]
+              [:a {:href (str baseURL "/live/view/" uid "/")} "Player Link"] [:br]
               [:a {:href (str baseURL "/live/view/"
                               uid "/"
                               (str (hash uid)) "/")} "GM Link"]
+              [:div "Game uid:"]
+              [:div uid]
               (map (fn [x] [:div x]) (player-keys baseURL uid))
               ]
              ]
