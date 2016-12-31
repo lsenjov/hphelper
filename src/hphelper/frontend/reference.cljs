@@ -40,7 +40,7 @@
                 ;; Make it pretty
                 (map (fn [{:keys [skills_name skills_desc skills_parent]}]
                        ^{:key skills_name}
-                       [:tr [:td skills_name] [:td skills_parent] [:td skills_desc]]))
+                       [:tr [:td skills_name] [:td (shared/wrap-skill-initial skills_parent)] [:td skills_desc]]))
                 doall
                 )
            ]

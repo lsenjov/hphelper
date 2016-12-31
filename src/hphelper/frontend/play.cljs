@@ -384,6 +384,13 @@
              [:tbody
               (doall (map display-single-minion
                           (->> minions
+                               (filter (fn [{bought? :bought?}]
+                                         ;; If filterbought is false, we return true
+                                         ;; If filterbought is true, and bought is false, we return false
+                                         ;; If filterbought is true, and bought is true, we return true
+                                         (if (and (:filterBought? @play-atom) (not bought?)) false true)
+                                         )
+                                       )
                                (sort-by :minion_name)
                                (sort-by :minion_cost >)
                                (sort-by (comp {"IR" 8 "R" 7 "O" 6 "Y" 5 "G" 4 "B" 3 "I" 2 "V" 1} :minion_clearance))
@@ -394,7 +401,7 @@
               ]
              ]
             ;; If admin, show the switcher
-            (if (= "admin" (:userlevel @play-atom))
+            (if (and (= "admin" (:userlevel @play-atom)) (:showAssignGroups @play-atom))
               [:div {:class "alert alert-warning"}
                "Set Owner:"
                [:div {:class "btn-group"}
@@ -433,6 +440,16 @@
   "Component for displaying service group minions (And later purchasing them)" ;; TODO purchasing
   []
   [:div
+   [:div {:class (add-button-size (if (:filterBought? @play-atom) "btn btn-success btn-block" "btn btn-default btn-block"))
+          :onClick #(swap! play-atom update-in [:filterBought?] not)}
+    "Show bought minions only?"
+    ]
+   (if (= "admin" (:userlevel @play-atom))
+     [:div {:class (add-button-size (if (:showAssignGroups @play-atom) "btn btn-warning btn-block" "btn btn-default btn-block"))
+            :onClick #(swap! play-atom update-in [:showAssignGroups] not)}
+      "Show assign service group panel?"
+      ]
+     )
    (map (fn [sg] [single-service-group-component sg])
         (sort-by :sg_id (:serviceGroups @game-atom))
         )

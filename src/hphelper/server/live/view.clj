@@ -189,9 +189,10 @@
 (defn- player-key
   "Returns a string with a game's uid and the player's uid for logging in"
   [baseURL uid player]
-  (str "Player: " (:name player)
-       " Player uid: " (:password player)
-       " Player link: " (html [:a {:href (str baseURL "/live/playerview/" uid "/" (:password player) "/")} (:name player)])
+  (str (:name player)
+       " Game uid: " uid
+       " Character uid: " (:password player)
+       " Character link: " (html [:a {:href (str baseURL "/live/playerview/" uid "/" (:password player) "/")} (:name player)])
        )
   )
 

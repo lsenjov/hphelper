@@ -17,24 +17,27 @@
          :skills [
                   {:skills_name "Management"
                    ;; Description of the skill
-                   :skills_desc "Navigating and manipulating Alpha Complex Bureaucracy; ordering people around; co-ordinating efforts; double-talk; double-think."
+                   :skills_desc "Management: Navigating and manipulating Alpha Complex Bureaucracy; ordering people around; co-ordinating efforts; double-talk; double-think; increasing the number of illicit contacts."
                    ;; The initial used
                    :init "M"}
                   {:skills_name "Violence"
-                   :skills_desc "Blowing things up; ordering others to blow things up; military tactics and protocols; making you hard to assassinate."
+                   :skills_desc "Violence: Blowing things up; ordering others to blow things up; military tactics and protocols; making you hard to assassinate."
                    :init "V"}
                   {:skills_name "Subterfuge"
-                   :skills_desc "Stealth, surveillance, and skullduggery; deception; ordering assassinations and deniable missions; knowledge of security systems; sabotage; espionage and counter-espionage."
+                   :skills_desc "Subterfuge: Stealth, surveillance, and skullduggery; deception; ordering assassinations and deniable missions; knowledge of security systems; sabotage; espionage and counter-espionage."
                    :init "Su"}
                   {:skills_name "Hardware"
-                   :skills_desc "Operation and construction of vehicles, bots, nuclear reactors and other machinery; knowledge of the cutting edge of theoretical sciences"
+                   :skills_desc "Hardware: Operation and construction of vehicles, bots, nuclear reactors and other machinery; knowledge of the cutting edge of theoretical sciences"
                    :init "H"}
                   {:skills_name "Software"
-                   :skills_desc "Manipulating computer records; processing large amounts of information; programming bots, vehicles, and other specialised software agents; manipulate the controlled economy; hack into communications records; change the programming of The Computer."
+                   :skills_desc "Software: Manipulating computer records; processing large amounts of information; programming bots, vehicles, and other specialised software agents; manipulate the controlled economy; hack into communications records; change the programming of The Computer."
                    :init "So"}
                   {:skills_name "Wetware"
-                   :skills_desc "Biological and chemical sciences; cloning and genetic engineering; subliminal messaging and pharmatherapy; reducing the effects of genetic drift on yourself"
+                   :skills_desc "Wetware: Biological and chemical sciences; cloning and genetic engineering; subliminal messaging and pharmatherapy; reducing the effects of genetic drift on yourself"
                    :init "W"}
+                  {:skills_name "Other"
+                   :skills_desc "Other: Assorted specialities that don't fit nicely into other categories"
+                   :init "O"}
                   ]
          ;; Random items to label go here
          :others [
@@ -197,18 +200,19 @@
   ""
   )
 
+;; Split a skill line, wrap skills with descriptions
 (defn- find-start
   "Checks a string, finds what object, if any, it starts with. Returns the entire map, or nil if none"
   [string category cat-key]
   (some #(if (clojure.string/starts-with? string (cat-key %)) % nil)
         (category @system-info))
   )
-(defn find-specialty
+(defn- find-specialty
   "Checks a string, finds what specialty, if any, it starts with"
   [string]
   (find-start string :specialties :skills_name)
   )
-(defn find-all
+(defn- find-all
   "Checks a string, searches among all they keys, wraps where appropriate"
   [string]
   (cond
@@ -230,7 +234,6 @@
     )
   )
 
-;; Split a skill line, wrap skills with descriptions
 (defn- wrap-generic
   "Wraps a string of items with their descriptions. Returns a list of items"
   [line sep func]
@@ -266,6 +269,11 @@
   "Wraps a string of skills with their descriptions. Returns a span of spans"
   [line sep]
   (wrap-generic line sep find-specialty)
+  )
+(defn wrap-skill-initial
+  "Wraps a string's initial with the skill description"
+  [line]
+  (wrap-generic line ", " #(find-start % :skills :init))
   )
 
 ;; Return the entire system-info atom, only useful for debugging
