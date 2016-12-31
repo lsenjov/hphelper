@@ -280,6 +280,10 @@
   (GET "/api/admin/modify-access/"
        {{:keys [gameUuid userUuid player amount]} :params}
        (lapi/admin-modify-access gameUuid userUuid player amount))
+  (GET "/api/admin/modify-public-standing/"
+       {{:keys [gameUuid userUuid player amount]} :params}
+       (log/trace "modify-public-standing:" gameUuid userUuid player amount)
+       (json/write-str (lapi/admin-modify-public-standing gameUuid userUuid player amount)))
   ;; Old api
   (GET "/api/admin/:gameUuid/:userUuid/debug/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}

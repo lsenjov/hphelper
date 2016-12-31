@@ -178,6 +178,47 @@
         nil))
   ))
 
+;; Changes the public standing of a player
+(defn modify-public-standing-inner
+  "Modifies a player's public standing by a certain amount"
+  [scenMap player ^Integer amount]
+  (log/trace "modify-public-standing-inner. player:" player "amount:" amount)
+  (let [uid (some (fn [[pass {p-name :name}]]
+                    (if (= player p-name) pass nil))
+                  (:hps scenMap))]
+    (log/trace "modify-public-standing-inner. uid:" uid)
+    (if uid
+      (-> scenMap
+          (update-in [:hps uid :publicStanding] (fn [ps] (-> (if ps (+ ps amount) amount) (max -10) (min 10))))
+          (assoc-in [:updated :hps] (current-time))
+          )
+      scenMap
+      )
+    )
+  )
+(defn modify-public-standing
+  "Modifys a player's public standing by a certain amount, returns the map, or nil if the game doesn't exist"
+  [^String uid player amount]
+  (log/trace "modify-public-standing:" uid player amount)
+  (if (string? amount)
+    (modify-public-standing
+      uid
+      player
+      (try (Integer/parseInt amount)
+           (catch Exception e ;; If fails to parse, return 0 so it won't do anything
+             (do
+               (log/debug "modify-item: could not parse" amount)
+               0))))
+    (if (help/is-hp-name? (get-game uid) player)
+      (do
+        (log/trace "modify-public-standing. Modifying public standing.")
+        (swap-game! uid modify-public-standing-inner player amount)
+        )
+      (do
+        (log/error "modify-public-standing. Could not find game.")
+        nil))
+  ))
+
 ;; Sends access from one account to another
 (defn send-access-inner
   "Actually sends access, adding a single line to access and updating :updated"

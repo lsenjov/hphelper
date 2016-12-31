@@ -220,6 +220,23 @@
     (:login errors)
     ))
 
+(defn admin-modify-public-standing
+  "Modifies public standing of a player"
+  [^String gUid ^String uUid ^String player ^String amount]
+  (log/trace "admin-modify-index." gUid uUid player amount)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (if (lcon/modify-public-standing
+          gUid
+          player
+          (try (Integer/parseInt amount)
+               (catch Exception e
+                 (log/debug "Could not parse:" amount "Defaulting to 0")
+                 0)))
+      (json/write-str {:status "ok"})
+      (json/write-str {:status "error" :message "modify-public-standing failed"}))
+    (:login errors)
+    ))
+
 (defn player-buy-minion
   [^String gUid ^String uUid ^String sgid ^String minionid]
   (log/trace "player-buy-minion:" gUid uUid sgid minionid)

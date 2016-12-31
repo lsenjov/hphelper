@@ -815,6 +815,83 @@
     )
   )
 
+(defn public-standing-component
+  "Displays user's public standing, as well as upcoming live vidshows"
+  []
+  (let [expand-atom (atom false)]
+    (fn []
+      [:div {:class "panel-info"}
+       [:div {:class "panel-heading"
+              :onClick #(swap! expand-atom not)}
+        "Public Relations"
+        ]
+       (if @expand-atom
+         [:div {:class ""}
+          [:table {:class "table-striped table-hover"
+                   :style {:width "100%"}}
+           [:thead
+            [:tr
+             [:th "Name"] [:th "Public Standing"] [:th]
+             ]
+            ]
+           [:tbody
+            (->> (get-in @game-atom [:hps])
+                 (map (fn [[_ {p-name :name ps :publicStanding}]]
+                        ^{:key p-name} [p-name ps]
+                        )
+                      )
+                 (sort-by first)
+                 (sort-by second >)
+                 (map (fn [[p-name ps]]
+                        ^{:key p-name}
+                        [:tr [:td p-name] [:td (if ps ps "-")]
+                         ;; TODO buttons for modifying public standing
+                         (if (= "admin" (:userlevel @play-atom))
+                           [:td
+                            [:span {:class (add-button-size "btn-success")
+                                    :onClick #(ajax/GET (wrap-context "/api/admin/modify-public-standing/")
+                                                        {:response-format (ajax/json-response-format {:keywords? true})
+                                                         :handler (fn [m]
+                                                                    (log/info "Modified public standing")
+                                                                    (get-updates)
+                                                                    )
+                                                         :params (merge @play-atom {:player (name p-name)
+                                                                                    :amount 1
+                                                                                    })})
+                                    }
+                             "+1"
+                             ]
+                            [:span {:class (add-button-size "btn-warning")
+                                    :onClick #(ajax/GET (wrap-context "/api/admin/modify-public-standing/")
+                                                        {:response-format (ajax/json-response-format {:keywords? true})
+                                                         :handler (fn [m]
+                                                                    (log/info "Modified public standing")
+                                                                    (get-updates)
+                                                                    )
+                                                         :params (merge @play-atom {:player (name p-name)
+                                                                                    :amount -1
+                                                                                    })})
+                                    }
+                             "-1"
+                             ]
+                            ]
+                           nil
+                           )
+                         ]
+                        )
+                      )
+                 doall
+                 )
+            ]
+           ]
+          ]
+         nil
+         )
+       ]
+      )
+    )
+  )
+
 (defn game-component
   "Component for displaying and playing a game"
   [^Atom g]
@@ -839,6 +916,7 @@
        [directives-component]
        [society-missions-component]
        [indicies-component]
+       [public-standing-component]
        [cbay-component]
        [news-component]
        [keywords-component]
