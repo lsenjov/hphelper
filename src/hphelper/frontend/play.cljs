@@ -798,7 +798,7 @@
            [:tbody
             (->> @game-atom
                  :hps
-                 (sort-by first)
+                 (sort-by #(-> % val :name))
                  (map (fn [[uuid player-sheet]]
                         ^{:key uuid}
                         (admin-single-player-component player-sheet status-atom)
