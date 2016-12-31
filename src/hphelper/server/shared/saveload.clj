@@ -48,6 +48,7 @@
   "Takes a data object, saves it as an edn string in the database.
   Returns the generated key"
   [obj]
+  (log/trace "save-char-to-db. char:" obj)
   (:generated_key (first (jdb/insert! db :chars {:char_file (prn-str obj) :char_name (:name obj)} :transaction? true))))
 (defn update-char
   "Replaces the char_file in the db with the new character file"
@@ -56,7 +57,13 @@
 (defn load-char-from-db
   "Takes an integer key, gets the data object from the database."
   [k]
-  (edn/read-string (:char_file (first (jdb/query db ["SELECT char_file FROM chars WHERE char_id = ?;" k])))))
+  (-> (jdb/query db ["SELECT char_file FROM chars WHERE char_id = ?;" k])
+      first
+      :char_file
+      edn/read-string
+      (assoc :char_id k)
+      )
+  )
 (defn get-char-ids
   "Returns a list of all character ids"
   []

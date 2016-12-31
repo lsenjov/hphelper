@@ -153,10 +153,22 @@
 (defn get-player-character-sheet
   "Returns a player's character sheet"
   [^String gUid ^String uUid]
-  (if-let [p (-> (get-game gUid) :hps (get uUid))]
-    {:character p}
-    (:login errors)
-    ))
+  (let [g (get-game gUid)
+        p (-> g :hps (get uUid))]
+    (cond
+      ;; Player
+      p
+      {:character p}
+      ;; Admin
+      (= uUid (:adminPass g))
+      {:hps (:hps g)}
+      ;; Wrong game
+      (not g)
+      (:invalidGame errors)
+      ;; Other error
+      :error
+      (:login errors)
+    )))
 
 (defn admin-debug
   "Gets the current gamemap, requires admin login"

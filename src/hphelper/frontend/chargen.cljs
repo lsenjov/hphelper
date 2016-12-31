@@ -118,7 +118,9 @@
     )
   )
 (defn calculate-points-remaining
-  "Calculates the points remaining to be spent. Assumes most nils are 0"
+  "Calculates the points remaining to be spent. Assumes most nils are 0.
+  If the character is a new character (missing :char_id), it will associate it in the map under :accessRemaining
+  Otherwise, will just return :accessRemaining (if it exists)"
   [^Atom c]
   (let [stat-points (->> @c :priStats vals (filter identity) (reduce + 0))
         public-standing-points (if-let [ps (:publicStanding @c)] (* 2 ps) 0)
@@ -127,7 +129,14 @@
         ;; Drawback total is a negative number
         drawback-total (-> @c :drawbackCount (#(if % % 0)) (* -10))
         ]
-    (- 100 stat-points public-standing-points mutation-points mutation-number drawback-total)
+    (if (and (:char_id @c) (:accessRemaining @c))
+      ;; Don't touch points remaining
+      (:accessRemaining @c)
+      (let [pts (- 100 stat-points public-standing-points mutation-points mutation-number drawback-total)]
+        (swap! c assoc :accessRemaining pts)
+        pts
+        )
+      )
     )
   )
 (defn display-points-remaining
@@ -173,7 +182,7 @@
                   (finalize-stats c)
                   (finalize-mutation c)
                   (finalize-societies c)
-                  (finalize-drawbacks c)
+                  ;(finalize-drawbacks c)
                   )
           ]
       (cond
@@ -190,7 +199,8 @@
          [:div "Negative points remain! Either free up points or take additional drawbacks (max 3)"]
          ]
         ;; No bad messages from elsewhere
-        :all-is-well
+        ;; Is this a new character?
+        (not (get-in @c [:char_id]))
         [:div {:class (add-button-size "btn btn-success")
                :onClick #(ajax/POST (wrap-context "/api/char/new/")
                                    {:response-format (ajax/json-response-format {:keywords? true})
@@ -198,7 +208,7 @@
                                     :handler (fn [m]
                                                (log/info "Get char:" m)
                                                ;; Load completed char
-                                               (reset! character-atom m)
+                                               (reset! character-atom (cljs.reader/read-string (:char m)))
                                                )
                                     :params {:newchar (pr-str @character-atom)
                                              :debug "asdf"
@@ -207,6 +217,24 @@
                                    )
                }
          "Save Character"
+         ]
+        ;; It's an existing character, we need to update
+        :existing
+        [:div {:class (add-button-size "btn btn-success")
+               :onClick #(ajax/POST (wrap-context "/api/char/update/")
+                                   {:response-format (ajax/json-response-format {:keywords? true})
+                                    :format :text
+                                    :handler (fn [m]
+                                               (log/info "Updated char")
+                                               ;; Load completed char
+                                               )
+                                    :params {:newchar (pr-str @character-atom)
+                                             :debug "asdf"
+                                             } ;; Move :lastUpdated somewhere
+                                    }
+                                   )
+               }
+         "Update Character"
          ]
         )
       )
@@ -394,7 +422,7 @@
      (display-points-remaining c)
      [:p "Drawbacks can give you additional starting ACCESS, at the cost of hindering you during play. Some drawbacks are purely roleplay drawbacks, while some can debilitate you if you aren't skilled enough to play around them."]
      [:p "New players should take a maximum of a single drawback."]
-     [stat-chooser [:drawbackCount] c "Drawback Count" 0 3 true]
+     [stat-chooser [:drawbackCount] c "Drawback Count" 0 3 false]
      [:table {:class "table table-striped"}
       [:thead>tr>th "Possible Drawbacks"]
       [:tbody

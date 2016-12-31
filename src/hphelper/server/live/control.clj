@@ -315,7 +315,7 @@
   (log/trace "purchase-minion:" uid player sgid minionid)
   (let [g (get-game uid)
         minion (->> g
-                    :serviceGroups 
+                    :serviceGroups
                     ;; Get the service group
                     (some (fn [{sg_id :sg_id :as sg}]
                             (if (= sgid sg_id)

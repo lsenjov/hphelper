@@ -223,6 +223,8 @@
               [:div "Game uid:"]
               [:div uid]
               (map (fn [x] [:div x]) (player-keys baseURL uid))
+              [:br]
+              [:div "Admin pass: " (:adminPass (lcon/get-game uid))]
               ]
              ]
             ))))

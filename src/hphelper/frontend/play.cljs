@@ -270,17 +270,29 @@
         ]
        (if @expand-atom
          [:div {:class ""}
-          [:table {:class "table table-striped table-hover"}
+          [:table {:class "table-striped table-hover"
+                   :style {:width "100%"}
+                   }
            [:thead>tr
             (doall (map (fn [[k _]] [:th (-> k name shared/wrap-any)]) (->> @game-atom :indicies first sort)))
             ]
            [:tbody
+            ;; Row of current values
+            [:tr
+             (->> @game-atom
+                  :indicies
+                  first
+                  (sort-by first)
+                  (map (fn [[k v]] ^{:key k} [:td v]))
+                  doall
+                  )
+             ]
             ;; If admin, add buttons for changing. Will change values by the amount listed +-up to 3
             (if (= "admin" (:userlevel @play-atom))
               (for [change [-20 -10 -5 0 +5 +10 +20]]
                 [:tr
                  (for [ind (->> @game-atom :indicies first keys (map name) sort)]
-                   [:td [:span {:class "btn btn-warning btn-xs"
+                   [:td>td {:class "btn-warning btn-xs btn-block"
                                 :onClick #(ajax/GET (wrap-context "/api/admin/modify-index/")
                                                     {:response-format (ajax/json-response-format {:keywords? true})
                                                      :handler (fn [m]
@@ -294,7 +306,6 @@
                                                     )
                                 }
                          change
-                         ]
                     ]
                    )
                  ]
@@ -630,10 +641,42 @@
             "Mutation Strength: "
             (get-in @game-atom [:character :mutation :power])
             ]
-           [:div ;; TODO Multiple mutations?
+           [:div
             "Mutations: "
-            (get-in @game-atom [:character :mutation :description])
+            (let [muts (get-in @game-atom [:character :mutation :description])]
+              (if (string? muts)
+                muts
+                [:table {:class "table table-striped table-hover"}
+                 [:tbody
+                  (doall
+                    (map (fn [{m-name :name m-desc :desc}]
+                           ^{:key m-name}
+                           [:tr [:td m-name] [:td m-desc]])
+                         muts
+                         )
+                    )
+                  ]
+                 ]
+                )
+              )
             ]
+           ;; Drawbacks
+           (if (get-in @game-atom [:character :drawbacks])
+             [:div {:class "panel-default"}
+              [:div {:class "panel-heading"}
+               "Drawbacks"
+               ]
+              (->> @game-atom
+                   :character
+                   :drawbacks
+                   (map :text)
+                   (map (fn [t]
+                          [:div t]
+                          ))
+                  )
+              ]
+             nil
+             )
            ]
           ]
          )
