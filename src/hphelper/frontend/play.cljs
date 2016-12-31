@@ -74,7 +74,9 @@
         ]
        (if @expand-atom
          [:div {:class ""}
-          [:table {:class "table-striped table-hover"}
+          [:table {:class "table-striped table-hover"
+                   :style {:width "100%"}
+                   }
            [:tbody
             (doall (map (fn [cbi] ^{:key cbi} [:tr>td cbi])
                         (:news @game-atom)
@@ -100,7 +102,9 @@
         ]
        (if @expand-atom
          [:div {:class ""}
-          [:table {:class "table-striped table-hover"}
+          [:table {:class "table-striped table-hover"
+                   :style {:width "100%"}
+                   }
            [:tbody
             (doall (map (fn [cbi] ^{:key cbi} [:tr>td cbi])
                         (:cbay @game-atom)
@@ -274,7 +278,8 @@
                    :style {:width "100%"}
                    }
            [:thead>tr
-            (doall (map (fn [[k _]] [:th (-> k name shared/wrap-any)]) (->> @game-atom :indicies first sort)))
+            (doall (map (fn [[k _]] [:th (-> k name shared/wrap-any)])
+                        (->> @game-atom :indicies first sort)))
             ]
            [:tbody
             ;; Row of current values
@@ -293,19 +298,20 @@
                 [:tr
                  (for [ind (->> @game-atom :indicies first keys (map name) sort)]
                    [:td>td {:class "btn-warning btn-xs btn-block"
-                                :onClick #(ajax/GET (wrap-context "/api/admin/modify-index/")
-                                                    {:response-format (ajax/json-response-format {:keywords? true})
-                                                     :handler (fn [m]
-                                                                (log/info "Modified index")
-                                                                (get-updates)
-                                                                )
-                                                     :params (merge @play-atom {:ind (name ind)
-                                                                                :amount (-> (rand-int 7) (+ -3) (+ change))
-                                                                                })
-                                                     }
+                            :onClick #(ajax/GET
+                                        (wrap-context "/api/admin/modify-index/")
+                                        {:response-format (ajax/json-response-format {:keywords? true})
+                                         :handler (fn [m]
+                                                    (log/info "Modified index")
+                                                    (get-updates)
                                                     )
-                                }
-                         change
+                                         :params (merge @play-atom {:ind (name ind)
+                                                                    :amount (-> (rand-int 7) (+ -3) (+ change))
+                                                                    })
+                                         }
+                                        )
+                            }
+                    change
                     ]
                    )
                  ]
@@ -587,7 +593,9 @@
        (if @expand-atom
          [:div
           "Reminder: These are treasonous secret societies! Always call using a cover identity!"
-          [:table {:class "table-striped table-hover"}
+          [:table {:class "table-striped table-hover"
+                   :style {:width "100%"}
+                   }
            [:thead
             [:tr [:th "Name"] [:th "Skills"]]
             ]
@@ -685,6 +693,128 @@
     )
   )
 
+(defn- create-stat-roller
+  "When pressed, rolls a number between 1 and 20 and displays the result in the status atom as a string"
+  [^Atom status n ^String player ^String stat]
+  (log/info "create-stat-roller. n:" n "player:" player "stat:" stat)
+  [:div {:class (add-button-size "btn-default")
+         :onClick (fn [] (let [r (inc (rand-int 20))]
+                           (swap! status conj
+                                  {:success (cond (= 1 r) true (= 20 r) false :else (<= r n))
+                                   :roll r :diff n :player player :stat stat}
+                                  )
+                           )
+                    )
+         }
+   n
+   ]
+  )
+(defn admin-single-player-component
+  "Displays a single row of a player"
+  [{p-name :name :keys [priStats] :as p-sheet} ^Atom status]
+  [:tr
+   [:td (:name p-sheet)]
+   (doall
+     (map (fn [[stat v]]
+            [:td (create-stat-roller status v p-name stat)])
+          priStats))
+   ;; Mutation
+   [:td (create-stat-roller status (get-in p-sheet [:mutation :power]) p-name "Mutation")]
+   ;; Mutation list
+   [:td (let [desc (get-in p-sheet [:mutation :description])]
+          (if (string? desc)
+            (shared/wrap-any desc)
+            (->> desc
+                 (map :name)
+                 (map shared/wrap-any)
+                 (interpose ", ")
+                 )
+            )
+          )
+    ]
+   ;; Drawbacks
+   [:td (let [dbs (:drawbacks p-sheet)]
+          (cond
+            (not dbs)
+            ""
+            (string? dbs)
+            dbs
+            :else
+            (->> dbs
+                 (map :text)
+                 (map #(clojure.string/split % ": "))
+                 (map first)
+                 (interpose ", ")
+                 )
+            )
+          )
+    ]
+   ]
+  )
+(defn admin-show-status-line
+  "Displays the last n messages from the status atom"
+  [^Atom status ^Integer lines]
+  [:div
+   (->> @status
+        (take lines)
+        (map (fn [r {:keys [success roll diff player stat]}] ^{:key r}
+               [:div {:class (cond
+                               (= 1 roll) "text-success"
+                               (= 20 roll) "text-danger"
+                               success "text-primary"
+                               :failure "text-warning")}
+                (if success "Success! " "Failure! ")
+                "Player " player " rolled " roll " to beat " diff " for " stat " with a margin of " (- roll diff) "."
+                ]
+               )
+             ;; To prevent "you need a key" warnings, they're annoying the hell out of me
+             (range))
+        )
+   ]
+  )
+(defn admin-player-component
+  "A window to show player details and tools"
+  []
+  (let [expand-atom (atom false)
+        status-atom (atom '())
+        ]
+    (fn []
+      [:div {:class "panel-info"}
+       [:div {:class "panel-heading"
+              :onClick #(swap! expand-atom not)}
+        "Admin Panel"
+        ]
+       (if @expand-atom
+         [:div
+          [admin-show-status-line status-atom 3]
+          [:table {:class "table-striped table-hover"
+                   :style {:width "100%"}
+                   }
+           [:thead
+            [:tr
+             [:td "Name"] [:td "V"] [:td "M"] [:td "Su"] [:td "W"] [:td "So"] [:td "H"] [:td "Mut"] [:td "Descs"] [:td "Drawbacks"]
+             ]
+            ]
+           [:tbody
+            (->> @game-atom
+                 :hps
+                 (sort-by first)
+                 (map (fn [[uuid player-sheet]]
+                        ^{:key uuid}
+                        (admin-single-player-component player-sheet status-atom)
+                        )
+                      )
+                 doall
+                 )
+            ]
+           ]
+          ]
+         )
+       ]
+      )
+    )
+  )
+
 (defn game-component
   "Component for displaying and playing a game"
   [^Atom g]
@@ -692,37 +822,44 @@
    [:h5 "Welcome High Programmer " (get-in @game-atom [:character :name])
     " to zone " (:zone @game-atom)
     ". Current Access: " (-> @game-atom :access first (get (keyword (get-in @game-atom [:character :name]))))]
-   [:table {:class "table-striped"}
+   (if (= "admin" (:userlevel @play-atom))
+     [admin-player-component]
+     nil
+     )
+   [:table {:class "table-striped"
+            :style {:width "100%"}
+            }
     [:thead
+     ]
+    [:tbody
      [:tr
-      ]
-     [:tbody
-      [:tr
-       [:td {:style {:width "50%"}}
-        [access-component]
-        ;[missions-component] ;; Removed due to figuring out how to remove the borders easily
-        [directives-component]
-        [society-missions-component]
-        [indicies-component]
-        [cbay-component]
-        [news-component]
-        [keywords-component]
-        (case (:userlevel @play-atom)
-          "player" [character-component]
-          nil
-          )
-        ]
-       [:td {:style {:width "50%"}}
-        [program-group-component]
-        [service-group-component]
-        ]
+      [:td {:style {:width "50%"}}
+       [access-component]
+       ;[missions-component] ;; Removed due to figuring out how to remove the borders easily
+       [directives-component]
+       [society-missions-component]
+       [indicies-component]
+       [cbay-component]
+       [news-component]
+       [keywords-component]
+       (case (:userlevel @play-atom)
+         "player" [character-component]
+         nil
+         )
        ]
-      [:tr>td
-       [:div {:class "btn btn-warning"
-              :onClick get-updates
-              }
-        "Update"
-        ]
+      ;[:td {:style {:width "33%"}}
+      ; "Chat window and votes here"
+      ; ]
+      [:td {:style {:width "50%"}}
+       [program-group-component]
+       [service-group-component]
+       ]
+      ]
+     [:tr>td
+      [:div {:class "btn btn-warning"
+             :onClick get-updates
+             }
+       "Update"
        ]
       ]
      ]

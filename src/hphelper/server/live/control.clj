@@ -12,16 +12,40 @@
   (:gen-class)
 )
 
-;; If currentGames exists, and is an atom, leave it alone
-(defonce currentGames
+;; Current games, keyed by uuid
+(defonce ^:private current-games
   (atom {}))
 
+;; Current indicies, keyed by zone string
+(defonce ^:private current-indicies
+  (atom {}))
+
+;; Indicies manipulation
+(defn new-game-indicies
+  "If the zone doesn't already exist, associates the indicies and returns them.
+  If the zone already exists, ignores inds and returns the associated indicies"
+  [^String zone inds]
+  (log/trace "new-game-indicies." "zone:" zone "inds:" inds "already stored:" (get @current-indicies zone))
+  (if-let [i (get @current-indicies zone)]
+    ;; Indicies already exist for this zone, get them
+    i
+    ;; Indicies dont exist
+    (-> (swap! current-indicies assoc zone
+               ;; If it's a map, put it in a list. Otherwise assume it's a list of maps
+               (if (map? inds) (list inds) inds))
+        (get zone)
+        )
+    )
+  )
+
+;; Gets the current time in milliseconds
 (defn current-time
   "Returns the current time as a long"
   []
   (.getTimeInMillis (java.util.Calendar/getInstance))
   )
 
+;; Changing a stored scenario into a live scenario for online play
 (defn- player-setup
   "Adds a uuid key under :password to a player map, performs other live setup, returns the map"
   [[_ pMap]]
@@ -36,9 +60,9 @@
   )
 (defn- setup-indicies-history
   "Sets the initial indicies history to a list of the current indicies map"
-  [{inds :indicies :as sMap}]
+  [{inds :indicies zone :zone :as sMap}]
   (log/trace "setup-indicies-history.")
-  (assoc sMap :indicies (list inds)))
+  (assoc sMap :indicies (new-game-indicies zone inds)))
 (defn- setup-current-access-totals
   "Sets up a map of player names to current access, and starts indicies history"
   [{players :hps :as sMap}]
@@ -76,12 +100,11 @@
       (setup-last-updated (current-time))
       )
   )
-
 (defn new-game
   "Creates a new game, either from an existing map or straight 0s."
   ([valMap]
    {:post (s/valid? ::ss/liveScenario)}
-   (uni/add-uuid-atom! currentGames
+   (uni/add-uuid-atom! current-games
                        (-> valMap
                            ;; Fill in any missing indices
                            (update-in [:indicies]
@@ -104,18 +127,21 @@
   ([]
    (new-game {:indicies (indicies/create-base-indicies-list)})))
 
+;; Gets a full game structure by uuid from current-games
 (defn get-game
   "Gets the game associated with the uid"
   [^String uid]
-  (uni/get-uuid-atom currentGames uid))
+  (uni/get-uuid-atom current-games uid))
 
+;; Performs func with the arguments on the uuid game. Returns the modified game
 (defn- swap-game!
   "Applys the function to the game associated with the uuid
   Asserts afterwards the game matches spec."
   [uid func & args]
   (log/trace "swap-game! uid:" uid "func:" func)
-  (apply uni/swap-uuid! currentGames uid (comp #(s/assert ::ss/liveScenario %) func) args))
+  (apply uni/swap-uuid! current-games uid (comp #(s/assert ::ss/liveScenario %) func) args))
 
+;; Changes the access amount of an access member
 (defn modify-access-inner
   "Modifies an index by a certain amount, and fuzzifies the indices"
   [scenMap player ^Integer amount]
@@ -142,7 +168,7 @@
                          (do
                            (log/debug "modify-item: could not parse" amount)
                            0))))
-    (if (-> @currentGames (get uid) :access first (get player))
+    (if (-> @current-games (get uid) :access first (get player))
       (do
         (log/trace "modify-access. Modifying access.")
         (swap-game! uid modify-access-inner player amount)
@@ -152,6 +178,7 @@
         nil))
   ))
 
+;; Sends access from one account to another
 (defn send-access-inner
   "Actually sends access, adding a single line to access and updating :updated"
   [g ^String player-from ^String player-to ^Integer amount]
@@ -193,18 +220,32 @@
     )
   )
 
+;; Modifies a single index. Fuzzifies all indicies, then normalises the service group indicies
 (defn modify-index-inner
   "Modifies an index by a certain amount, and fuzzifies the indices"
-  [scenMap index ^Integer amount]
+  [{:keys [zone] :as scenMap} index ^Integer amount]
   (log/trace "modify-index-inner. index:" index "amount:" amount "indicies:" (-> scenMap :indicies first))
-  (let [newInds (-> (first (:indicies scenMap))
-                    (update-in [index] + amount)
-                    indicies/fuzzify-indicies
-                    indicies/normalise-all-indicies
-                    )]
+  (let [newInds (-> (swap! current-indicies
+                           update-in [zone]
+                           ;; Functions takes a list of indicies, conjoins a modified index to the beginning
+                           (fn [l]
+                             (conj l
+                                   (-> l
+                                       first
+                                       (update-in [index] + amount)
+                                       indicies/fuzzify-indicies
+                                       indicies/normalise-all-indicies
+                                       )
+                                   )
+                             )
+                           )
+                    ;; We have the result of the swap, now we get the indicies
+                    (get zone)
+                    )
+        ]
     (log/trace "modify-index-inner. newInds:" newInds)
     (-> scenMap
-        (update-in [:indicies] (partial cons newInds))
+        (assoc-in [:indicies] newInds)
         (assoc-in [:updated :indicies] (current-time))
         )
     )
@@ -221,7 +262,7 @@
                          (do
                            (log/debug "modify-item: could not parse" amount)
                            0))))
-    (if (-> @currentGames (get uid) :indicies first index)
+    (if (-> @current-games (get uid) :indicies first index)
       (do
         (log/trace "modify-index. Modifying index.")
         (swap-game! uid modify-index-inner index amount)
@@ -231,6 +272,7 @@
         nil))
   ))
 
+;; Sets the owner of a service group
 (defn- set-sg-owner-inner
   "Actually sets the owner of the service group, along with the updated time"
   [g sgIndex newOwner]
@@ -257,6 +299,7 @@
     )
   )
 
+;; Adds or gets news from a game
 (defn add-news-item
   "Adds a single news item to a game"
   [uid ^String newsItem]
@@ -264,8 +307,9 @@
 (defn get-news
   "Gets the news list of a game"
   [uid]
-  ((uni/get-uuid-atom currentGames uid) :news))
+  ((uni/get-uuid-atom current-games uid) :news))
 
+;; Lets a player purchase a minion. Automatically adjusts their access total
 (defn- set-minion-bought-status
   "Sets a minion's status to bought or not"
   [g ^Integer sgid ^Integer minionid bought?]
@@ -299,7 +343,6 @@
         )
     )
   )
-
 (defn purchase-minion-inner
   "Actually purchases the minion for the player."
   [g ^String player ^Integer sgid ^Integer minionid ^Integer cost]

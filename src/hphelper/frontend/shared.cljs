@@ -225,6 +225,9 @@
     ;; Check societies
     (find-start string :societies :ss_name)
     (find-start string :societies :ss_name)
+    ;; Check Mutations
+    (find-start string :mutations :name)
+    (find-start string :mutations :name)
     ;; Check other
     (find-start string :others :name)
     (find-start string :others :name)
