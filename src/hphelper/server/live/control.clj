@@ -43,10 +43,11 @@
   "Sets up a map of player names to current access, and starts indicies history"
   [{players :hps :as sMap}]
   (log/trace "setup-current-access-totals. players:" (vals players))
-  (let [at (reduce merge {} (map (fn [pMap]
-                         (log/trace "pMap:" pMap)
-                         {(:name pMap) (:accessRemaining pMap)})
-                       (vals players)))]
+  (let [at (reduce merge {"Misc" 0 "Pool" 0}
+                   (map (fn [pMap]
+                          (log/trace "pMap:" pMap)
+                          {(:name pMap) (:accessRemaining pMap)})
+                        (vals players)))]
     (-> sMap
         (assoc :access (list at))
         )
@@ -179,9 +180,9 @@
       ;; Couldn't parse amount
       (not am)
       nil
-      ;; Players don't exist
-      (not (and (help/is-hp-name? g player-from)
-                (help/is-hp-name? g player-to)
+      ;; Targets don't exist in the access pool
+      (not (and ((-> g :access first keys set) player-from)
+                ((-> g :access first keys set) player-to)
                 )
            )
       nil

@@ -150,26 +150,38 @@
               (doall (map (fn [k] ^{:key k} [:th (take 5 k)]) players))
               ]
              [:tbody
+              ;; Line of current totals
+              [:tr
+               (->> @game-atom
+                    :access
+                    first
+                    (sort-by first)
+                    (map (fn [[k v]] ^{:key k} [:td {:class (if (< v 0) "text-danger" "")} v]))
+                    )
+               ]
               ;; If admin, add buttons for changing access. Will change values by the amount listed
               (if (= (:userlevel @play-atom) "admin")
-                (for [change [10 5 -1 -2 -3 -4 -5 -6 -7 -8 -9 -10 -20]]
+                (for [change [20 10 5 -1 -2 -3 -4 -5 -6 -7 -8 -9 -10 -20]]
                   [:tr
                    (for [player players]
-                     [:td ^{:key player}
-                      [:span {:class "btn btn-warning btn-xs"
-                              :onClick #(ajax/GET (wrap-context "/api/admin/modify-access/")
-                                                  {:response-format (ajax/json-response-format {:keywords? true})
-                                                   :handler (fn [m]
-                                                              (log/info "Modified access")
-                                                              (get-updates)
-                                                              )
-                                                   :params (merge @play-atom {:player (name player)
-                                                                              :amount change
-                                                                              })})
-                              }
-                       change
-                       ]])])
+                     [:td>td
+                      {:class "btn btn-default btn-xs btn-block"
+                       :title (str "Change " player " by " change " ACCESS.")
+                       :onClick #(ajax/GET (wrap-context "/api/admin/modify-access/")
+                                           {:response-format (ajax/json-response-format {:keywords? true})
+                                            :handler (fn [m]
+                                                       (log/info "Modified access")
+                                                       (get-updates)
+                                                       )
+                                            :params (merge @play-atom {:player (name player)
+                                                                       :amount change
+                                                                       })})
+                       }
+                      change
+                      ]
+                     )])
                 nil)
+              ;; Lines of changes to reach current total
               (->> @game-atom
                    :access
                    (take 10)
@@ -194,21 +206,39 @@
                      (doall
                        (for [player players]
                          [:td ^{:key player}
-                          (if (= player (get-in @game-atom [:character :name]))
+                          (cond
                             ;; Don't send to yourself
+                            (= player (get-in @game-atom [:character :name]))
                             [:td]
+                            ;; Something different for the pool TODO
+                            (= player "Pool")
+                            [:td {:class "btn btn-success btn-xs btn-block"
+                                  :title (str "Take " change " from the public pool. \nDoing this without consensus is heavily treasonous. \nPushing the pool into negatives is heavily treasonous.")
+                                  :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
+                                                      {:response-format (ajax/json-response-format {:keywords? true})
+                                                       :handler (fn [m]
+                                                                  (log/info "Modified access")
+                                                                  (get-updates)
+                                                                  )
+                                                       :params (merge @play-atom {:playerto (name player)
+                                                                                  :amount (- change)
+                                                                                  })})}
+                             change
+                             ]
                             ;; Other players
-                            [:td>span {:class "btn btn-warning btn-xs"
-                                       :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
-                                                           {:response-format (ajax/json-response-format {:keywords? true})
-                                                            :handler (fn [m]
-                                                                       (log/info "Modified access")
-                                                                       (get-updates)
-                                                                       )
-                                                            :params (merge @play-atom {:playerto (name player)
-                                                                                       :amount change
-                                                                                       })})
-                                       }
+                            :else
+                            [:td
+                             {:class "btn btn-default btn-xs btn-block"
+                              :title (str "Send " change " access to " player)
+                              :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
+                                                  {:response-format (ajax/json-response-format {:keywords? true})
+                                                   :handler (fn [m]
+                                                              (log/info "Modified access")
+                                                              (get-updates)
+                                                              )
+                                                   :params (merge @play-atom {:playerto (name player)
+                                                                              :amount change
+                                                                              })})}
                              change
                              ]
                             )
@@ -615,38 +645,42 @@
 (defn game-component
   "Component for displaying and playing a game"
   [^Atom g]
-  [:table {:class "table-striped"}
-   [:thead
-    [:tr
-     [:th>h5 "Welcome High Programmer " (get-in @game-atom [:character :name]) " to zone " (:zone @game-atom)]
-     ]
-    ]
-   [:tbody
-    [:tr
-     [:td {:style {:width "50%"}}
-      [access-component]
-      ;[missions-component] ;; Removed due to figuring out how to remove the borders easily
-      [directives-component]
-      [society-missions-component]
-      [indicies-component]
-      [cbay-component]
-      [news-component]
-      [keywords-component]
-      (case (:userlevel @play-atom)
-        "player" [character-component]
-        nil
-        )
+  [:div
+   [:h5 "Welcome High Programmer " (get-in @game-atom [:character :name])
+    " to zone " (:zone @game-atom)
+    ". Current Access: " (-> @game-atom :access first (get (keyword (get-in @game-atom [:character :name]))))]
+   [:table {:class "table-striped"}
+    [:thead
+     [:tr
       ]
-     [:td {:style {:width "50%"}}
-      [program-group-component]
-      [service-group-component]
-      ]
-     ]
-    [:tr>td
-     [:div {:class "btn btn-warning"
-            :onClick get-updates
-            }
-      "Update"
+     [:tbody
+      [:tr
+       [:td {:style {:width "50%"}}
+        [access-component]
+        ;[missions-component] ;; Removed due to figuring out how to remove the borders easily
+        [directives-component]
+        [society-missions-component]
+        [indicies-component]
+        [cbay-component]
+        [news-component]
+        [keywords-component]
+        (case (:userlevel @play-atom)
+          "player" [character-component]
+          nil
+          )
+        ]
+       [:td {:style {:width "50%"}}
+        [program-group-component]
+        [service-group-component]
+        ]
+       ]
+      [:tr>td
+       [:div {:class "btn btn-warning"
+              :onClick get-updates
+              }
+        "Update"
+        ]
+       ]
       ]
      ]
     ]
