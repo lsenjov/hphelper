@@ -297,35 +297,6 @@
    )
   )
 
-;; Secret Society Missions
-(defn- update-secret-society-mission
-  "Updates a society mission record to include the society's name under ss_name, and to interpret the text"
-  [zone crisisId ssmrec]
-  (-> ssmrec
-      (update-in [:ssm_text] (partial interpret-line zone crisisId))
-      (assoc-in [:ss_name]
-                (-> (query "SELECT ss_name FROM ss WHERE ss_id = ?;" (:ss_id ssmrec))
-                    first
-                    :ss_name)
-                )
-      )
-  )
-(defn get-secret-society-missions
-  "Selects all the secret society missions of a single crisis"
-  [zone crisisId]
-  (map (partial update-secret-society-mission zone crisisId)
-       (query "SELECT * FROM `ssm` WHERE `c_id` = ?;" crisisId)
-       )
-  )
-(defn get-secret-socity-mission-unused
-  "Selects a single secret society mission not associated to a crisis"
-  [zone ssId]
-  (->> (query "SELECT * FROM `ssm` WHERE `ss_id` = ? AND `c_id` IS NULL;" ssId)
-      get-random-item
-      (update-secret-society-mission zone nil)
-      )
-  )
-
 ;; Directives
 (defn get-directive-crisis
   "Selects directives related to a single crisis"
@@ -357,6 +328,10 @@
   "Gets secret society name by ss_id"
   [ssId]
   (:ss_name (first (query "SELECT ss_name FROM ss WHERE ss_id = ?;" ssId))))
+(defn get-ss-full
+  "Gets full ss record by ss_id"
+  [ssId]
+  (first (query "SELECT * FROM ss WHERE ss_id = ?;" ssId)))
 (defn get-random-society
   "Gets a random secret society from the database. Returns a map."
   []
@@ -369,6 +344,51 @@
   "Returns the table of all secret socities"
   []
   (query "SELECT * FROM ss_skills;"))
+
+;; Secret Society Missions
+(defn- update-secret-society-mission
+  "Updates a society mission record to include the society's name under ss_name, and to interpret the text"
+  [zone crisisId ssmrec]
+  (log/trace "update-secret-society-mission. crisisId:" crisisId "ssmrec:" ssmrec)
+  (-> ssmrec
+      (update-in [:ssm_text] (partial interpret-line zone crisisId))
+      (assoc-in [:ss_name]
+                (-> (query "SELECT ss_name FROM ss WHERE ss_id = ?;" (:ss_id ssmrec))
+                    first
+                    :ss_name)
+                )
+      )
+  )
+(defn get-secret-society-missions
+  "Selects all the secret society missions of a single crisis"
+  [zone crisisId]
+  (map (partial update-secret-society-mission zone crisisId)
+       (query "SELECT * FROM `ssm` WHERE `c_id` = ?;" crisisId)
+       )
+  )
+(defn get-secret-socity-mission-unused
+  "Selects a single secret society mission not associated to a crisis"
+  [zone ssId]
+  (log/trace "get-secret-socity-mission-unused. zone:" zone "ssId:" ssId)
+  (if-let [m (->> (query "SELECT * FROM `ssm` WHERE `ss_id` = ? AND `c_id` IS NULL;" ssId)
+                  get-random-item
+                  )]
+    ;; Secret society has a mission
+    (update-secret-society-mission zone nil m)
+    ;; Not found. Get a parent mission
+    (let [ss (get-ss-full ssId)
+          p (->> ssId get-ss-full)
+          pm (->> p :ss_parent (get-secret-socity-mission-unused zone))]
+      (log/trace "p:" p "pm:" pm)
+      (if pm
+        ;; We have a parent mission. Put the original society's name in place
+        (assoc pm :ss_name (:ss_name ss) :ss_id (:ss_id ss))
+        ;; No parent
+        nil
+        )
+      )
+    )
+  )
 
 ;; Minion List Generation
 (defn get-single-minion-from-sg

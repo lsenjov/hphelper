@@ -284,6 +284,9 @@
        {{:keys [gameUuid userUuid player amount]} :params}
        (log/trace "modify-public-standing:" gameUuid userUuid player amount)
        (json/write-str (lapi/admin-modify-public-standing gameUuid userUuid player amount)))
+  (GET "/api/admin/sync-chars/" ;; Saves characters to the database
+       {{:keys [gameUuid userUuid]} :params}
+       (json/write-str (lapi/sync-chars gameUuid userUuid)))
   ;; Old api
   (GET "/api/admin/:gameUuid/:userUuid/debug/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}

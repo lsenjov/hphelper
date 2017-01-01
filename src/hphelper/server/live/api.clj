@@ -1,8 +1,11 @@
 (ns hphelper.server.live.api
-  (:require [hphelper.server.shared.sql :as sql]
+  (:require 
             [taoensso.timbre :as log]
             [clojure.spec :as s]
             [hphelper.server.shared.spec :as ss]
+
+            [hphelper.server.shared.sql :as sql]
+            [hphelper.server.shared.saveload :as sl]
             [clojure.data.json :as json]
             [hphelper.server.live.control :refer [get-game] :as lcon]
             [hphelper.server.shared.helpers :as help]
@@ -10,13 +13,13 @@
   (:gen-class)
 )
 
+;; Helpers
 (def errors
   "A map of precompiled error messages for an invalid game or user id login"
   {:login {:status "error" :message "Invalid game or user id"}
    :invalidGame {:status "error" :message "Invalid game"}
    }
   )
-
 (defn- is-admin-get-game
   "Returns the gamemap if the user is an admin, else nil"
   [^String gUid ^String uUid]
@@ -26,6 +29,7 @@
       nil)
     nil))
 
+;; Publics
 (defn get-indicies
   "Gets the indicies of a game"
   [^String gUid]
@@ -51,7 +55,6 @@
     {:status "ok" :keywords gc}
     (:invalidGame errors)
     ))
-
 (defn get-news
   "Gets the news items of a game"
   [^String gUid]
@@ -60,7 +63,6 @@
     {:status "ok" :news gc}
     (:invalidGame errors)
     ))
-
 (defn get-current-access
   "Gets the current access totals of a game"
   [^String gUid]
@@ -69,7 +71,6 @@
     {:status "ok" :access ga}
     (:invalidGame errors)
     ))
-
 (defn get-current-zone
   "Returns the current zone name"
   [^String gUid]
@@ -79,6 +80,7 @@
     )
   )
 
+;; Players
 (defn get-minions-single
   "Takes a record of a single service group, stripping out minions if it isn't the
   authorised player and not bought, returns the edited service group
@@ -112,7 +114,6 @@
                )
     )
   )
-
 (defn get-minions
   "Gets the minions of a game, stripping out the skills of the minions which the player isn't authorised to see"
   ([^String gUid]
@@ -125,7 +126,6 @@
      )
    )
   )
-
 (defn get-player-society-missions
   "Gets a list of the secret society missions of a player"
   [^String gUid ^String uUid]
@@ -149,7 +149,6 @@
       )
     )
   )
-
 (defn get-player-character-sheet
   "Returns a player's character sheet"
   [^String gUid ^String uUid]
@@ -158,10 +157,10 @@
     (cond
       ;; Player
       p
-      {:character p}
+      {:character (pr-str p)}
       ;; Admin
       (= uUid (:adminPass g))
-      {:hps (:hps g)}
+      {:hps (pr-str (:hps g))}
       ;; Wrong game
       (not g)
       (:invalidGame errors)
@@ -169,74 +168,6 @@
       :error
       (:login errors)
     )))
-
-(defn admin-debug
-  "Gets the current gamemap, requires admin login"
-  [^String gUid ^String uUid]
-  (log/trace "admin-debug. gUid:" gUid "uUid:" uUid)
-  (if-let [g (is-admin-get-game gUid uUid)]
-      (pr-str g)
-      (:login errors)
-    ))
-
-(defn admin-validate-spec
-  "Gets the game, validates the gamemap. requires admin login"
-  [^String gUid ^String uUid]
-  (log/trace "admin-validate-spec. gUid:" gUid "uUid:" uUid)
-  (if-let [g (is-admin-get-game gUid uUid)]
-    (s/explain-str ::ss/liveScenario g)
-    (:login errors)
-    ))
-
-(defn admin-modify-index
-  "Modifies an index by the required amount"
-  [^String gUid ^String uUid ^String ind ^String amount]
-  (log/trace "admin-modify-index." gUid uUid ind amount)
-  (if-let [g (is-admin-get-game gUid uUid)]
-    (if (lcon/modify-index gUid
-                           (keyword ind)
-                           (try (Integer/parseInt amount)
-                                (catch Exception e
-                                  (log/debug "Could not parse:" amount "Defaulting to 0")
-                                  0)))
-      (json/write-str {:status "ok"})
-      (json/write-str {:status "error" :message "modify-index failed"}))
-    (:login errors)
-    ))
-
-(defn admin-modify-access
-  "Modifies an index by the required amount"
-  [^String gUid ^String uUid ^String player ^String amount]
-  (log/trace "admin-modify-index." gUid uUid player amount)
-  (if-let [g (is-admin-get-game gUid uUid)]
-    (if (lcon/modify-access gUid
-                            player
-                            (try (Integer/parseInt amount)
-                                 (catch Exception e
-                                   (log/debug "Could not parse:" amount "Defaulting to 0")
-                                   0)))
-      (json/write-str {:status "ok"})
-      (json/write-str {:status "error" :message "modify-index failed"}))
-    (:login errors)
-    ))
-
-(defn admin-modify-public-standing
-  "Modifies public standing of a player"
-  [^String gUid ^String uUid ^String player ^String amount]
-  (log/trace "admin-modify-index." gUid uUid player amount)
-  (if-let [g (is-admin-get-game gUid uUid)]
-    (if (lcon/modify-public-standing
-          gUid
-          player
-          (try (Integer/parseInt amount)
-               (catch Exception e
-                 (log/debug "Could not parse:" amount "Defaulting to 0")
-                 0)))
-      (json/write-str {:status "ok"})
-      (json/write-str {:status "error" :message "modify-public-standing failed"}))
-    (:login errors)
-    ))
-
 (defn player-buy-minion
   [^String gUid ^String uUid ^String sgid ^String minionid]
   (log/trace "player-buy-minion:" gUid uUid sgid minionid)
@@ -265,7 +196,6 @@
       )
     )
   )
-
 (defn player-send-access
   "Sends the amount of access to another player"
   [^String gUid ^String uUid ^String player-to ^String amount]
@@ -288,23 +218,6 @@
       )
     )
   )
-
-(defn admin-set-sg-owner
-  "Changes the owner of a service group"
-  [^String gUid ^String uUid ^String serviceGroup ^String newOwner]
-  (log/trace "admin-set-sg-owner." gUid uUid serviceGroup newOwner)
-  (if-let [g (is-admin-get-game gUid uUid)]
-    (if-let [n (help/is-hp-name? g newOwner)]
-      (if (lcon/set-sg-owner gUid serviceGroup newOwner)
-        {:status "okay"}
-        {:status "error" :message "Unknown failure."}
-        )
-      {:status "error" :message "Invalid user name"}
-      )
-    (:login errors)
-    )
-  )
-
 (defn get-player-directives
   "Gets the directives of a player's service group"
   [^String gUid ^String uUid]
@@ -329,6 +242,113 @@
     )
   )
 
+;; Admin commands
+(defn admin-debug
+  "Gets the current gamemap, requires admin login"
+  [^String gUid ^String uUid]
+  (log/trace "admin-debug. gUid:" gUid "uUid:" uUid)
+  (if-let [g (is-admin-get-game gUid uUid)]
+      (pr-str g)
+      (:login errors)
+    ))
+(defn admin-validate-spec
+  "Gets the game, validates the gamemap. requires admin login"
+  [^String gUid ^String uUid]
+  (log/trace "admin-validate-spec. gUid:" gUid "uUid:" uUid)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (s/explain-str ::ss/liveScenario g)
+    (:login errors)
+    ))
+(defn admin-modify-index
+  "Modifies an index by the required amount"
+  [^String gUid ^String uUid ^String ind ^String amount]
+  (log/trace "admin-modify-index." gUid uUid ind amount)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (if (lcon/modify-index gUid
+                           (keyword ind)
+                           (try (Integer/parseInt amount)
+                                (catch Exception e
+                                  (log/debug "Could not parse:" amount "Defaulting to 0")
+                                  0)))
+      (json/write-str {:status "ok"})
+      (json/write-str {:status "error" :message "modify-index failed"}))
+    (:login errors)
+    ))
+(defn admin-modify-access
+  "Modifies an index by the required amount"
+  [^String gUid ^String uUid ^String player ^String amount]
+  (log/trace "admin-modify-index." gUid uUid player amount)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (if (lcon/modify-access gUid
+                            player
+                            (try (Integer/parseInt amount)
+                                 (catch Exception e
+                                   (log/debug "Could not parse:" amount "Defaulting to 0")
+                                   0)))
+      (json/write-str {:status "ok"})
+      (json/write-str {:status "error" :message "modify-index failed"}))
+    (:login errors)
+    ))
+(defn admin-modify-public-standing
+  "Modifies public standing of a player"
+  [^String gUid ^String uUid ^String player ^String amount]
+  (log/trace "admin-modify-index." gUid uUid player amount)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (if (lcon/modify-public-standing
+          gUid
+          player
+          (try (Integer/parseInt amount)
+               (catch Exception e
+                 (log/debug "Could not parse:" amount "Defaulting to 0")
+                 0)))
+      (json/write-str {:status "ok"})
+      (json/write-str {:status "error" :message "modify-public-standing failed"}))
+    (:login errors)
+    ))
+(defn admin-set-sg-owner
+  "Changes the owner of a service group"
+  [^String gUid ^String uUid ^String serviceGroup ^String newOwner]
+  (log/trace "admin-set-sg-owner." gUid uUid serviceGroup newOwner)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (if-let [n (help/is-hp-name? g newOwner)]
+      (if (lcon/set-sg-owner gUid serviceGroup newOwner)
+        {:status "okay"}
+        {:status "error" :message "Unknown failure."}
+        )
+      {:status "error" :message "Invalid user name"}
+      )
+    (:login errors)
+    )
+  )
+(defn- sync-single-char
+  "Saves a single character from a gamemap to the database"
+  [g p-name]
+  (log/trace "sync-single-char:" p-name)
+  (if-let [c (->> g :hps vals (some #(if (= p-name (:name %)) % nil)))]
+    (try
+      (-> c
+          (assoc :accessRemaining (-> g :access first (get p-name)))
+          sl/update-char
+          )
+      ;; If a character is missing something, it may not save. This is here to prevent it stopping the other characters
+      (catch Exception e (log/info "Failed to save character" p-name "Exception:" e)))
+    )
+  )
+(defn sync-chars
+  "Save all the characters in a game to the database"
+  [^String gUid ^String uUid]
+  (log/trace "sync-chars:" gUid uUid)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (do
+      (doall (map sync-single-char (repeat g) (->> g :hps vals (map :name))))
+      {:status "ok"}
+      )
+    (:invalidGame errors)
+    )
+  )
+
+
+;; Aggregete get-updated
 (defn- get-index
   "Gets the data from an index, returns a map. Returns an empty map if no result"
   [^String gUid ^String uUid ind]
@@ -348,8 +368,8 @@
     :directives (get-player-directives gUid uUid)
     :serviceGroups (get-minions gUid uUid)
     (do (log/trace "Could not do index in get-index:" ind) {})
-    ))
-
+    )
+  )
 (defn get-updated-public
   "Gets all the updated items in a game"
   [^String gUid ^Integer t]
@@ -364,7 +384,6 @@
       )
     (:invalidGame errors)
     ))
-
 (defn get-updated-player
   "Gets all the updated items for a player"
   [^String gUid ^String uUid ^Integer t]
@@ -378,7 +397,6 @@
               (map (partial get-index gUid uUid) retKeys)))
     (:invalidGame errors)
     ))
-
 (defn get-updated-admin
   "Gets the updated items for an admin"
   [^String gUid ^String uUid ^Integer t]

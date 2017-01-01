@@ -52,8 +52,10 @@
   (:generated_key (first (jdb/insert! db :chars {:char_file (prn-str obj) :char_name (:name obj)} :transaction? true))))
 (defn update-char
   "Replaces the char_file in the db with the new character file"
-  [id char-file]
-  (jdb/update! db :chars {:char_file (pr-str char-file)} ["char_id = ?" id]))
+  ([id char-file]
+   (jdb/update! db :chars {:char_file (pr-str char-file)} ["char_id = ?" id]))
+  ([char-file]
+   (update-char (:char_id char-file) char-file)))
 (defn load-char-from-db
   "Takes an integer key, gets the data object from the database."
   [k]

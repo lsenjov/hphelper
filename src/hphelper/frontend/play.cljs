@@ -33,7 +33,17 @@
       ;; Set playing to true, if we're not already
       (swap! play-atom assoc :playing true)
       ;; Merge any updated keys
-      (swap! game-atom merge m)
+      (swap! game-atom merge
+             ;; The :hps and :character keys both now arrive as edn strings, need to be converted
+             (cond
+               (:hps m)
+               (update-in m [:hps] #(if % (cljs.reader/read-string %) %))
+               (:character m)
+               (update-in m [:character] #(if % (cljs.reader/read-string %) %))
+               :else
+               m
+               )
+             )
       )
     )
   )
@@ -143,7 +153,14 @@
         [:div {:class "panel-info"}
          [:div {:class "panel-heading"
                 :onClick #(swap! expand-atom not)}
-          (map-to-str (first (:access @game-atom)))
+          "ACCESS: Last Change: "
+          (->> @game-atom
+               :access
+               (take 2)
+               calculate-diffs
+               (filter (fn [[_ v]] (not (= 0 v))))
+               map-to-str
+               )
           ]
          (if @expand-atom
            [:div {:class ""}
@@ -698,10 +715,12 @@
   [^Atom status n ^String player ^String stat]
   (log/info "create-stat-roller. n:" n "player:" player "stat:" stat)
   [:div {:class (add-button-size "btn-default")
-         :onClick (fn [] (let [r (inc (rand-int 20))]
+         :onClick (fn [] (let [r (inc (rand-int 20))
+                               tension (inc (rand-int 20))
+                               ]
                            (swap! status conj
                                   {:success (cond (= 1 r) true (= 20 r) false :else (<= r n))
-                                   :roll r :diff n :player player :stat stat}
+                                   :roll r :diff n :player player :stat stat :tension tension}
                                   )
                            )
                     )
@@ -751,26 +770,52 @@
     ]
    ]
   )
+(defn convert-status-line-to-string
+  [{:keys [success roll diff player stat tension message] :as s}]
+  (cond
+    ;; If a message exists, display that
+    message
+    [:span message]
+    ;; If a roll exists, convert to roll
+    roll
+    ^{:key s}
+    [:span {:class (cond
+                    (= 1 roll) "text-success"
+                    (= 20 roll) "text-danger"
+                    success "text-primary"
+                    :failure "text-warning")}
+     (if success "Success! " "Failure! ")
+     "Player " player " rolled " roll " to beat " diff " for " stat " with a margin of " (- roll diff) ". Tension: " tension
+     ]
+    ;; Otherwise?
+    :else
+    [:span (pr-str s)]
+    )
+  )
 (defn admin-show-status-line
   "Displays the last n messages from the status atom"
   [^Atom status ^Integer lines]
   [:div
    (->> @status
         (take lines)
-        (map (fn [r {:keys [success roll diff player stat]}] ^{:key r}
-               [:div {:class (cond
-                               (= 1 roll) "text-success"
-                               (= 20 roll) "text-danger"
-                               success "text-primary"
-                               :failure "text-warning")}
-                (if success "Success! " "Failure! ")
-                "Player " player " rolled " roll " to beat " diff " for " stat " with a margin of " (- roll diff) "."
-                ]
-               )
+        (map (fn [r s] ^{:key r} [:div (convert-status-line-to-string s)])
              ;; To prevent "you need a key" warnings, they're annoying the hell out of me
              (range))
         )
    ]
+  )
+
+(defn sync-player-files
+  "Saves all the player files back in the database"
+  []
+  (log/info "Sending sync request")
+  (ajax/GET (wrap-context "/api/admin/sync-chars/")
+            {:response-format (ajax/json-response-format {:keywords? true})
+             :handler (fn [m]
+                        (log/info "Synced Chars")
+                        (get-updates)
+                        )
+             :params (merge @play-atom)})
   )
 (defn admin-player-component
   "A window to show player details and tools"
@@ -786,26 +831,38 @@
         ]
        (if @expand-atom
          [:div
-          [admin-show-status-line status-atom 3]
-          [:table {:class "table-striped table-hover"
-                   :style {:width "100%"}
+          [:div {:class "col-lg-12"}
+           [:div {:class "col-lg-10"}
+            [admin-show-status-line status-atom 3]
+            ]
+           [:div {:class "col-lg-2"}
+            [:div {:class "btn btn-info"
+                   :onClick sync-player-files
                    }
-           [:thead
-            [:tr
-             [:td "Name"] [:td "V"] [:td "M"] [:td "Su"] [:td "W"] [:td "So"] [:td "H"] [:td "Mut"] [:td "Descs"] [:td "Drawbacks"]
+             "Save Players"
              ]
             ]
-           [:tbody
-            (->> @game-atom
-                 :hps
-                 (sort-by #(-> % val :name))
-                 (map (fn [[uuid player-sheet]]
-                        ^{:key uuid}
-                        (admin-single-player-component player-sheet status-atom)
-                        )
-                      )
-                 doall
-                 )
+           ]
+          [:div {:class "col-lg-12"}
+           [:table {:class "table-striped table-hover col-lg-12"
+                    }
+            [:thead
+             [:tr
+              [:td "Name"] [:td "V"] [:td "M"] [:td "Su"] [:td "W"] [:td "So"] [:td "H"] [:td "Mut"] [:td "Descs"] [:td "Drawbacks"]
+              ]
+             ]
+            [:tbody
+             (->> @game-atom
+                  :hps
+                  (sort-by #(-> % val :name))
+                  (map (fn [[uuid player-sheet]]
+                         ^{:key uuid}
+                         (admin-single-player-component player-sheet status-atom)
+                         )
+                       )
+                  doall
+                  )
+             ]
             ]
            ]
           ]
@@ -841,7 +898,6 @@
                         )
                       )
                  (sort-by first)
-                 (sort-by second >)
                  (map (fn [[p-name ps]]
                         ^{:key p-name}
                         [:tr [:td p-name] [:td (if ps ps "-")]
@@ -916,12 +972,12 @@
        [directives-component]
        [society-missions-component]
        [indicies-component]
-       [public-standing-component]
        [cbay-component]
        [news-component]
        [keywords-component]
        (case (:userlevel @play-atom)
          "player" [character-component]
+         "admin" [public-standing-component]
          nil
          )
        ]
