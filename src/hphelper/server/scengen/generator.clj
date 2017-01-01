@@ -92,8 +92,8 @@
              (concat societies
                      (map (partial sql/get-secret-socity-mission-unused zone)
                           (remove (set (map :ss_id societies)) ;; Removing used sss from all sgs
-                                  (map :ss_id
-                                       (sql/query "SELECT `ss_id` FROM `ss`;"))))))))
+                                  (map (fn [{:keys [ss_id ss_parent]}] (if ss_parent ss_parent ss_id))
+                                       (sql/get-society-all))))))))
 
 (defn- add-minion-unique
   "Adds a minion to a list of minions only if the minion name and clearance are unique"

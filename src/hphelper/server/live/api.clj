@@ -134,11 +134,11 @@
     (if p
       {:status "ok"
        :missions (filter
-                   (fn [mission]
-                     (some #{(mission :ss_id)}
-                           (map :ss_id
-                                (or (:programGroup p)
-                                    (get p "Program Group")))))
+                   (let [pg (or (:programGroup p) (get p "Program Group"))
+                         ssids-unfil (concat (map :ss_parent pg) (map :ss_id pg))
+                         ssids (set (filter identity ssids-unfil))]
+                     (fn [mission]
+                       (ssids (:ss_id mission))))
                    (g :societies))
        }
       (if (= uUid (:adminPass g))

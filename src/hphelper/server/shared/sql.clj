@@ -123,6 +123,7 @@
   (apply str (concat
                (repeatedly (+ 2 (rand-int 3))
                               (partial rand-int 10))
+               (list (char (+ (int \A) (rand-int 26))))
                '(\-)
                (repeatedly (+ 2 (rand-int 3))
                            (partial rand-int 10))
@@ -382,7 +383,11 @@
       (log/trace "p:" p "pm:" pm)
       (if pm
         ;; We have a parent mission. Put the original society's name in place
-        (assoc pm :ss_name (:ss_name ss) :ss_id (:ss_id ss))
+        (-> pm
+            ;; Don't associate with the new group, since we're looking at the old group
+            ;(assoc :ss_name (:ss_name ss) :ss_id (:ss_id ss))
+            (#(do (log/trace "Original ssId:" ssId "Parent mission:" %) %))
+            )
         ;; No parent
         nil
         )

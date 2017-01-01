@@ -13,15 +13,26 @@
   "Takes a data object, saves it as an edn string in the database.
   Returns the generated key"
   [obj]
-  (log/trace "save-scen-to-db:" obj)
+  ;; Don't delete this line. For some strange reason, deleting this line or removing obj puts debug data into the saved file
+  ;; Might have something to do with lazy evaluation...somehow. Printing the obj evaluates it properly
+  (log/trace "save-scen-to-db. obj:" obj)
   (:generated_key (first (jdb/insert! db :scen {:scen_file (prn-str obj)}))))
 (defn load-scen-from-db
   "Takes an integer key, gets the data object from the database."
   [^Integer k]
   (log/trace "load-scen-from-db. Scenario number:" k)
   (let [in (:scen_file (first (jdb/query db ["SELECT scen_file FROM scen WHERE scen_id = ?;" k])))]
-    (log/trace "load-scen-from-db:" in)
-    (edn/read-string in)))
+    (log/trace "Loaded scenario string:" in)
+    (try (edn/read-string in)
+         (catch Exception e
+           (do (log/error "Could not load scen. Dumped to debug.txt")
+               (spit "debug.txt" in)
+               (throw e)
+               )
+           )
+         )
+    )
+  )
 (defn get-scen-ids
   "Returns a list of all scenario ids"
   []
@@ -37,7 +48,17 @@
 (defn load-fullscen-from-db
   "Takes an integer key, gets the data object from the database."
   [^Integer k]
-  (edn/read-string (:fs_file (first (jdb/query db ["SELECT fs_file FROM fullscen WHERE fs_id = ?;" k])))))
+  (let [in (:fs_file (first (jdb/query db ["SELECT fs_file FROM fullscen WHERE fs_id = ?;" k])))]
+    (try (edn/read-string in)
+         (catch Exception e
+           (do (log/error "Could not load scenario. Dumped to debug.txt")
+               (spit "debug.txt" in)
+               (throw e)
+               )
+           )
+         )
+    )
+  )
 (defn get-fullscen-ids
   "Returns a list of all scenario ids"
   []
@@ -48,7 +69,7 @@
   "Takes a data object, saves it as an edn string in the database.
   Returns the generated key"
   [obj]
-  (log/trace "save-char-to-db. char:" obj)
+  (log/trace "save-char-to-db.")
   (:generated_key (first (jdb/insert! db :chars {:char_file (prn-str obj) :char_name (:name obj)} :transaction? true))))
 (defn update-char
   "Replaces the char_file in the db with the new character file"

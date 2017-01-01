@@ -327,7 +327,8 @@
      ]
     [:tbody
      (let [ss (shared/get-societies)]
-       (map (fn [s] ^{:key s} [societies-single-component c s]) ss)
+       (map (fn [s] ^{:key s} [societies-single-component c s])
+            (sort-by :ss_name ss))
        )
      ]
     ]
