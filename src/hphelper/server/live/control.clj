@@ -295,7 +295,7 @@
                       )]
     (log/trace "send-access-inner. newAccess:" newAccess)
     (-> g
-        (update-in [:access] (conj (partial take 20) (partial cons newAccess)))
+        (update-in [:access] (comp (partial take 20) (partial cons newAccess)))
         (assoc-in [:updated :access] (current-time))
         )
     )
