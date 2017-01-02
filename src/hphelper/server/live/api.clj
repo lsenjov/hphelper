@@ -1,5 +1,5 @@
 (ns hphelper.server.live.api
-  (:require 
+  (:require
             [taoensso.timbre :as log]
             [clojure.spec :as s]
             [hphelper.server.shared.spec :as ss]
@@ -76,6 +76,27 @@
   [^String gUid]
   (if-let [gz (-> gUid get-game :zone)]
     {:status "ok" :zone gz}
+    (:invalidGame errors)
+    )
+  )
+(defn get-investments
+  "Gets map of current investments in a game"
+  [^String gUid]
+  (if-let [g (get-game gUid)]
+    (let [vests (lcon/get-investments)]
+      {:investments
+       (->> g
+            ;; Get a list of all the hp names
+            :hps
+            vals
+            (map :name)
+            ;; Get all the investment maps, some vals may be nil
+            (map (fn [n] [n (get vests n)]))
+            ;; Merge into a single map again
+            (apply merge {})
+            )
+       }
+      )
     (:invalidGame errors)
     )
   )
@@ -241,6 +262,41 @@
       )
     )
   )
+(defn player-trade-investment
+  "Buys or sells an amount of cash on the market"
+  [^String gUid ^String uUid ^String group ^String amount]
+  (log/trace "player-send-access:" gUid uUid group amount)
+  (let [g (get-game gUid)
+        p (-> g :hps (get uUid) :name)
+        zone (:zone g)
+        ]
+    (cond
+      ;; Game doesn't exist
+      (not g)
+      (:invalidGame errors)
+      ;; Invalid player
+      (not p)
+      (:login errors)
+      ;; Invalid group
+      (not (s/valid? ::ss/sg_abbr group))
+      {:status "error" :message "Invalid Group"}
+      ;; All seems good
+      :all-good
+      (if (lcon/player-trade-investment
+            gUid p zone group
+            (try (Integer/parseInt amount)
+                 (catch NumberFormatException e
+                   (log/trace "Failed to parse:" amount)
+                   0
+                   )
+                 )
+            )
+        {:status "ok"}
+        {:status "error" :message "Invalid argument"}
+        )
+      )
+    )
+  )
 
 ;; Admin commands
 (defn admin-debug
@@ -346,6 +402,12 @@
     (:invalidGame errors)
     )
   )
+(defn admin-lock-zone
+  "Sets the lock or unlock status of a zone"
+  [^String gUid ^String uUid ^String status]
+  (log/trace "admin-lock-zone." gUid uUid status)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (lcon/set-lock (:zone g) (if (or (= status true) (= status "true")) true false))))
 
 
 ;; Aggregete get-updated
@@ -361,6 +423,7 @@
     :access (get-current-access gUid)
     :zone (get-current-zone gUid)
     :keywords (get-keywords gUid)
+    :investments (get-investments gUid)
 
     ;; Players
     :hps (get-player-character-sheet gUid uUid)

@@ -17,7 +17,7 @@
 (s/def ::minion_cost integer?)
 (s/def ::sg_id integer?)
 (s/def ::sg_name string?)
-(s/def ::sg_abbr string?)
+(s/def ::sg_abbr #{"AF" "CP" "IS" "PL" "TS" "TD" "PS" "RD" "HP"})
 (s/def ::sgm_id integer?)
 (s/def ::sgm_text string?)
 (s/def ::ss_id integer?)
@@ -39,7 +39,7 @@
 (s/def ::power integer?)
 (s/def ::mutation
   (s/keys :req-un [::description ::power]))
-(s/def ::accessRemaining integer?)
+(s/def ::accessRemaining number?)
 (s/def ::name string?)
 (s/def ::genericString string?)
 (s/def ::msgs (s/coll-of ::genericString))
@@ -49,7 +49,7 @@
           :opt-un [::msgs]))
 
 ;; Now onto scenario types
-(s/def ::zone string?)
+(s/def ::zone (and string? #(= 3 (count %))))
 (s/def ::cbay (s/coll-of string?))
 (s/def ::news (s/coll-of string?))
 (s/def ::societyMissionSingle (s/keys :req-un [::ssm_id ::ss_id ::c_id ::ssm_text ::ss_name]))
@@ -73,7 +73,7 @@
 (s/def ::crisises (s/coll-of ::crisisRecord))
 (s/def ::directives (s/coll-of ::directiveRecord))
 (s/def ::indicies (s/coll-of (s/map-of keyword? integer?)))
-(s/def ::access (s/coll-of (s/map-of string? integer?)))
+(s/def ::access (s/coll-of (s/map-of string? ::accessRemaining)))
 (s/def ::updated (s/map-of keyword? integer?))
 (s/def ::hps (s/map-of string? ::playerCharacter))
 (s/def ::keywords (s/coll-of string?))
@@ -82,3 +82,8 @@
           :opt-un [::directives ::societies ::zone ::serviceGroups ::crisises ::keywords]
           )
   )
+
+;; Storage for player investments
+;; (get-in invests [player zone])
+(s/def ::investments
+  (s/map-of ::name (s/map-of ::zone (s/map-of ::sg_abbr number?))))

@@ -65,13 +65,20 @@
       (normalise-specific-indicies (map key (remove (partial some (into #{} sectorIndicies)) indicies)))))
 
 (defn fuzzify-indicies
-  "Randomly adds, subtracts, or leaves alone each of the indicies"
+  "Randomly adds, subtracts, or leaves alone each of the indicies. Limits them to the range of -100 to 100"
   [indicies]
-  ((apply comp (map (fn [kw] (fn [ind]
-                               (update-in ind [kw] + (dec (rand-int 3)))))
-                    (keys indicies))
-          )
-   indicies))
+  ((apply comp (map (fn [kw]
+                      ;; Must return a function
+                      (fn [ind]
+                        (update-in ind [kw] (fn [i] (-> i
+                                                        (+ (dec (rand-int 3)))
+                                                        (min 100)
+                                                        (max -100)
+                                                        ))
+                                   )))
+                        (keys indicies))
+                      )
+                    indicies))
 
 (defn adjust-index
   "Using a three letter input, first two letters as keyword and final as direction

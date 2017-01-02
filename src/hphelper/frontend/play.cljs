@@ -132,7 +132,8 @@
   "Changes an access map into a single string"
   [am]
   (->> am
-    (map (fn [[k v]] (str (name k) " " v)))
+    (map (fn [[k v]] (str (name k) " " (-> v (* 100) int (/ 100))
+                          )))
     sort
     (interpose ", ")
     (apply str)
@@ -177,7 +178,7 @@
                     :access
                     first
                     (sort-by first)
-                    (map (fn [[k v]] ^{:key k} [:td {:class (if (< v 0) "text-danger" "")} v]))
+                    (map (fn [[k v]] ^{:key k} [:td {:class (if (< v 0) "text-danger" "")} (-> v (* 100) int (/ 100))]))
                     )
                ]
               ;; If admin, add buttons for changing access. Will change values by the amount listed
@@ -211,7 +212,7 @@
                    (map (fn [im]
                           [:tr (doall
                                  (map
-                                   (fn [[_ v]] [:td (if (= 0 v) "" v)])
+                                   (fn [[_ v]] [:td (if (= 0 v) "" (-> v (* 100) int (/ 100)))])
                                    (sort-by first im)
                                    )
                                  )
@@ -636,6 +637,109 @@
       )
     )
   )
+(defn- investment-table-row
+  "Returns a row of an investment table"
+  [[k invest-map] sgs]
+  (log/info "investment row. k:" k "invest-map:" invest-map "sgs:" sgs)
+  ^{:key k}
+  [:tr
+   [:td k]
+   (doall
+     (map
+       (fn [sg]
+         ^{:key sg}
+         [:td
+          (let [v (get-in invest-map [(-> @game-atom :zone keyword) (keyword sg)])]
+            (if (or (not v) (= 0 v))
+                  "-"
+                  v
+                  )
+            )
+          ]
+         )
+       sgs
+       )
+     )
+   ]
+  )
+(defn- create-trade-button
+  "Creates a single button for buying or selling"
+  ([zone group amount]
+   [:span {:class "btn-default btn-xs"
+           :onClick 
+           #(do (ajax/GET (wrap-context "/api/player/trade-investments/")
+                          {:response-format (ajax/json-response-format {:keywords? true})
+                           :handler (fn [m]
+                                      (log/info "Synced Chars")
+                                      (get-updates)
+                                      )
+                           :params (merge @play-atom {:group (name group) :amount amount :zone (name zone)})})
+                (get-updates)
+                )
+           }
+    amount
+    ]
+   )
+  ([group amount]
+   ;; Current zone
+   (create-trade-button (:zone @game-atom) group amount)))
+(defn investment-trade-row
+  "Creates a row of buy and sell buttons"
+  [sgs]
+  [:tr
+   [:td "Buy/Sell"]
+   (->> sgs
+        (map (fn [sg]
+               ^{:key sg}
+               [:td
+                ;; Buy button
+                (create-trade-button sg 1)
+                (create-trade-button sg -1)
+                ]
+               )
+             )
+        doall
+        )
+   ]
+  )
+(defn investment-component
+  "Allows players to buy and sell investments in the sector"
+  []
+  (let [expand-atom (atom false)]
+    (fn []
+      [:div {:class "panel-info"}
+       [:div {:class "panel-heading"
+              :onClick #(swap! expand-atom not)}
+        "Investments"
+        ]
+       (if @expand-atom
+         [:div {:class "panel-body"}
+          (let [sgs (sort ["AF" "CP" "IS" "PL" "TS" "TD" "PS" "RD" "HP"])]
+            (log/info "sgs:" sgs "vestments:" (:investments @game-atom))
+            [:table {:class "table-hover table-striped col-lg-12"}
+             [:thead>tr
+              [:td ] ;; For name
+              (map (fn [k] ^{:key k} [:th k]) sgs)
+              ]
+             [:tbody
+              (investment-trade-row sgs)
+              (doall
+                (map
+                  investment-table-row
+                  (:investments @game-atom)
+                  (repeat sgs)
+                  )
+                )
+              ]
+             ]
+            )
+          ]
+         nil
+         )
+       ]
+      )
+    )
+  )
 
 (defn character-component
   "Component for displaying a character sheet"
@@ -865,6 +969,34 @@
              ]
             ]
            ]
+          [:div {:class "col-lg-12"}
+           [:div {:class "col-lg-2"}
+            [:span {:class "btn btn-success"
+                    :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
+                                        {:response-format (ajax/json-response-format {:keywords? true})
+                                         :handler (fn [m]
+                                                    (log/info "Locked zone")
+                                                    (get-updates)
+                                                    )
+                                         :params (merge @play-atom {:status true})})
+                    }
+             "Lock Investments"
+             ]
+            ]
+           [:div {:class "col-lg-2"}
+            [:span {:class "btn btn-default"
+                    :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
+                                        {:response-format (ajax/json-response-format {:keywords? true})
+                                         :handler (fn [m]
+                                                    (log/info "Locked zone")
+                                                    (get-updates)
+                                                    )
+                                         :params (merge @play-atom {:status false})})
+                    }
+             "Unlock Investments"
+             ]
+            ]
+           ]
           ]
          )
        ]
@@ -972,6 +1104,7 @@
        [directives-component]
        [society-missions-component]
        [indicies-component]
+       [investment-component]
        [cbay-component]
        [news-component]
        [keywords-component]

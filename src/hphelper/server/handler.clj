@@ -252,6 +252,9 @@
   (GET "/api/player/sendaccess/"
        {{:keys [gameUuid userUuid playerto amount]} :params}
        (json/write-str (lapi/player-send-access gameUuid userUuid playerto amount)))
+  (GET "/api/player/trade-investments/"
+       {{:keys [gameUuid userUuid group amount]} :params}
+       (json/write-str (lapi/player-trade-investment gameUuid userUuid group amount)))
   ;; Old api
   (GET "/api/player/:gameUuid/:userUuid/updates/:lastUpdated/"
        {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}
@@ -287,6 +290,9 @@
   (GET "/api/admin/sync-chars/" ;; Saves characters to the database
        {{:keys [gameUuid userUuid]} :params}
        (json/write-str (lapi/sync-chars gameUuid userUuid)))
+  (GET "/api/admin/lock-zone/" ;; Locks or unlocks a zone
+       {{:keys [gameUuid userUuid status]} :params}
+       (json/write-str (lapi/admin-lock-zone gameUuid userUuid status)))
   ;; Old api
   (GET "/api/admin/:gameUuid/:userUuid/debug/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}

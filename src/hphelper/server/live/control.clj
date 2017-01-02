@@ -8,6 +8,7 @@
             [hphelper.server.shared.spec :as ss]
             [clojure.data.json :as json]
             [hphelper.server.shared.helpers :as help]
+            [clojure.core.async :as async]
             )
   (:gen-class)
 )
@@ -17,8 +18,59 @@
   (atom {}))
 
 ;; Current indicies, keyed by zone string
-(defonce ^:private current-indicies
-  (atom {}))
+(def ^:private current-indicies
+  (atom (try (-> "indicies.edn" slurp clojure.edn/read-string)
+             (catch Exception e
+               (log/trace "Could not read indicies.edn")
+               ;; Return an empty map
+               {}
+               )
+             )
+        :validator (fn [m] (if (s/valid? (s/map-of ::ss/zone ::ss/access) m)
+                             (do (async/go (spit "indicies.edn" (pr-str m))) true)
+                             false
+                             ))
+        )
+  )
+
+;; Current player purchases
+(defonce ^:private current-investments
+  (atom (try (-> "investments.edn" slurp clojure.edn/read-string)
+             (catch Exception e
+               (log/trace "Could not read investments.edn")
+               ;; Return an empty map
+               {}
+               )
+             )
+        :validator (fn [m] (if (s/valid? ::ss/investments m)
+                             (do (async/go (spit "investments.edn" (pr-str m))) true)
+                             false
+                             ))
+        )
+  )
+(defn get-investments
+  "Returns the current investments"
+  []
+  @current-investments)
+
+  ;If locked, can't trade investments in that zone
+(defonce ^:private investment-locks
+  (atom {}
+        :validator (partial s/valid? (s/map-of ::ss/zone (s/nilable boolean?)))
+        )
+  )
+(defn get-lock
+  "Returns the lock status of a zone"
+  [^String zone]
+  (get @investment-locks zone))
+(defn set-lock
+  "Sets the lock of a zone"
+  [^String zone ^Boolean status]
+  (swap! investment-locks assoc zone status))
+
+
+;; TODO change the above to refs and adjust other items accordingly
+;; TODO save and load the above
 
 ;; Indicies manipulation
 (defn new-game-indicies
@@ -30,11 +82,24 @@
     ;; Indicies already exist for this zone, get them
     i
     ;; Indicies dont exist
-    (-> (swap! current-indicies assoc zone
-               ;; If it's a map, put it in a list. Otherwise assume it's a list of maps
-               (if (map? inds) (list inds) inds))
-        (get zone)
-        )
+    (let [string-inds (->> inds
+                           ;; Remove any list wrapping
+                           (#(if (sequential? %) (first %) %))
+                           ;; Make sure all the keys are strings, not keywords
+                           (map (fn [[k v]] [(name k) v]))
+                           ;; Put it back into a map
+                           (apply merge {})
+                           ;; Make it a list once more
+                           list
+                           )
+          ]
+      (log/trace "string-inds:" string-inds)
+      (-> (swap! current-indicies assoc zone
+                 ;; If it's a map, put it in a list. Otherwise assume it's a list of maps
+                 string-inds)
+          (get zone)
+          )
+      )
     )
   )
 
@@ -82,7 +147,7 @@
   [sMap ^Integer t]
   (log/trace "setup-last-updated. time:" t)
   (-> sMap
-      (assoc :updated (reduce merge {} (map (fn [k] {k t}) (conj (keys sMap) :missions :hps))))
+      (assoc :updated (reduce merge {} (map (fn [k] {k t}) (conj (keys sMap) :missions :hps :investments))))
       )
   )
 (defn- player-all-setup
@@ -144,7 +209,7 @@
 ;; Changes the access amount of an access member
 (defn modify-access-inner
   "Modifies an index by a certain amount, and fuzzifies the indices"
-  [scenMap player ^Integer amount]
+  [scenMap player ^Number amount]
   (log/trace "modify-access-inner. player:" player "amount:" amount "access:" (-> scenMap :access first))
   (let [newAccess (-> (first (:access scenMap))
                       (update-in [player] + amount)
@@ -303,10 +368,10 @@
                          (do
                            (log/debug "modify-item: could not parse" amount)
                            0))))
-    (if (-> @current-games (get uid) :indicies first index)
+    (if (-> @current-games (get uid) :indicies first (get (name index)))
       (do
         (log/trace "modify-index. Modifying index.")
-        (swap-game! uid modify-index-inner index amount)
+        (swap-game! uid modify-index-inner (name index) amount)
         )
       (do
         (log/error "modify-index. Could not find game.")
@@ -426,6 +491,52 @@
       ;; All seems well
       :all-well
       (swap-game! uid purchase-minion-inner player sgid minionid (:minion_cost minion))
+      )
+    )
+  )
+
+;; Trading service group investments
+(defn player-trade-investment
+  "Player trades a certain amount of shares in a service group
+  Positive for buy, negative for sell
+  Does NOT protect against a player putting their account into negatives, however"
+  [^String gUid ^String player ^String zone ^String group ^Integer amount]
+  (let [g (get-game gUid)
+        ;; Current number owned by the player, may be nil
+        current (-> (get-in @current-investments [player zone group])
+                    (#(do (log/trace "current:" %) %)))
+        ;; Current index, should not be nil
+        index (-> @current-indicies
+                  (#(do (log/trace "current-indicies:" %) %))
+                  (get zone)
+                  first
+                  (get group)
+                  ;; Logging
+                  (#(do (log/trace "index:" %) %)))
+        ;; Total price
+        price (-> index (+ 100) (/ 100) (max 0.1) (* (- amount)))
+        ]
+    (log/trace "player-trade-investment:" gUid player zone group amount)
+    (cond
+      ;; After this trade, will the total shares be less than zero?
+      (< (+ amount (if current current 0)) 0)
+      (log/trace "total shares will be less than 0")
+      ;; Does the game exist?
+      (not g)
+      nil
+      ;; Is the player a player?
+      (not (help/is-hp-name? g player))
+      nil
+      ;; Is the investments of the sector locked?
+      (get-lock zone)
+      nil
+      ;; I can't think of any other problems... go for it
+      :okay
+      (do
+        (swap! current-investments update-in [player zone group] #(if % (+ % amount) amount))
+        (swap-game! gUid assoc-in [:updated :investments] (current-time))
+        (modify-access gUid player price)
+        )
       )
     )
   )
