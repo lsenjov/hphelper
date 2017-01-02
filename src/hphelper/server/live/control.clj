@@ -216,7 +216,7 @@
                       )]
     (log/trace "modify-index-inner. newAccess:" newAccess)
     (-> scenMap
-        (update-in [:access] (partial cons newAccess))
+        (update-in [:access] (comp (partial take 20) (partial cons newAccess)))
         (assoc-in [:updated :access] (current-time))
         )
     )
@@ -295,7 +295,7 @@
                       )]
     (log/trace "send-access-inner. newAccess:" newAccess)
     (-> g
-        (update-in [:access] (partial cons newAccess))
+        (update-in [:access] (conj (partial take 20) (partial cons newAccess)))
         (assoc-in [:updated :access] (current-time))
         )
     )
@@ -335,13 +335,16 @@
                            update-in [zone]
                            ;; Functions takes a list of indicies, conjoins a modified index to the beginning
                            (fn [l]
-                             (conj l
-                                   (-> l
-                                       first
-                                       (update-in [index] + amount)
-                                       indicies/fuzzify-indicies
-                                       indicies/normalise-all-indicies
-                                       )
+                             ;; Limit history to 20 items for now
+                             (take 20
+                                   (conj l
+                                         (-> l
+                                             first
+                                             (update-in [index] + amount)
+                                             indicies/fuzzify-indicies
+                                             indicies/normalise-all-indicies
+                                             )
+                                         )
                                    )
                              )
                            )
