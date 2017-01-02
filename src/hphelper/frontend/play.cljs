@@ -642,7 +642,7 @@
   [[k invest-map] sgs]
   (log/info "investment row. k:" k "invest-map:" invest-map "sgs:" sgs)
   ^{:key k}
-  [:tr
+  [:tr {:class (if (= (get-in @game-atom [:character :name]) (name k)) "text-success" "")}
    [:td k]
    (doall
      (map
@@ -665,7 +665,7 @@
 (defn- create-trade-button
   "Creates a single button for buying or selling"
   ([zone group amount]
-   [:span {:class "btn-default btn-xs"
+   [:div {:class "btn-default btn-xs"
            :onClick 
            #(do (ajax/GET (wrap-context "/api/player/trade-investments/")
                           {:response-format (ajax/json-response-format {:keywords? true})
@@ -693,8 +693,7 @@
                ^{:key sg}
                [:td
                 ;; Buy button
-                (create-trade-button sg 1)
-                (create-trade-button sg -1)
+                (doall (map create-trade-button (repeat sg) [10 5 1 -1 -5 -10]))
                 ]
                )
              )
@@ -717,9 +716,23 @@
           (let [sgs (sort ["AF" "CP" "IS" "PL" "TS" "TD" "PS" "RD" "HP"])]
             (log/info "sgs:" sgs "vestments:" (:investments @game-atom))
             [:table {:class "table-hover table-striped col-lg-12"}
-             [:thead>tr
-              [:td ] ;; For name
-              (map (fn [k] ^{:key k} [:th k]) sgs)
+             [:thead
+              ;; SG abbreviations
+              [:tr
+               [:td ] ;; For name
+               (map (fn [k] ^{:key k} [:th k]) sgs)
+               ]
+              ;; Prices
+              [:tr
+               [:th "Price"]
+               (map (fn [sg] ^{:key sg} [:th (-> @game-atom :indicies first (get (keyword sg))
+                                                 ;; We have the index, now to convert to price
+                                                 (+ 100) (/ 100) (max 0.1)
+                                                 ;; We have price, now to reduce to 2 decimal places
+                                                 (* 100) int (/ 100))])
+                    sgs
+                    )
+               ]
               ]
              [:tbody
               (investment-trade-row sgs)
