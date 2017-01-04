@@ -41,6 +41,7 @@
                                     ]
                                    )
           [shared/user-bar-component]
+          [shared/debug-switcher-button]
           ]
          ]
         ]
@@ -58,10 +59,8 @@
            )
          ]
         ]
-       ;; Debug data
-       [:div
-        (shared/init)
-        ]
+       ;; Makes sure we have the required data in shared
+       [:div (do (shared/init) nil)]
        ]
       )
     )

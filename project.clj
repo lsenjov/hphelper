@@ -127,7 +127,10 @@
              ;; :server-logfile "tmp/logs/figwheel-logfile.log"
              }
 
-  :ring {:handler hphelper.server.handler/app}
+  :ring {:handler hphelper.server.handler/app
+         :uberwar-name "hphelper.war"
+         :uberjar-name "hphelper.jar"
+         }
 
   ;; setting up nREPL for Figwheel and ClojureScript dev
   ;; Please see:
@@ -145,6 +148,21 @@
                    ;; :plugins [[cider/cider-nrepl "0.12.0"]]
                    :repl-options {; for nREPL dev you really need to limit output
                                   :init (set! *print-length* 50)
-                                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}}
-
+                                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+                   }
+             :uberjar {;:hooks [minify-assets.plugin/hooks]
+                       ;:source-paths ["env/prod/clj"]
+                       :source-paths ["src/hphelper/server" "src/hphelper/shared"]
+                       :prep-tasks ["compile" ["cljsbuild" "once" "min"]]
+                       :env {:production true}
+                       :aot :all
+                       :omit-source true}
+             :uberwar {;:hooks [minify-assets.plugin/hooks]
+                       ;:source-paths ["env/prod/clj"]
+                       :source-paths ["src/hphelper/server" "src/hphelper/shared"]
+                       :prep-tasks ["compile" ["cljsbuild" "once" "min"]]
+                       :env {:production true}
+                       :aot :all
+                       :omit-source true}
+             }
 )

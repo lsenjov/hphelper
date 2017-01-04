@@ -584,7 +584,10 @@
        [character-modification]
        [character-creation]
        )
-     [:div "System info:" [shared/get-debug]]
+     (if (shared/get-debug-status)
+       [:div "System info:" [shared/get-debug]]
+       nil
+       )
      ]
     )
   )

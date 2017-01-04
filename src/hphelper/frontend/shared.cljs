@@ -13,7 +13,11 @@
                       ;; Remove the ending
                       (clojure.string/replace "/index.html" "")
                       )
+         ;; Adds this to button objects, affects the padding.
          :buttonSize " btn-sm "
+         ;; Display all information known to the client?
+         ;; It's okay if clients turn this on themselves, they won't have any privileged information
+         :debug false
          :skills [
                   {:skills_name "Management"
                    ;; Description of the skill
@@ -123,6 +127,19 @@
            }
    ]
   )
+(defn debug-switcher-button
+  "Switches the :debug tag in system-info"
+  []
+  [:span {:class (if (:debug @system-info) "btn btn-success btn-xs" "btn btn-default btn-xs")
+          :onClick #(swap! system-info update-in [:debug] not)
+          }
+   "Debug"
+   ]
+  )
+(defn get-debug-status
+  "Gets the current debug status (true/false)"
+  []
+  (:debug @system-info))
 
 ;; Getting public info from server and storing it locally
 (defn get-societies

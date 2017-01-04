@@ -666,7 +666,7 @@
   "Creates a single button for buying or selling"
   ([zone group amount]
    [:div {:class "btn-default btn-xs"
-           :onClick 
+           :onClick
            #(do (ajax/GET (wrap-context "/api/player/trade-investments/")
                           {:response-format (ajax/json-response-format {:keywords? true})
                            :handler (fn [m]
@@ -1150,51 +1150,56 @@
   "Top-end component for playing the game"
   []
   [:div
-  (if (not (:playing @play-atom))
-    ;; Not currently in a game, request details
-    [:div
-     "Game Uuid:"
-     (shared/text-input play-atom [:gameUuid])
-     "Player Uuid: (If spectating, leave blank)"
-     (shared/text-input play-atom [:userUuid])
-     [:div {:class (add-button-size "btn btn-default")
-            :onClick (fn []
-                       (swap! play-atom assoc :userlevel "public")
-                       (get-updates)
-                       )
-            }
-      "Spectate"
+   (if (not (:playing @play-atom))
+     ;; Not currently in a game, request details
+     [:div
+      "Game Uuid:"
+      (shared/text-input play-atom [:gameUuid])
+      "Player Uuid: (If spectating, leave blank)"
+      (shared/text-input play-atom [:userUuid])
+      [:div {:class (add-button-size "btn btn-default")
+             :onClick (fn []
+                        (swap! play-atom assoc :userlevel "public")
+                        (get-updates)
+                        )
+             }
+       "Spectate"
+       ]
+      [:div {:class (add-button-size "btn btn-default")
+             :onClick (fn []
+                        (swap! play-atom assoc :userlevel "player")
+                        (get-updates)
+                        )
+             }
+       "Play as Player"
+       ]
+      [:div {:class (add-button-size "btn btn-default")
+             :onClick (fn []
+                        (swap! play-atom assoc :userlevel "admin")
+                        (get-updates)
+                        )
+             }
+       "Play as Admin"
+       ]
       ]
-     [:div {:class (add-button-size "btn btn-default")
-            :onClick (fn []
-                       (swap! play-atom assoc :userlevel "player")
-                       (get-updates)
-                       )
-            }
-      "Play as Player"
+     ;; Game loaded, time to start displaying things
+     [game-component game-atom]
+     )
+   [:div {:class (add-button-size "btn btn-danger")
+          :onClick #(do (swap! play-atom assoc :playing false)
+                        (reset! game-atom {})
+                        )
+          }
+    "Leave game"
+    ]
+   ;; Debug
+   (if (shared/get-debug-status)
+     [:div
+      [:div "Play Atom:" (prn-str @play-atom)]
+      [:div "Game keys:" (prn-str (keys @game-atom))]
+      [:div "Game State:" (prn-str @game-atom)]
       ]
-     [:div {:class (add-button-size "btn btn-default")
-            :onClick (fn []
-                       (swap! play-atom assoc :userlevel "admin")
-                       (get-updates)
-                       )
-            }
-      "Play as Admin"
-      ]
-     ]
-    ;; Game loaded, time to start displaying things
-    [game-component game-atom]
-    )
-  [:div {:class (add-button-size "btn btn-danger")
-         :onClick #(do (swap! play-atom assoc :playing false)
-                       (reset! game-atom {})
-                       )
-         }
-   "Leave game"
+     nil
+     )
    ]
-  ;; Debug
-  [:br] "Play Atom:" (prn-str @play-atom)
-  [:br] "Game keys:" (prn-str (keys @game-atom))
-  [:br] "Game State:" (prn-str @game-atom)
-  ]
   )
