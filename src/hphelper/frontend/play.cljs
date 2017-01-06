@@ -23,6 +23,35 @@
 (defonce ^:private ticker-keyword-atom
   (atom #{}))
 
+;; Helper Functions
+(defn- map-to-str
+  "Changes an access map into a single string"
+  [am]
+  (->> am
+    (map (fn [[k v]] (str (name k) " " (-> v (* 100) int (/ 100))
+                          )))
+    sort
+    (interpose ", ")
+    (apply str)
+    )
+  )
+(defn calculate-diffs
+  "Given 2 maps, returns a map with the numerical differences between both, (- first second)"
+  [[f s]]
+  (apply merge {} (map (fn [[k v]] {k (- (get f k) v)}) s))
+  )
+(defn- ^Map calculate-last-access
+  "Returns a string of the last access change"
+  []
+  (->> @game-atom
+       :access
+       (take 2)
+       calculate-diffs
+       (filter (fn [[_ v]] (not (= 0 v))))
+       )
+  )
+
+;; Getting updates from server and loading into state
 (defn load-updates
   "Loads a map of updates into the game atom"
   [m]
@@ -86,7 +115,17 @@
       )
     )
   )
+(defn get-sg-name
+  "Gets the name of a service group by service group id"
+  [id]
+  (->> @game-atom
+       :serviceGroups
+       (some (fn [{:keys [sg_id sg_name]}] (if (= id sg_id) sg_name nil)))
+       )
+  )
 
+;; Begin display components
+;; Display news
 (defn news-component
   "Component for displaying news items"
   []
@@ -115,6 +154,7 @@
       )
     )
   )
+;; Display cbay
 (defn cbay-component
   "Component for displaying cbay items (and later bidding on them)" ;; TODO cbay bids
   []
@@ -143,32 +183,7 @@
       )
     )
   )
-(defn- map-to-str
-  "Changes an access map into a single string"
-  [am]
-  (->> am
-    (map (fn [[k v]] (str (name k) " " (-> v (* 100) int (/ 100))
-                          )))
-    sort
-    (interpose ", ")
-    (apply str)
-    )
-  )
-(defn calculate-diffs
-  "Given 2 maps, returns a map with the numerical differences between both, (- first second)"
-  [[f s]]
-  (apply merge {} (map (fn [[k v]] {k (- (get f k) v)}) s))
-  )
-(defn- ^String calculate-last-access
-  "Returns a string of the last access change"
-  []
-  (->> @game-atom
-       :access
-       (take 2)
-       calculate-diffs
-       (filter (fn [[_ v]] (not (= 0 v))))
-       )
-  )
+;; Display access
 (defn access-component
   "Component for displaying cbay items (and later bidding on them)" ;; TODO cbay bids
   []
@@ -300,6 +315,7 @@
       )
     )
   )
+;; Display indicies
 (defn indicies-component
   "Component for displaying cbay items (and later bidding on them)" ;; TODO cbay bids
   []
@@ -381,6 +397,7 @@
       )
     )
   )
+;; Display society missions
 (defn display-single-society-mission
   [{:keys [ssm_id ss_id c_id ssm_text ss_name]}]
   ^{:key ssm_id} [:tr [:td (shared/wrap-any ss_name)] [:td ssm_text]]
@@ -413,6 +430,7 @@
       )
     )
   )
+;; Display minions
 (defn display-single-minion
   "Displays a single minion"
   [{:keys [minion_id minion_name minion_clearance minion_cost mskills bought?] :as minion} sgid]
@@ -542,14 +560,7 @@
      )
    ]
   )
-(defn get-sg-name
-  "Gets the name of a service group by service group id"
-  [id]
-  (->> @game-atom
-       :serviceGroups
-       (some (fn [{:keys [sg_id sg_name]}] (if (= id sg_id) sg_name nil)))
-       )
-  )
+;; Display directives
 (defn display-single-directive
   [{:keys [sgm_id sgm_text sg_id c_id]}]
   ^{:key sgm_id} [:tr [:td (get-sg-name sg_id)] [:td sgm_text]]
@@ -578,26 +589,7 @@
       )
     )
   )
-(defn missions-component
-  "Component for displaying both secret society missions and directives"
-  []
-  (let [expand-atom (atom false)]
-    (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        "Directive and Society Missions"
-        ]
-       (if @expand-atom
-         [:div {:class ""}
-          [society-missions-component]
-          [directives-component]
-          ]
-         )
-       ]
-      )
-    )
-  )
+;; Display Keywords
 (defn keywords-component
   "Displays all the keywords for the mission"
   []
@@ -620,6 +612,7 @@
       )
     )
   )
+;; Display secret society minions
 (defn program-group-component
   "Displays a single service group"
   []
@@ -659,6 +652,7 @@
       )
     )
   )
+;; Display investments
 (defn- investment-table-row
   "Returns a row of an investment table"
   [[k invest-map] sgs]
@@ -775,6 +769,7 @@
       )
     )
   )
+;; Display news ticker
 (defn- ^String news-read-access
   "Returns a string of a news reader detailing an access change"
   [^Map m]
@@ -898,7 +893,7 @@
       )
     )
   )
-
+;; Display character sheet
 (defn character-component
   "Component for displaying a character sheet"
   []
@@ -971,7 +966,7 @@
       )
     )
   )
-
+;; Display admin panel
 (defn- create-stat-roller
   "When pressed, rolls a number between 1 and 20 and displays the result in the status atom as a string"
   [^Atom status n ^String player ^String stat]
@@ -1066,7 +1061,6 @@
         )
    ]
   )
-
 (defn sync-player-files
   "Saves all the player files back in the database"
   []
@@ -1161,7 +1155,7 @@
       )
     )
   )
-
+;; Display public standing of players
 (defn public-standing-component
   "Displays user's public standing, as well as upcoming live vidshows"
   []
@@ -1238,6 +1232,7 @@
     )
   )
 
+;; Display panel for the game in total
 (defn game-component
   "Component for displaying and playing a game"
   [^Atom g]
@@ -1258,7 +1253,6 @@
      [:tr
       [:td {:style {:width "50%"}}
        [access-component]
-       ;[missions-component] ;; Removed due to figuring out how to remove the borders easily
        [directives-component]
        [society-missions-component]
        [indicies-component]
@@ -1286,6 +1280,7 @@
    [news-ticker-component ticker-keyword-atom]
    ]
   )
+;; Top-level display panel for logging into games
 (defn play-component
   "Top-end component for playing the game"
   []
