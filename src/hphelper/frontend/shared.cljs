@@ -140,6 +140,10 @@
   "Gets the current debug status (true/false)"
   []
   (:debug @system-info))
+(defn two-decimals
+  "Prints a number 2 decimal places"
+  [n]
+  (-> n (* 100) int (/ 100)))
 
 ;; Getting public info from server and storing it locally
 (defn get-societies

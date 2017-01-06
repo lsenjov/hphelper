@@ -19,6 +19,10 @@
   (atom {})
   )
 
+; Atom containing keywords purely for the ticker
+(defonce ^:private ticker-keyword-atom
+  (atom #{}))
+
 (defn load-updates
   "Loads a map of updates into the game atom"
   [m]
@@ -44,6 +48,15 @@
                m
                )
              )
+      ;; Add the updated keys to the ticker-keywords-atom
+      (swap! ticker-keyword-atom
+             #(apply conj
+                     %
+                     (-> m
+                         keys
+                         set
+                         ;; Remove the following keys from updating
+                         (disj :updated :status :serviceGroups :directives :missions))))
       )
     )
   )
@@ -53,22 +66,24 @@
   (ajax/GET (wrap-context (str "/api/" (:userlevel @play-atom) "/updates/"))
             {:response-format (ajax/json-response-format {:keywords? true})
              :handler (fn [m]
-                        (log/info "Get update:" m)
+                        (log/info "Get update keys:" (keys m))
                         (load-updates m)
                         )
              :params (assoc @play-atom :lastUpdated (if-let [t (:updated @game-atom)] t 0)) ;; Move :lastUpdated somewhere
              }
             )
   )
-(defn loop-updates
+(defn loop-updates-component
   "Continuously calls get-updates while :playing is true"
   []
-  (log/info "loop-updates sending call.")
-  (get-updates)
-  ;(Thread/sleep 5000) ;; TODO Figure out how to make a thread sleep
-  (if (:playing @play-atom)
-    (recur)
-    nil
+  (let [update-atom (atom 0)]
+    (fn []
+      (log/info "loop-updates sending call.")
+      (js/setTimeout #(if (:playing @play-atom) (swap! update-atom inc) nil) 3000)
+      @update-atom
+      (get-updates)
+      nil
+      )
     )
   )
 
@@ -144,6 +159,16 @@
   [[f s]]
   (apply merge {} (map (fn [[k v]] {k (- (get f k) v)}) s))
   )
+(defn- ^String calculate-last-access
+  "Returns a string of the last access change"
+  []
+  (->> @game-atom
+       :access
+       (take 2)
+       calculate-diffs
+       (filter (fn [[_ v]] (not (= 0 v))))
+       )
+  )
 (defn access-component
   "Component for displaying cbay items (and later bidding on them)" ;; TODO cbay bids
   []
@@ -155,13 +180,7 @@
          [:div {:class "panel-heading"
                 :onClick #(swap! expand-atom not)}
           "ACCESS: Last Change: "
-          (->> @game-atom
-               :access
-               (take 2)
-               calculate-diffs
-               (filter (fn [[_ v]] (not (= 0 v))))
-               map-to-str
-               )
+          (map-to-str (calculate-last-access))
           ]
          (if @expand-atom
            [:div {:class ""}
@@ -186,7 +205,8 @@
                 (for [change [20 10 5 -1 -2 -3 -4 -5 -6 -7 -8 -9 -10 -20]]
                   [:tr
                    (for [player players]
-                     [:td>td
+                     ^{:key player}
+                     [:td>div
                       {:class "btn btn-default btn-xs btn-block"
                        :title (str "Change " player " by " change " ACCESS.")
                        :onClick #(ajax/GET (wrap-context "/api/admin/modify-access/")
@@ -314,7 +334,7 @@
             (if (= "admin" (:userlevel @play-atom))
               (for [change [-20 -10 -5 0 +5 +10 +20]]
                 [:tr
-                 (for [ind (->> @game-atom :indicies first keys (map name) sort)]
+                 (for [ind (->> @game-atom :indicies first keys (map name) doall sort)]
                    [:td>td {:class "btn-warning btn-xs btn-block"
                             :onClick #(ajax/GET
                                         (wrap-context "/api/admin/modify-index/")
@@ -515,9 +535,11 @@
       "Show assign service group panel?"
       ]
      )
-   (map (fn [sg] [single-service-group-component sg])
-        (sort-by :sg_id (:serviceGroups @game-atom))
-        )
+   (doall
+     (map (fn [sg] ^{:key sg} [single-service-group-component sg])
+          (sort-by :sg_id (:serviceGroups @game-atom))
+          )
+     )
    ]
   )
 (defn get-sg-name
@@ -749,6 +771,129 @@
           ]
          nil
          )
+       ]
+      )
+    )
+  )
+(defn- ^String news-read-access
+  "Returns a string of a news reader detailing an access change"
+  [^Map m]
+  (case (count m)
+    0 "Access held steady."
+    1 (let [[k v] (first m)] (str (name k)
+                                  (if (neg? v) " spent " " gained ")
+                                  (shared/two-decimals (if (neg? v) (- v) v))
+                                  " ACCESS"))
+    ;; Used when a player sends cash to another player
+    2 (let [[[k1 _] [k2 v2]] (sort-by val m)]
+        (str (name k1)
+             " sent "
+             v2
+             " ACCESS to "
+             (name k2)))
+    (str "Last access changes " (map-to-str m))
+    )
+  )
+(defn- ^String news-read-indicies
+  "Returns a string of a news reader detailing an indicies change. Only announces the largest change"
+  []
+  (->> @game-atom
+       :indicies
+       (take 2)
+       (calculate-diffs)
+       ;; Remove empty changes
+       (filter (fn [[_ v]] (not (= 0 v))))
+       ;; Sort be greatest change
+       (sort-by (fn [[_ v]] (if (neg? v) (- v) v)) >)
+       ;; Take the 3 greatest changes
+       (take 3)
+       ;; Turn them into anouncements
+       (map (fn [[k v]]
+              (str (name k)
+                   (if (neg? v) " fell " " rose ")
+                   (if (neg? v) (- v) v)
+                   " points")))
+       ;; Make it prettier
+       (interpose ", ")
+       (apply str)
+       ;; Add the header
+       (str "Latest Indicies Change: ")
+       )
+  )
+(defn news-ticker-component
+  "Takes an atom of a set of keywords, continuously changes bottom news ticker."
+  [^Atom a]
+  (let [ticker-atom (atom {:text "" :kw nil})]
+    (fn []
+      (js/setTimeout
+        #(if (:playing @play-atom)
+           (let [new-kw (-> @a shuffle first)]
+             (log/info "Swapping Ticker. Possible Keys:" (pr-str @ticker-keyword-atom))
+             (swap! a disj new-kw)
+             (reset! ticker-atom
+                     {:kw new-kw
+                      :text (case new-kw
+                              :access (str "Breaking News: " (news-read-access (calculate-last-access)))
+                              :indicies (str "Breaking News: " (news-read-indicies))
+                              :hps "Breaking News: IntSec updates ULTRAVIOLET consumer profiles!"
+                              :zone (str "You are watching " (:zone @game-atom) " sector news! With your host, Wat-U-KNO!")
+                              :keywords "Breaking News: IntSec updates their shortlisted watchwords!"
+                              :investments (str "Sector investments increase " (+ 20 (rand-int 50)) "%. Invest in your economy today!")
+                              :cbay (str "Cbay currently listing " (count (:cbay @game-atom)) " items above 1MC")
+                              ;; Either nil or unrecognised, display a random item
+                              ;; Rand-nth picks a random function (without arguments) from the list below and executes it, returning a string to display
+                              ((rand-nth
+                                 [;; Random news item
+                                  (fn [] (rand-nth (:news @game-atom)))
+                                  ;; Market update
+                                  news-read-indicies
+                                  ;; Richest player
+                                  (fn [] (->> (:access @game-atom)
+                                              first
+                                              (remove (fn [[k _]] (or (= "Pool" (name k)) (= "Misc" (name k)))))
+                                              (sort-by val >)
+                                              first
+                                              ((fn [[k v]] (str "Richest ULTRAVIOLET in the crisis room is "
+                                                                (name k)
+                                                                " with "
+                                                                v
+                                                                " ACCESS.")))
+                                              ))
+                                  ;; Poorest player
+                                  (fn [] (->> (:access @game-atom)
+                                              first
+                                              (remove (fn [[k _]] (or (= "Pool" (name k)) (= "Misc" (name k)))))
+                                              (sort-by val)
+                                              first
+                                              ((fn [[k v]] (str "Poorest ULTRAVIOLET in the crisis room is "
+                                                                (name k)
+                                                                " with "
+                                                                v
+                                                                " ACCESS.")))
+                                              ))
+                                  ;; Cbay advertisement
+                                  (fn [] (str "Sponsored cbay listing: " (->> @game-atom :cbay rand-nth)))
+                                  ;; Random item
+                                  (fn [] (rand-nth ["Trust no-one! Stay Alert! Keep your laser handy!"
+                                                    "The Computer Protects!"
+                                                    "Communism doesn't pay!"
+                                                    ]))
+                                  ]
+                                 ))
+                              )
+                      }
+                     )
+             )
+           )
+        ;; How many milliseconds to wait between refreshing screens
+        4000
+        )
+      [:div {:class (str "navbar navbar-default navbar-fixed-bottom label " (if (:kw @ticker-atom) "label-info" ""))}
+       [:div
+        [:h5
+         (:text @ticker-atom)
+         ]
+        ]
        ]
       )
     )
@@ -1135,15 +1280,10 @@
        [service-group-component]
        ]
       ]
-     [:tr>td
-      [:div {:class "btn btn-warning"
-             :onClick get-updates
-             }
-       "Update"
-       ]
-      ]
      ]
     ]
+   [loop-updates-component]
+   [news-ticker-component ticker-keyword-atom]
    ]
   )
 (defn play-component
@@ -1192,6 +1332,8 @@
           }
     "Leave game"
     ]
+   ;; So the leave game button isn't hidden
+   [:br][:br]
    ;; Debug
    (if (shared/get-debug-status)
      [:div
