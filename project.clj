@@ -151,6 +151,8 @@
                                   :init (set! *print-length* 50)
                                   :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    }
+             ;; Specifically remove asserts on compilation
+             :prod {:jvm-opts ["-Dclojure.spec.compile-asserts=false"]}
              :uberjar {;:hooks [minify-assets.plugin/hooks]
                        ;:source-paths ["env/prod/clj"]
                        :source-paths ["src/hphelper/server" "src/hphelper/shared"]
