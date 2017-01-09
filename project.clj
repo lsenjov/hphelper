@@ -54,7 +54,8 @@
             [cider/cider-nrepl "0.10.1"]
             ]
 
-  :source-paths ["src/hphelper/server" "src/hphelper/shared"]
+  ;; Okay, uncommenting this somehow makes the combined builds not work. Don't do it.
+  ;:source-paths ["src/hphelper/server" "src/hphelper/shared"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
@@ -156,6 +157,7 @@
                        :prep-tasks ["compile" ["cljsbuild" "once" "min"]]
                        :env {:production true}
                        :aot :all
+                       :uberjar-name "hphelper.jar"
                        :omit-source true}
              :uberwar {;:hooks [minify-assets.plugin/hooks]
                        ;:source-paths ["env/prod/clj"]
@@ -163,6 +165,7 @@
                        :prep-tasks ["compile" ["cljsbuild" "once" "min"]]
                        :env {:production true}
                        :aot :all
+                       :uberwar-name "hphelper.war"
                        :omit-source true}
              }
 )
