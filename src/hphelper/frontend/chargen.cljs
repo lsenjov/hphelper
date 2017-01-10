@@ -547,8 +547,9 @@
        ;; Page chooser
        [:div {:class "btn-group"}
         (shared/switcher-toolbar page-atom [:page]
-                                 [[:sheet "Display Sheet"] [:stats "Statistics"]
-                                  [:societies "Secret Societies"] [:finalize "Finalize Character"]]
+                                 [[:sheet "Display Sheet"]
+                                  [:societies "Secret Societies"]
+                                  [:finalize "Finalize Character"]]
                                  )
         ]
        ;; TODO
