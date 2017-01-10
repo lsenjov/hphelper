@@ -61,7 +61,7 @@
 
   :cljsbuild {:builds
               [{:id "dev"
-                :source-paths ["src/hphelper/frontend" "src/hphelper/shared"]
+                :source-paths ["src/hphelper/frontend"]
 
                 ;; the presence of a :figwheel configuration here
                 ;; will cause figwheel to inject the figwheel client
@@ -71,7 +71,7 @@
                            ;; in the default browser once Figwheel has
                            ;; started and complied your application.
                            ;; Comment this out once it no longer serves you.
-                           ;; :open-urls ["http://localhost:3449/index.html"]
+                           :open-urls ["http://localhost:3449/index.html"]
                            }
 
                 :compiler {:main hphelper.frontend.core
