@@ -167,6 +167,9 @@
         ]
        (if @expand-atom
          [:div {:class ""}
+          (shared/tutorial-text
+            "To place a bid on any of the objects below, simply state you're purchasing it of the stated price. Others are free to bid higher than you until the time arrives. You do not pay until the auction is up. NOTE: Times currently do not count down and are static."
+            )
           [:table {:class "table-striped table-hover"
                    :style {:width "100%"}
                    }
@@ -199,6 +202,9 @@
           ]
          (if @expand-atom
            [:div {:class ""}
+            (shared/tutorial-text
+              "This is a list of the current access totals for all players, plus access in the public pool and a misc spending column. Pressing the buttons will send access to each of the players, except the pool which will take that much access. Note that while it doesn't prevent you or the pool from going into negatives, it is extremely treasonous to do so (it shows a lack of management)"
+              )
             [:table {:class "table-striped table-hover"
                      :style {:width "100%"}
                      }
@@ -328,6 +334,9 @@
         ]
        (if @expand-atom
          [:div {:class ""}
+          (shared/tutorial-text
+            "This is the current sector indicies and current value of the service groups. Below is the recent changes"
+            )
           [:table {:class "table-striped table-hover"
                    :style {:width "100%"}
                    }
@@ -414,6 +423,9 @@
         ]
        (if @expand-atom
          [:div {:class ""}
+          (shared/tutorial-text
+            "These are (highly treasonous) secret society missions. They give 5 ACCESS on completion, and unlike directives do not lose you ACCESS on failure."
+            )
           [:table {:class "table table-striped table-hover"}
            [:tbody
             (doall (map display-single-society-mission
@@ -506,6 +518,9 @@
             ;; If admin, show the switcher
             (if (and (= "admin" (:userlevel @play-atom)) (:showAssignGroups @play-atom))
               [:div {:class "alert alert-warning"}
+               (shared/tutorial-text
+                 "These will assign owners of service groups. Remember to lock investments before using these!"
+                 )
                "Set Owner:"
                [:div {:class "btn-group"}
                 (doall
@@ -543,6 +558,9 @@
   "Component for displaying service group minions (And later purchasing them)" ;; TODO purchasing
   []
   [:div
+   (shared/tutorial-text
+     "If on, will only show minions that have been purchased. If off, will show all minions (you can't see unbought minions of groups you don't own"
+     )
    [:div {:class (add-button-size (if (:filterBought? @play-atom) "btn btn-success btn-block" "btn btn-default btn-block"))
           :onClick #(swap! play-atom update-in [:filterBought?] not)}
     "Show bought minions only?"
@@ -577,6 +595,9 @@
         ]
        (if @expand-atom
          [:div {:class ""}
+          (shared/tutorial-text
+            "When you are assigned service groups, below will show a list of directives. These directives will give you 10 ACCESS at the end of a session if completed, but will lose you 10 ACCESS if you fail to complete them. Their success/failure will also influence their price"
+            )
           [:table {:class "table table-striped table-hover"}
            [:tbody
             (doall (map display-single-directive
@@ -602,6 +623,7 @@
         ]
        (if @expand-atom
          [:div {:class ""}
+          [:div (shared/tutorial-text "A list of keywords highlighted in an IntSec sweep. May be nothing, may be everything, may be a decoy.")]
           (->> @game-atom
                :keywords
                (interpose ", ")
@@ -625,6 +647,9 @@
         ]
        (if @expand-atom
          [:div
+          (shared/tutorial-text
+            "To use a cover identity, privately message the GM before calling with both their name and who you're calling. e.g.: 'Calling Communists as Printing Services'."
+            )
           "Reminder: These are treasonous secret societies! Always call using a cover identity!"
           [:table {:class "table-striped table-hover"
                    :style {:width "100%"}
@@ -729,6 +754,9 @@
         ]
        (if @expand-atom
          [:div {:class "panel-body"}
+          (shared/tutorial-text
+            "Whoever has the highest investment in a service group will gain control of that group for the session. You can buy and sell shares in the group until the GM locks it."
+            )
           (let [sgs (sort ["AF" "CP" "IS" "PL" "TS" "TD" "PS" "RD" "HP"])]
             (log/info "sgs:" sgs "vestments:" (:investments @game-atom))
             [:table {:class "table-hover table-striped col-lg-12"}
@@ -925,7 +953,7 @@
             ]
            [:div
             "Mutations: "
-            (let [muts (get-in @game-atom [:character :mutation :description])]
+            (let [muts (get-in @game-atom [:character :mutation :desc])]
               (if (string? muts)
                 muts
                 [:table {:class "table table-striped table-hover"}
@@ -1087,6 +1115,9 @@
         ]
        (if @expand-atom
          [:div
+          (shared/tutorial-text
+            "Pressing 'Save Players' will save character information to the server. Pressing any of the buttons below will just roll against their statistic, and won't have any effect on the game (that's for you to do)"
+            )
           [:div {:class "col-lg-12"}
            [:div {:class "col-lg-10"}
             [admin-show-status-line status-atom 3]
@@ -1122,6 +1153,9 @@
             ]
            ]
           [:div {:class "col-lg-12"}
+           (shared/tutorial-text
+             "Sends a message to the server to lock or unlock player's investments."
+             )
            [:div {:class "col-lg-2"}
             [:span {:class "btn btn-success"
                     :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
@@ -1168,6 +1202,9 @@
         ]
        (if @expand-atom
          [:div {:class ""}
+          (shared/tutorial-text
+            "NOTE: player's can't currently see this. Let them research it if they're wanting to know how much their standing changed in a game."
+            )
           [:table {:class "table-striped table-hover"
                    :style {:width "100%"}}
            [:thead
@@ -1240,6 +1277,9 @@
    [:h5 "Welcome High Programmer " (get-in @game-atom [:character :name])
     " to zone " (:zone @game-atom)
     ". Current Access: " (-> @game-atom :access first (get (keyword (get-in @game-atom [:character :name]))))]
+   (shared/tutorial-text
+     "Click on any of the headers below to see more"
+     )
    (if (= "admin" (:userlevel @play-atom))
      [admin-player-component]
      nil

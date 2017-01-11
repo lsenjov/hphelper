@@ -41,6 +41,7 @@
                                     ]
                                    )
           [shared/user-bar-component]
+          [shared/tutorial-switcher-button]
           [shared/debug-switcher-button]
           ]
          ]

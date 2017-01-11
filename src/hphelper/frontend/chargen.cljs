@@ -244,7 +244,7 @@
 (defn- name-primary-component
   "Component for choosing name"
   [^Atom c]
-  [:div
+  [:div {:class "col-lg-12"}
    [:div {:class "col-lg-4"}
     ;; Name
     [:label {:class "control-label"} "Name: "]
@@ -264,7 +264,9 @@
              }
      ]
     ]
-   [stat-chooser [:nameParts :cloneNum] c "Clone Number" 1 99 true]
+   [:div {:class "col-lg-4"}
+    [stat-chooser [:nameParts :cloneNum] c "Clone Number" 1 99 true]
+    ]
    ]
   )
 (defn- name-secondary-component
@@ -274,7 +276,22 @@
         fullName (str nameFirst "-U-" zone (if cloneNum (str "-" cloneNum) ""))
         ]
     (swap! c assoc :name fullName)
-    [:div "Full Name: " (:name @c)
+    [:div "Full Name: "
+     [:h5 (:name @c)
+      ]
+     ]
+    )
+  )
+(defn name-component
+  "Page for choosing name"
+  [^Atom c]
+  (fn []
+    [:div
+     (shared/tutorial-text
+       "The full name of a high programmer is along the lines of 'Name-U-ABC-4'. The first name is anything you choose. The U in the middle stand for ULTRAVIOLET (your clearance). The ABC can be any 3 letter combination representing your zone of decanting. The number on the end is your current clone number"
+       )
+     [name-primary-component c]
+     [name-secondary-component c]
      ]
     )
   )
@@ -310,7 +327,9 @@
 (defn societies-component
   [^Atom c]
   [:div
-   "Here you can pick the contacts that members of your program group have concact with. Class A societies are technically illegal but generall accepted. Class C societies are heavily illegal but very good at what they do. Class B is somewhere in the middle. "
+   (shared/tutorial-text
+     "Here you can pick the contacts that members of your program group have concact with. Class A societies are technically illegal but generall accepted. Class C societies are heavily illegal but very good at what they do. Class B is somewhere in the middle. "
+     )
    (if-let [pgs (get-in @c [:secStats "Program Group Size"])]
      (str "You must pick " pgs " secret society contacts. ")
      )
@@ -360,8 +379,12 @@
   (let [muts (shared/get-mutations)]
     [:div
      (display-points-remaining c)
-     [:p "Mutations are heavily treasonous (not terminable), but extremely powerful if used correctly. Your power determines the chance of success when using it. The mutation count is how many random powers your character has. Your first power is free and mandatory, but you may buy additional powers and 20 ACCESS apiece."]
-     [:p "It is suggested new players only take a single mutation"]
+     (shared/tutorial-text
+       [:div
+        [:p "Mutations are heavily treasonous (not terminable), but extremely powerful if used correctly. Your power determines the chance of success when using it. The mutation count is how many random powers your character has. Your first power is free and mandatory, but you may buy additional powers and 20 ACCESS apiece."]
+        [:p "It is suggested new players only take a single mutation"]
+        ]
+       )
      ;; Power
      [:div
       [stat-chooser [:mutation :power] c "Mutation Power" 7 16 true]
@@ -385,24 +408,15 @@
     )
   )
 
-(defn name-component
-  "Page for choosing name"
-  [^Atom c]
-  (fn []
-    [:div
-     "The full name of a high programmer is along the lines of 'Name-U-ABC-4'. The first name is anything you choose. The U in the middle stand for ULTRAVIOLET (your clearance). The ABC can be any 3 letter combination representing your zone of decanting. The number on the end is your current clone number"
-     [name-primary-component c]
-     [name-secondary-component c]
-     ]
-    )
-  )
 
 (defn stats-component
   [^Atom c]
   (fn []
     [:div {:class "bs-docs-section"}
      (display-points-remaining c)
-     "Each statistic costs 1 ACCESS per point. The higher the skill, the more likely you will succeed at it."
+     (shared/tutorial-text
+       "Each statistic costs 1 ACCESS per point. The higher the skill, the more likely you will succeed at it."
+       )
      [:div
       (map (fn [stat] ^{:key stat} [:div [stat-chooser [:priStats stat] c stat 1 20 true]]) stats-action)
       ]
@@ -421,7 +435,9 @@
   (fn []
     [:div {:class "bs-docs-section"}
      (display-points-remaining c)
-     [:p "Drawbacks can give you additional starting ACCESS, at the cost of hindering you during play. Some drawbacks are purely roleplay drawbacks, while some can debilitate you if you aren't skilled enough to play around them."]
+     (shared/tutorial-text
+       [:p "Drawbacks can give you additional starting ACCESS, at the cost of hindering you during play. Some drawbacks are purely roleplay drawbacks, while some can debilitate you if you aren't skilled enough to play around them."]
+       )
      [:p "New players should take a maximum of a single drawback."]
      [stat-chooser [:drawbackCount] c "Drawback Count" 0 3 false]
      [:table {:class "table table-striped"}
@@ -442,9 +458,13 @@
     ;; Public Standing
     [:div {:class "bs-docs-section"}
      (display-points-remaining c)
-     [:p "If your public standing is nil, your character is unknown to the masses (those below BLUE clearance). If your public standing is positive, you are a star of the complex, and the masses adore you. The higher (up to 10) your public standing goes, the more the public adore you."]
-     [:p "However, public standing can change considerably, changing up or down in a single session. It can also go into negatives. It goes up with public appearances, looking good, and generally appearing like an upstanding ULTRAVIOLET. It goes down whenever you're incompetent, publicly unhappy, or terminated for treason."]
-     [:p "In mechanical terms, you gain your public standing in ACCESS at the beginning of each session. It is suggested new players leave this blank."]
+     (shared/tutorial-text
+       [:div
+        [:p "If your public standing is nil, your character is unknown to the masses (those below BLUE clearance). If your public standing is positive, you are a star of the complex, and the masses adore you. The higher (up to 10) your public standing goes, the more the public adore you."]
+        [:p "However, public standing can change considerably, changing up or down in a single session. It can also go into negatives. It goes up with public appearances, looking good, and generally appearing like an upstanding ULTRAVIOLET. It goes down whenever you're incompetent, publicly unhappy, or terminated for treason."]
+        [:p "In mechanical terms, you gain your public standing in ACCESS at the beginning of each session. It is suggested new players leave this blank."]
+        ]
+       )
      [stat-chooser [:publicStanding] c "Public Standing" 1 10]
      ]
     )
@@ -477,7 +497,10 @@
           )
         ]
        ;; Debug
-       "Character atom:" @c
+       (if (shared/get-debug-status)
+         [:div "Character atom:" @c]
+         nil
+         )
        ]
       )
     )

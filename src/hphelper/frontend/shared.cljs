@@ -18,6 +18,8 @@
          ;; Display all information known to the client?
          ;; It's okay if clients turn this on themselves, they won't have any privileged information
          :debug false
+         ;; Display tutorial text
+         :tutorial true
          :skills [
                   {:skills_name "Management"
                    ;; Description of the skill
@@ -136,6 +138,23 @@
    "Debug"
    ]
   )
+(defn tutorial-switcher-button
+  "Switches the :tutorial tag in system-info"
+  []
+  [:span {:class (add-button-size (if (:tutorial @system-info) "btn btn-primary" "btn btn-default"))
+          :onClick #(swap! system-info update-in [:tutorial] not)
+          }
+   "Tutorial"
+   ]
+  )
+(defn tutorial-text
+  "If :tutorial is true, will return the supplied text, else will return nil"
+  [text]
+  (if (:tutorial @system-info)
+    [:span {:class "text-primary"}
+     text
+     ]
+    nil))
 (defn get-debug-status
   "Gets the current debug status (true/false)"
   []
