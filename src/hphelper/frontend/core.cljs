@@ -29,7 +29,9 @@
   []
   (fn []
     (let [p (:page @system-info)]
-      [:div {:class "container"}
+      [:div {:class ""
+             :style {:width "90%"}
+             }
        ;; Page Selection
        [:div {:class "navbar navbar-default navbar-fixed-top"}
         [:div {:class "container"}
@@ -47,7 +49,9 @@
          ]
         ]
        ;; Page display
-       [:div {:class "container"}
+       [:div {:class "container"
+              :style {:width "90%"}
+              }
         [:div {:class "page-header"}
          [:br] [:br]
          (case p

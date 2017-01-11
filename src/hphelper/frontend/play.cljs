@@ -1015,7 +1015,7 @@
   )
 (defn admin-single-player-component
   "Displays a single row of a player"
-  [{p-name :name :keys [priStats] :as p-sheet} ^Atom status]
+  [{p-name :name :keys [programGroup priStats] :as p-sheet} ^Atom status]
   [:tr
    [:td (:name p-sheet)]
    (doall
@@ -1036,6 +1036,17 @@
             )
           )
     ]
+   ;; Societies
+   [:td
+    (doall
+      (map
+        (fn [{:keys [ss_name sskills]}]
+          [:div (shared/wrap-any ss_name) ": " (shared/wrap-any sskills)]
+          )
+        programGroup
+        )
+      )
+    ]
    ;; Drawbacks
    [:td (let [dbs (:drawbacks p-sheet)]
           (cond
@@ -1046,8 +1057,8 @@
             :else
             (->> dbs
                  (map :text)
-                 (map #(clojure.string/split % ": "))
-                 (map first)
+                 (map (comp first #(clojure.string/split % ": ")))
+                 (map (comp first #(clojure.string/split % ". ")))
                  (interpose ", ")
                  )
             )
@@ -1135,7 +1146,7 @@
                     }
             [:thead
              [:tr
-              [:td "Name"] [:td "V"] [:td "M"] [:td "Su"] [:td "W"] [:td "So"] [:td "H"] [:td "Mut"] [:td "Descs"] [:td "Drawbacks"]
+              [:td "Name"] [:td "V"] [:td "M"] [:td "Su"] [:td "W"] [:td "So"] [:td "H"] [:td "Mut"] [:td "Descs"] [:td "Societies"] [:td "Drawbacks"]
               ]
              ]
             [:tbody

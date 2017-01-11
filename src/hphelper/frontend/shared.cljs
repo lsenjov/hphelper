@@ -247,6 +247,11 @@
   (some #(if (clojure.string/starts-with? string (cat-key %)) % nil)
         (category @system-info))
   )
+(defn- find-start-society-with-parent
+  "Checks a string, finds if it starts with a society with or without a parent"
+  [string has-parent?]
+  (some #(if (clojure.string/starts-with? string (:ss_name %)) % nil)
+        (filter :ss_parent (:societies @system-info))))
 (defn- find-specialty
   "Checks a string, finds what specialty, if any, it starts with"
   [string]
@@ -262,9 +267,14 @@
     ;; Check specialties
     (find-start string :specialties :skills_name)
     (find-start string :specialties :skills_name)
-    ;; Check societies
-    (find-start string :societies :ss_name)
-    (find-start string :societies :ss_name)
+    ;; Check societies, those with parents first
+    (find-start-society-with-parent string true)
+    (find-start-society-with-parent string true)
+    ;; Check societies, those without parents next
+    (find-start-society-with-parent string false)
+    (find-start-society-with-parent string false)
+    ;(find-start string :societies :ss_name)
+    ;(find-start string :societies :ss_name)
     ;; Check Mutations
     (find-start string :mutations :name)
     (find-start string :mutations :name)

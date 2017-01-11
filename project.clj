@@ -71,7 +71,8 @@
                            ;; in the default browser once Figwheel has
                            ;; started and complied your application.
                            ;; Comment this out once it no longer serves you.
-                           :open-urls ["http://localhost:3449/index.html"]
+                           ;; Opens on 3000 to go with the ring server
+                           :open-urls ["http://localhost:3000/index.html"]
                            }
 
                 :compiler {:main hphelper.frontend.core
