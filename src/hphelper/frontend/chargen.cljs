@@ -328,7 +328,7 @@
   [^Atom c]
   [:div
    (shared/tutorial-text
-     "Here you can pick the contacts that members of your program group have concact with. Class A societies are technically illegal but generall accepted. Class C societies are heavily illegal but very good at what they do. Class B is somewhere in the middle. "
+     "Here you can pick the contacts that members of your program group have concact with. Class A societies are technically illegal but generall accepted. Class C societies are heavily illegal but very good at what they do. Class B is somewhere in the middle. Note that picking multiple sects of the same group will not give you multiple missions from the group, and should generally be avoided. "
      )
    (if-let [pgs (get-in @c [:secStats "Program Group Size"])]
      (str "You must pick " pgs " secret society contacts. ")

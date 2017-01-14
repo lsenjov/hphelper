@@ -51,6 +51,32 @@
        )
   )
 
+(defn- load-updates-inner
+  "Changes the map to the new state. Assumes the message is good"
+  [gameMap {:keys [updated hps character] :as message}]
+  {:pre [updated]}
+  ;; If the message has been updated later than the gamemap
+  (if (and updated (> updated (:updated gameMap)))
+    (-> gameMap
+        (dissoc :error)
+        (assoc :playing true)
+        (merge (cond
+                 ;; If there's a list of hps, convert from edn
+                 hps
+                 (update-in message [:hps] #(if % (cljs.reader/read-string %) %))
+                 ;; If there's a character, convert from edn
+                 character
+                 (update-in message [:character] #(if % (cljs.reader/read-string %) %))
+                 ;; Nothing associated, just add it in
+                 :else
+                 message
+                 )
+               )
+        )
+    ;; Updated later or invalid, just leave it alone
+    gameMap
+    )
+  )
 ;; Getting updates from server and loading into state
 (defn load-updates
   "Loads a map of updates into the game atom"
@@ -66,17 +92,7 @@
       ;; Set playing to true, if we're not already
       (swap! play-atom assoc :playing true)
       ;; Merge any updated keys
-      (swap! game-atom merge
-             ;; The :hps and :character keys both now arrive as edn strings, need to be converted
-             (cond
-               (:hps m)
-               (update-in m [:hps] #(if % (cljs.reader/read-string %) %))
-               (:character m)
-               (update-in m [:character] #(if % (cljs.reader/read-string %) %))
-               :else
-               m
-               )
-             )
+      (swap! game-atom load-updates-inner m)
       ;; Add the updated keys to the ticker-keywords-atom
       (swap! ticker-keyword-atom
              #(apply conj
@@ -474,7 +490,7 @@
 (defn single-service-group-component
   "Displays a single service group"
   [{service-group-id :sg_id}]
-  (let [expand-atom (atom false)]
+  (let [expand-atom (atom true)]
     (fn []
       (let [{:keys [sg_id sg_name sg_abbr minions owner] :as sg}
             (some #(if (= service-group-id (:sg_id %)) % nil)
@@ -953,7 +969,7 @@
             ]
            [:div
             "Mutations: "
-            (let [muts (get-in @game-atom [:character :mutation :desc])]
+            (let [muts (get-in @game-atom [:character :mutation :description])]
               (if (string? muts)
                 muts
                 [:table {:class "table table-striped table-hover"}
