@@ -14,14 +14,14 @@
 )
 
 ;; Current games, keyed by uuid
-(def ^:private current-games
+(defonce ^:private current-games
   (atom {}
-        :validator (fn [m] (s/assert (s/map-of string? ::ss/liveScenario) m))
+        :validator (fn [m] (ss/valid? (s/map-of string? ::ss/liveScenario) m))
         )
   )
 
 ;; Current indicies, keyed by zone string
-(def ^:private current-indicies
+(defonce ^:private current-indicies
   (atom (try (-> "indicies.edn" slurp clojure.edn/read-string)
              (catch Exception e
                (log/trace "Could not read indicies.edn")
@@ -392,6 +392,7 @@
   (-> g
       (assoc-in [:serviceGroups sgIndex :owner] newOwner)
       (assoc-in [:updated :serviceGroups] (current-time))
+      (assoc-in [:updated :directives] (current-time))
       )
   )
 (defn set-sg-owner
