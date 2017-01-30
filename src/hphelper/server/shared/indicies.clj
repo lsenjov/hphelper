@@ -5,11 +5,13 @@
   (:gen-class)
 )
 
+(set! *warn-on-reflection* true)
+
 (def sectorIndicies
   "The four sector indicies: Happiness, Compliance, Loyalty, and Security"
   [:HI :CI :LI :SI])
 
-(defn html-print-single-index
+(defn ^String html-print-single-index
   "Prints a single index in html format"
   [index]
   (str (name (key index))
@@ -32,7 +34,7 @@
                                             sectorIndicies))
                              inds)))))
 
-(defn create-base-indicies-list
+(defn ^clojure.lang.IPersistentMap create-base-indicies-list
   "Combines the base indicies with sg indicies, sets sector indices to 0 and sg indicies to random number between -70 and 70"
   []
   (merge
@@ -42,7 +44,7 @@
 
 (defn normalise-specific-indicies
   "Averages the specified indicies in a map"
-  [choices indicies]
+  [choices ^clojure.lang.IPersistentMap indicies]
   ;; Take the negative average of all the chosen indicies
   (let [avg
         (- (int (Math/floor (/ (reduce + ;; Get the negative integer average
@@ -59,14 +61,20 @@
 
 (defn normalise-all-indicies
   "Normalises the sector indicies, and the service group indicies"
-  [indicies]
+  [^clojure.lang.IPersistentMap indicies]
   (log/trace "normalise-all-indicies:" indicies)
-  (->> indicies
-      (normalise-specific-indicies (map key (remove (partial some (into #{} sectorIndicies)) indicies)))))
+  (normalise-specific-indicies
+    ;; Get all the keys of the Service Group (non-sector) indicies
+    (map key
+         (remove (partial some (into #{} sectorIndicies))
+                 indicies)
+         )
+    indicies)
+  )
 
-(defn fuzzify-indicies
+(defn ^clojure.lang.IPersistentMap fuzzify-indicies
   "Randomly adds, subtracts, or leaves alone each of the indicies. Limits them to the range of -100 to 100"
-  [indicies]
+  [^clojure.lang.IPersistentMap indicies]
   ((apply comp (map (fn [kw]
                       ;; Must return a function
                       (fn [ind]

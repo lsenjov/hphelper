@@ -1,9 +1,9 @@
-(ns hphelper.live.control-test
-  (:require [hphelper.live.control :refer :all]
+(ns hphelper.server.live.control-test
+  (:require [hphelper.server.live.control :refer :all]
             [clojure.test :refer :all]
 
             [clojure.spec :as s]
-            [hphelper.shared.spec :as ss]
+            [hphelper.server.shared.spec :as ss]
             )
   )
 

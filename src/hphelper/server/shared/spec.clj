@@ -25,8 +25,10 @@
 (s/def ::sskills string?)
 (s/def ::ssm_id integer?)
 (s/def ::ssm_text string?)
+(s/def ::id integer?)
 
 ;; Player specific items
+(s/def ::name string?)
 (s/def ::societySingleRec
   (s/keys :req-un [::ss_id ::ss_name ::sskills]))
 (s/def ::programGroup
@@ -35,12 +37,13 @@
   (s/map-of string? integer?))
 (s/def ::secStats
   (s/map-of string? integer?))
-(s/def ::description string?)
+(s/def ::desc string?)
+(s/def ::mutationMap (s/keys :req-un [::desc ::id ::name]))
+(s/def ::description (s/or :old string? :new (s/coll-of ::mutationMap)))
 (s/def ::power integer?)
 (s/def ::mutation
   (s/keys :req-un [::description ::power]))
 (s/def ::accessRemaining number?)
-(s/def ::name string?)
 (s/def ::genericString string?)
 (s/def ::msgs (s/coll-of ::genericString))
 (s/def ::playerCharacter
@@ -72,7 +75,7 @@
 (s/def ::serviceGroups (s/coll-of ::serviceGroupRecord))
 (s/def ::crisises (s/coll-of ::crisisRecord))
 (s/def ::directives (s/coll-of ::directiveRecord))
-(s/def ::indicies (s/coll-of (s/map-of keyword? integer?)))
+(s/def ::indicies (s/coll-of (s/map-of string? integer?)))
 (s/def ::access (s/coll-of (s/map-of string? ::accessRemaining)))
 (s/def ::updated (s/map-of keyword? integer?))
 (s/def ::hps (s/map-of string? ::playerCharacter))

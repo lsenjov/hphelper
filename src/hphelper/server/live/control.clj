@@ -14,8 +14,11 @@
 )
 
 ;; Current games, keyed by uuid
-(defonce ^:private current-games
-  (atom {}))
+(def ^:private current-games
+  (atom {}
+        :validator (fn [m] (s/assert (s/map-of string? ::ss/liveScenario) m))
+        )
+  )
 
 ;; Current indicies, keyed by zone string
 (def ^:private current-indicies
