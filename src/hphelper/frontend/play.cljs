@@ -87,10 +87,8 @@
       (log/info "Could not load updates. Error:" (:message m))
       )
     (do
-      ;; If we're good, dissoc the error message
-      (swap! play-atom dissoc :error)
-      ;; Set playing to true, if we're not already
-      (swap! play-atom assoc :playing true)
+      ;; If we're good, dissoc the error message, set playing to true
+      (swap! play-atom (comp #(dissoc % :error) #(assoc % :playing true)))
       ;; Merge any updated keys
       (swap! game-atom load-updates-inner m)
       ;; Add the updated keys to the ticker-keywords-atom
@@ -101,7 +99,7 @@
                          keys
                          set
                          ;; Remove the following keys from updating
-                         (disj :updated :status :serviceGroups :directives :missions))))
+                         (disj :updated :status :serviceGroups :missions))))
       )
     )
   )
@@ -879,6 +877,7 @@
                               :keywords "Breaking News: IntSec updates their shortlisted watchwords!"
                               :investments (str "Sector investments increase " (+ 20 (rand-int 50)) "%. Invest in your economy today!")
                               :cbay (str "Cbay currently listing " (count (:cbay @game-atom)) " items above 1MC")
+                              :directives "Service group communications spike. Possible change in directives."
                               ;; Either nil or unrecognised, display a random item
                               ;; Rand-nth picks a random function (without arguments) from the list below and executes it, returning a string to display
                               ((rand-nth
@@ -1356,9 +1355,9 @@
      ;; Not currently in a game, request details
      [:div
       "Game Uuid:"
-      (shared/text-input play-atom [:gameUuid])
+      (shared/text-input play-atom [:gameUuid] "eg: abcdefgh-ijkl-mnop-qrst-uvwxyz123456")
       "Player Uuid: (If spectating, leave blank)"
-      (shared/text-input play-atom [:userUuid])
+      (shared/text-input play-atom [:userUuid] "eg: abcdefgh-ijkl-mnop-qrst-uvwxyz123456")
       [:div {:class (add-button-size "btn btn-default")
              :onClick (fn []
                         (swap! play-atom assoc :userlevel "public")

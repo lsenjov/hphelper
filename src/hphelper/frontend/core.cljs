@@ -42,7 +42,8 @@
                                     [:sector "Sector Tools"] [:reference "Paranoiapedia"] [:play "Play Paranoia"]
                                     ]
                                    )
-          [shared/user-bar-component]
+          ;; Logging in and out currently not implemented, remove it
+          ;;[shared/user-bar-component]
           [shared/tutorial-switcher-button]
           [shared/debug-switcher-button]
           ]

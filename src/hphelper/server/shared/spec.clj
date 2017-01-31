@@ -4,6 +4,19 @@
   (:gen-class)
   )
 
+;; A replacement to s/valid? for use in :pre and :post. Throws an exception of the problem when things go wrong
+(defn valid?
+  "A replacement for s/valid?. Throws an exception if invalid, else returns true.
+  Will not be compiled if *compile-asserts* is false"
+  [spec x]
+  (if s/*compile-asserts*
+    `(if clojure.lang.RT/checkSpecAsserts
+       (do
+         (assert* ~spec ~x)
+         true
+         )
+       true)
+    true))
 
 ;; Database types
 ;; c_id may sometimes be nil

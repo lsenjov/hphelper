@@ -4,7 +4,6 @@
             [ajax.core :refer [GET POST] :as ajax]
             ))
 
-;; TODO return to defonce
 (defonce ^:private system-info
   (atom {:context (-> js/window
                       .-location
@@ -121,13 +120,21 @@
   )
 (defn text-input
   "Creates a text box for entering data. Switches the text at path in atom a."
-  [^Atom a ^Vec path]
-  [:input {:type "text"
-           :class "form-control"
-           :value (get-in @a path)
-           :on-change #(swap! a assoc-in path (-> % .-target .-value))
-           }
-   ]
+  ([^Atom a ^Vec path]
+   [:input {:type "text"
+            :class "form-control"
+            :value (get-in @a path)
+            :on-change #(swap! a assoc-in path (-> % .-target .-value clojure.string/trim))
+            }
+    ])
+  ([^Atom a ^Vec path ^String placeholder]
+   [:input {:type "text"
+            :class "form-control"
+            :placeholder placeholder
+            :value (get-in @a path)
+            :on-change #(swap! a assoc-in path (-> % .-target .-value clojure.string/trim))
+            }
+    ])
   )
 (defn debug-switcher-button
   "Switches the :debug tag in system-info"
