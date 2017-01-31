@@ -20,7 +20,7 @@
                  )
   )
 (defonce system-info
-  (atom {}
+  (atom {:page :play}
         )
   )
 
