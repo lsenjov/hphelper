@@ -5,7 +5,7 @@
             ))
 
 (def db {:subprotocol "mysql"
-         :subname "//127.0.0.1:3306/hphelper"
+         :subname "//127.0.0.1:3306/hphelper?useSSL=false"
          :user "fc"})
 
 (defn query
