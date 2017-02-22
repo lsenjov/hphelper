@@ -29,13 +29,17 @@
   "Returns the mutation of a character in a readable format"
   [charRec]
   (html [:div
-            (str "Mutation Description: "
-                 (-> charRec (:mutation) (:description))
-                 (html [:br])
-                 "Mutation Strength: "
-                 (-> charRec (:mutation) (:power)))
-            ]
-           ))
+         [:div "Mutation power: " (-> charRec :mutation :power)]
+         [:div "Mutations:"]
+         (->> charRec
+              :mutation
+              :description
+              (map (fn [{mut-name :name desc :desc}] (str "--" mut-name ": " desc)))
+              (interpose [:br])
+           )
+         ]
+        )
+  )
 
 (defn html-print-program-group
   "Returns the program group of a character in a readable format"
@@ -69,10 +73,15 @@
   (if (charRec :drawbacks)
     (html [:div
               [:b "Drawbacks"][:br]
-               (for [drawback (charRec :drawbacks)]
-                 (str drawback (html [:br])))
-               ])
-    ""))
+              (->> charRec
+                   :drawbacks
+                   (map :text)
+                   (interpose [:br])
+                   )
+              ]
+          )
+    "")
+  )
 
 (defn html-print-service-groups
   "Prints a list of the service groups in a readable format"

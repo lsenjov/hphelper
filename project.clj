@@ -132,6 +132,7 @@
   :ring {:handler hphelper.server.handler/app
          :uberwar-name "hphelper.war"
          :uberjar-name "hphelper.jar"
+         :global-vars {*warn-on-reflection* true}
          }
 
   ;; setting up nREPL for Figwheel and ClojureScript dev

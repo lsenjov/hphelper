@@ -5,8 +5,6 @@
   (:gen-class)
 )
 
-(set! *warn-on-reflection* true)
-
 (def sectorIndicies
   "The four sector indicies: Happiness, Compliance, Loyalty, and Security"
   [:HI :CI :LI :SI])
@@ -94,7 +92,7 @@
   If no value is given, defaults to 4"
   ([adj indicies]
    (adjust-index adj indicies 4))
-  ([adj indicies value]
+  ([^String adj indicies value]
    (assert (string? adj) (str "Index adjustment is not a string, is instead " adj))
    (if (or (not (= (count adj) 3))
            (not (or (= (nth adj 2) \D)
