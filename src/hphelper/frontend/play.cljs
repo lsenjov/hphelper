@@ -23,6 +23,10 @@
 (defonce ^:private ticker-keyword-atom
   (atom #{}))
 
+; Atom containing admin roll messages, plus random problems
+(defonce ^:private admin-status-atom
+  (atom '()))
+
 ;; Helper Functions
 (defn- map-to-str
   "Changes an access map into a single string"
@@ -1010,6 +1014,92 @@
     )
   )
 ;; Display admin panel
+(def ^:private problem-list
+  "Large list of random issues"
+  {:management
+   ["It looks like someone sabotaged the initial reports, so the High Programmer’s solution was applied to the wrong department. Now they’ve got a new problem and need to fi nd the old one with Assessment."
+    "Your management efforts have caused a bureaucratic turf war; grenades are being chucked over cubicle walls, foxholes behind the photocopiers and so on. With a bit more Co-Ordination, you might be able to arrange a cease-fire."
+    "Alert! Alert! It looks like the original Minion is spreading a nasty bug around Alpha Complex. What people need is more Hygiene! Remember to sterilise all exposed surfaces. With fire."
+    "Someone’s hiding something from someone else. Communication is only possible between equals; the lower Clearances always lie to their superiors until the truth is dragged out of them with Interrogation."
+    "Terrified of punishment from above, someone’s stopped co-operating. This calls for Intimidation."
+    "Everything’s bogged down in paperwork and red tape. The crisis now requires Paperwork."
+    "The original solution has snowballed out of control. It needs to be restrained with Thought Control."
+    "Spies report increased sedition and Secret Society involvement. Maybe you should investigate with Thought Survey."]
+   :subterfuge
+   ["It looks like the underground economy is involved. With some Black Marketeering you can shut this treasonous operation down."
+    "Your initial agents were spotted and the traitors are now on their guard. It’s time for Covert Operations."
+    "The Computer wants to make sure that this treason does not spread. Make it not exist with Erasure."
+    "Your earlier efforts turned up signs of Secret Society activity but you need to fi nd out what’s going on with Infiltration."
+    "Congratulations! Your agents have dealt with the original problem thoroughly and efficiently. Now, The Computer wants you to Investigate all those mysterious agents who were running around the sector. It could be a cover for Commie Mutant Traitor activity. Find out who’s behind it all."
+    "Your agents report treasonous activity in the sector. If you Sabotage it, you can shut down the area and ensure the traitors’ plans are stalled."
+    "Unfortunately, your agents have managed to set off a trap. You’ll need to send in someone with Security Systems to rescue them."
+    "The Computer decides that this problem stems from inadequate Surveillance. Increase Surveillance. Don’t let anyone find out about it."]
+   :violence
+   ["The enemy has retreated... to their hidden fortress. You’ll need Assault to force ‘em out."
+    "It’s almost like the Alpha Complex Armed Forces aren’t a well-oiled machine. Different units are now fighting each other. You must use Command to take charge."
+    "Uh-oh, civilians in the line of fi re. You can’t have that many civilian casualties. Use Crowd Control to control those crowds."
+    "It looks like that last attack weakened the dome. Either fi x it, or use Demolition for a controlled collapse."
+    "The enemy’s base is Outdoors. After them with Outdoor Operations!"
+    "The enemy may be anywhere. They could even be outside the situation room. Better increase Security."
+    "It appears that a high Clearance and very popular citizen may be a traitor. Use Wetwork to rub him out."
+    "The Computer’s twitchy. Wipe ‘em all out and sort through the clones later. Total War time!"]
+   :hardware
+   ["It looks like your last effort caused an EMP somehow, frying all the bots. Use Bot Engineering to get ‘em working again."
+    "Leave the sector how you found it, High Programmer. Use Construction to repair the damage."
+    "Your efforts have resulted in a shortage of dihydrogen monoxide. Use Chemical Engineering to brew up a replacement batch."
+    "There’s a click. All the lights go out. Use Habitat Engineering to fix it."
+    "There’s a click. All the lights except one go out. That one remaining light is the reactor core. It’s getting brighter. Some prompt Nuclear Engineering is advisable."
+    "Your actions have disrupted industrial production. This cannot be tolerated. Production must be increased."
+    "Things are happening. Strange things. It’s time for Weird Science."
+    "High Programmer Terrence-U has just what you need to solve the problem over in FAR Sector. You just need to get it here with Transport."]
+   :software
+   ["In your attempts to fix the problem, your Minions accidentally released a computer virus and it’s infected the bots."
+    "Bot Programming is needed before the vending machines take over."
+    "Oh no! Communications are down! You can’t contact your Minions in the sector."
+    "The Computer worries for its own safety. Reassure it with Computer Security."
+    "There’s some evidence that this whole crisis is related to an older problem. You need Data Retrieval experts."
+    "There’s a problem with your credits. Unless you get some Financial Systems expertise involved, you’ll have trouble spending any more Access."
+    "Your Minions have uncovered a traitorous computer subnode. Let’s get Hacking!"
+    "You’ve sent too many Minions in and the supply chain is getting confused. Logistics will sort it out."
+    "Your actions worry the population. It will take some Media Manipulation to show them the approved truth."]
+   :wetware
+   ["Something’s leaking from a vat. Analysis please, via Biosciences."
+    "The proles are hungry and the cafeteria was blown up by one of your Minions. You need disaster relief in the field of Catering."
+    "An important group of citizens died of something icky. You’ve got to get Cloning them ASAP."
+    "Your efforts injured quite a few citizens. They demand Medical attention."
+    "It looks like the stress of your intervention revealed a few new mutants. Send in some Mutant Studies units to tag and register them."
+    "There are signs of some invasion from Outdoors. You’ll need to deploy Outdoor Studies to determine how dangerous it is."
+    "Happiness levels are low. Apply Pharmatherapy immediately."
+    "Loyalty levels are low. Apply Subliminal Messaging immediately."]
+   :other
+   ["The management initiative results in absolute bureaucratic logjam. Nothing’s getting done."
+    "The management initiative uncovers something horribly treasonous. Congratulations – now you’ve got to wipe out the traitors and keep everything else running."
+    "Uh-oh – it looks like that Minion was actually full of traitors, who used the opportunity to push Secret Society goals."
+    "They’ve spread lots of treacherous propaganda!"
+    "Your spies uncover lots and lots and lots of rumours. Which ones are real? Who knows?"
+    "The spies uncover a Secret Society cell. Some of the High Programmers are allies of that society."
+    "Someone mistakes the High Programmers’ spies for Commie Mutant Traitors and shoots ‘em."
+    "The military units sent in turn traitor and are now working for the enemy."
+    "It’s absolute carnage down there, war in the corridors. No-one’s sure what’s going on."
+    "Will somebody think of the happiness level?"
+    "In fixing the problem in your sector, you broke something in an adjoining sector. They assumed it was an attack and they’re preparing to ‘liberate’ your sector from the Commies."
+    "Oops. It looks like you’ve found a route to Outdoors. Better put a suitable guard on that."
+    "Your repair broke another key system."
+    "There’s a problem with the communications network. Any calls to Minions, Agents and so on get routed to the wrong person."
+    "Confidential data is leaked onto the Grey Subnets."
+    "The Computer just crashed."
+    "It appears that your recent experimentation caused some weird reactions. Citizens are hallucinating wildly. Better fix that."
+    "Those drugs are too expensive. Find cheaper alternatives or more Access quick."
+    "Hey, zombies!"]
+   }
+  )
+(defn- generate-problem
+  "Selects a random selection of issues from a list of random items"
+  []
+  [:div
+   (doall (map (fn [[k v]] [:div (clojure.string/capitalize (name k)) ": " (rand-nth v)]) problem-list))
+   ]
+  )
 (defn- create-stat-roller
   "When pressed, rolls a number between 1 and 20 and displays the result in the status atom as a string"
   [^Atom status n ^String player ^String stat]
@@ -1030,7 +1120,7 @@
   )
 (defn admin-single-player-component
   "Displays a single row of a player"
-  [{p-name :name :keys [programGroup priStats] :as p-sheet} ^Atom status]
+  [{p-name :name :keys [programGroup priStats] :as p-sheet} ^Atom status ^Boolean show-ss]
   [:tr
    [:td (:name p-sheet)]
    (doall
@@ -1053,12 +1143,14 @@
     ]
    ;; Societies
    [:td
-    (doall
-      (map
-        (fn [{:keys [ss_name sskills]}]
-          [:div (shared/wrap-any ss_name) ": " (shared/wrap-any sskills)]
+    (when show-ss
+      (doall
+        (map
+          (fn [{:keys [ss_name sskills]}]
+            [:div (shared/wrap-any ss_name) ": " (shared/wrap-any sskills)]
+            )
+          programGroup
           )
-        programGroup
         )
       )
     ]
@@ -1113,6 +1205,7 @@
              ;; To prevent "you need a key" warnings, they're annoying the hell out of me
              (range))
         )
+   (generate-problem)
    ]
   )
 (defn sync-player-files
@@ -1130,8 +1223,9 @@
 (defn admin-player-component
   "A window to show player details and tools"
   []
-  (let [expand-atom (atom false)
-        status-atom (atom '())
+  (let [expand-atom (atom true)
+        status-atom admin-status-atom
+        other-opts-atom (atom {:show-ss false :random-failure {}})
         ]
     (fn []
       [:div {:class "panel-info"}
@@ -1170,7 +1264,7 @@
                   (sort-by #(-> % val :name))
                   (map (fn [[uuid player-sheet]]
                          ^{:key uuid}
-                         (admin-single-player-component player-sheet status-atom)
+                         (admin-single-player-component player-sheet status-atom (:show-ss @other-opts-atom))
                          )
                        )
                   doall
@@ -1182,6 +1276,7 @@
            (shared/tutorial-text
              "Sends a message to the server to lock or unlock player's investments."
              )
+           ;; Lock investments
            [:div {:class "col-lg-2"}
             [:span {:class "btn btn-success"
                     :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
@@ -1195,6 +1290,7 @@
              "Lock Investments"
              ]
             ]
+           ;; Unlock Investments
            [:div {:class "col-lg-2"}
             [:span {:class "btn btn-default"
                     :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
@@ -1206,6 +1302,13 @@
                                          :params (merge @play-atom {:status false})})
                     }
              "Unlock Investments"
+             ]
+            ]
+           ;; Toggle displaying SS
+           [:div {:class "col-lg-2"}
+            [:span {:class "btn btn-default"
+                    :onClick #(swap! other-opts-atom update-in [:show-ss] not)}
+             "Toggle SS display"
              ]
             ]
            ]
