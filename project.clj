@@ -22,7 +22,6 @@
                  [ring "1.5.0"]
                  [ring/ring-defaults "0.2.1"]
                  [ring/ring-anti-forgery "1.0.1"]
-                 [hiccup "1.0.5"]
 
                  ;; Logging Deps
                  [com.taoensso/timbre "4.7.4"]
