@@ -521,7 +521,11 @@
                   ;; Logging
                   (#(do (log/trace "index:" %) %)))
         ;; Total price
-        price (-> index (+ 100) (/ 100) (max 0.1) (* (- amount)))
+        ;price (-> index (+ 100) (/ 100) (max 0.1) (* (- amount)))
+        price (if (neg? amount)
+                ;; Are we selling? If so, it sells for a slightly lower price
+                (* 0.9 (- amount))
+                (- amount))
         ]
     (log/trace "player-trade-investment:" gUid player zone group amount)
     (cond

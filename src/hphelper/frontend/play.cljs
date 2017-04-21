@@ -786,14 +786,19 @@
                ]
               ;; Prices
               [:tr
-               [:th "Price"]
-               (map (fn [sg] ^{:key sg} [:th (-> @game-atom :indicies first (get (keyword sg))
-                                                 ;; We have the index, now to convert to price
-                                                 (+ 100) (/ 100) (max 0.1)
-                                                 ;; We have price, now to reduce to 2 decimal places
-                                                 (* 100) int (/ 100))])
+               [:th "Buy Price"]
+               (map (fn [sg] ^{:key sg} [:th ;(-> @game-atom :indicies first (get (keyword sg))
+                                             ;    ;; We have the index, now to convert to price
+                                             ;    (+ 100) (/ 100) (max 0.1)
+                                             ;    ;; We have price, now to reduce to 2 decimal places
+                                             ;    (* 100) int (/ 100))])
+                                             "1.00"])
                     sgs
                     )
+               ]
+              [:tr
+               [:th "Sell Price"]
+               (map (fn [sg] ^{:key sg} [:th "0.90"]) sgs)
                ]
               ]
              [:tbody
