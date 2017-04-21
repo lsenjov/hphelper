@@ -102,4 +102,4 @@
 ;; Storage for player investments
 ;; (get-in invests [player zone])
 (s/def ::investments
-  (s/map-of ::name (s/map-of ::zone (s/map-of ::sg_abbr number?))))
+  (s/map-of ::name (s/map-of ::sg_abbr number?)))

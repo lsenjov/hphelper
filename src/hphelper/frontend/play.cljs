@@ -708,7 +708,7 @@
        (fn [sg]
          ^{:key sg}
          [:td
-          (let [v (get-in invest-map [(-> @game-atom :zone keyword) (keyword sg)])]
+          (let [v (get-in invest-map [(keyword sg)])]
             (if (or (not v) (= 0 v))
                   "-"
                   v
@@ -1410,7 +1410,12 @@
   [:div
    [:h5 "Welcome High Programmer " (get-in @game-atom [:character :name])
     " to zone " (:zone @game-atom)
-    ". Current Access: " (-> @game-atom :access first (get (keyword (get-in @game-atom [:character :name]))))]
+    ". Current Access: " (-> @game-atom
+                             :access
+                             first
+                             (get (keyword (get-in @game-atom [:character :name])))
+                             (* 100) int (/ 100)
+                             )]
    (shared/tutorial-text
      "Click on any of the headers below to see more"
      )

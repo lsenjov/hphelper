@@ -510,7 +510,7 @@
   [^String gUid ^String player ^String zone ^String group ^Integer amount]
   (let [g (get-game gUid)
         ;; Current number owned by the player, may be nil
-        current (-> (get-in @current-investments [player zone group])
+        current (-> (get-in @current-investments [player group])
                     (#(do (log/trace "current:" %) %)))
         ;; Current index, should not be nil
         index (-> @current-indicies
@@ -544,7 +544,7 @@
       ;; I can't think of any other problems... go for it
       :okay
       (do
-        (swap! current-investments update-in [player zone group] #(if % (+ % amount) amount))
+        (swap! current-investments update-in [player group] #(if % (+ % amount) amount))
         (swap-game! gUid assoc-in [:updated :investments] (current-time))
         (modify-access gUid player price)
         )
