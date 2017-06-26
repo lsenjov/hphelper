@@ -4,7 +4,7 @@
             [hphelper.server.shared.unique :as uni]
             [hphelper.server.shared.indicies :as indicies]
             [taoensso.timbre :as log]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [hphelper.server.shared.spec :as ss]
             [clojure.data.json :as json]
             [hphelper.server.shared.helpers :as help]
@@ -16,7 +16,7 @@
 ;; Current games, keyed by uuid
 (defonce ^:private current-games
   (atom {}
-        :validator (fn [m] (ss/valid? (s/map-of string? ::ss/liveScenario) m))
+        :validator (fn [m] (ss/valid? ::ss/liveGames m))
         )
   )
 
@@ -171,16 +171,13 @@
 (defn new-game
   "Creates a new game, either from an existing map or straight 0s."
   ([valMap]
-   {:post (s/valid? ::ss/liveScenario)}
+   {:post (s/valid? ::ss/liveScenario %)}
    (uni/add-uuid-atom! current-games
                        (-> valMap
                            ;; Fill in any missing indices
                            (update-in [:indicies]
                                       (partial merge
                                                (indicies/create-base-indicies-list)))
-                           ;; Make sure the servicegroups are in a vector
-                           (update-in [:serviceGroups]
-                                      #(into [] %))
                            ;; Make sure the news is in the correct format
                            (update-in [:news]
                                       (partial concat
@@ -388,7 +385,10 @@
 (defn- set-sg-owner-inner
   "Actually sets the owner of the service group, along with the updated time"
   [g sgIndex newOwner]
+  {:pre [(s/assert ::ss/liveScenario g)]
+   :post [(s/assert ::ss/liveScenario %)]}
   (log/trace "set-sg-owner-inner. sgIndex:" sgIndex "newOwner:" newOwner)
+  (log/trace "set-sg-owner-inner. Servicegroups:" (:serviceGroups g))
   (-> g
       (assoc-in [:serviceGroups sgIndex :owner] newOwner)
       (assoc-in [:updated :serviceGroups] (current-time))
@@ -400,7 +400,7 @@
   sg can be either the name, id, or abbreviation"
   [^String uid ^String sg ^String newOwner]
   (log/trace "set-sg-owner:" uid sg newOwner)
-  (if-let [index (help/get-sg-index (get-game uid) sg)]
+  (if-let [index (help/get-sg-abbr (get-game uid) sg)]
     (do
       (log/trace "set-sg-owner. Found sg index:" index)
       (swap-game! uid set-sg-owner-inner index newOwner)
@@ -427,10 +427,10 @@
   "Sets a minion's status to bought or not"
   [g ^Integer sgid ^Integer minionid bought?]
   (log/trace "set-minion-bought-status:" sgid minionid bought?)
-  (let [sgindex (help/get-sg-index g sgid)]
+  (let [sgindex (help/get-sg-abbr g sgid)]
     (log/trace "sgindex:" sgindex)
     (-> g
-        (update-in [:serviceGroups (help/get-sg-index g sgid) :minions]
+        (update-in [:serviceGroups sgindex :minions]
                    (fn [ms]
                      (doall
                        (map (fn [{minion_id :minion_id :as m}]
@@ -470,19 +470,20 @@
   [^String uid ^String player ^Integer sgid ^Integer minionid]
   (log/trace "purchase-minion:" uid player sgid minionid)
   (let [g (get-game uid)
-        minion (->> g
-                    :serviceGroups
+        sg_abbr (help/get-sg-abbr g sgid)
+        _ (log/trace "sg_abbr:" sg_abbr)
+        minion (as-> g v
+                    (:serviceGroups v)
                     ;; Get the service group
-                    (some (fn [{sg_id :sg_id :as sg}]
-                            (if (= sgid sg_id)
-                              sg
-                              nil)))
+                    (get v sg_abbr)
                     ;; We have the service group, now to get the minion
-                    :minions
+                    (:minions v)
+                    ;; Get the minion
                     (some (fn [{minion_id :minion_id :as m}]
                             (if (= minion_id minionid)
                               m
-                              nil)))
+                              nil))
+                          v)
                     )
         ]
     (cond
@@ -550,4 +551,10 @@
         )
       )
     )
+  )
+
+;; Debug stuff
+(comment
+  (-> @current-games vals first :serviceGroups (get "TD") :minions)
+  (-> @current-games vals first :serviceGroups (get "TD"))
   )

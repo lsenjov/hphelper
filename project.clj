@@ -9,7 +9,7 @@
   :dependencies [;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  ;; Shared Deps
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                 [org.clojure/clojure "1.9.0-alpha10"]
+                 [org.clojure/clojure "1.9.0-alpha17"]
 
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  ;; Server Deps
@@ -22,6 +22,9 @@
                  [ring "1.5.0"]
                  [ring/ring-defaults "0.2.1"]
                  [ring/ring-anti-forgery "1.0.1"]
+
+                 ;; For running an uberjar
+                 [http-kit "2.2.0"]
 
                  ;; Logging Deps
                  [com.taoensso/timbre "4.7.4"]
@@ -55,6 +58,8 @@
 
   ;; Okay, uncommenting this somehow makes the combined builds not work. Don't do it.
   ;:source-paths ["src/hphelper/server" "src/hphelper/shared"]
+
+  :main hphelper.server.handler
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"]
 
@@ -161,6 +166,7 @@
                        :env {:production true}
                        :aot :all
                        :uberjar-name "hphelper.jar"
+                       :main hphelper.server.handler
                        :omit-source true}
              :uberwar {;:hooks [minify-assets.plugin/hooks]
                        ;:source-paths ["env/prod/clj"]

@@ -1,12 +1,13 @@
 (ns hphelper.server.shared.helpers
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [hphelper.server.shared.spec :as ss]
             [taoensso.timbre :as log]
             )
   (:gen-class)
   )
 
-(defn get-sg-index
+;;; Legacy code, left for reference. TODO delete
+(defn- get-sg-index-old
   "Finds the index of a service group in a game object. Returns the index, or nil if none
   Searches by sg_id, sg_abbr, or sg_name"
   [g ^String n]
@@ -26,6 +27,20 @@
       )
     )
   )
+
+(defn get-sg-abbr
+  "Searches the game for the abbr of a service group. Returns the abbr, or nil if none.
+  Searches by sg_id, sg_abbr, or sg_name"
+  [g s]
+  (log/trace "get-sg-abbr. s:" s)
+  (some (fn [[_ {:keys [sg_id sg_abbr sg_name]}]]
+          (log/trace "get-sg-abbr. sg_id:" sg_id "sg_abbr:" sg_abbr "sg_name:" sg_name)
+          (if (or (= (str s) (str sg_id))
+                  (= s sg_abbr)
+                  (= s sg_name))
+            sg_abbr
+            nil))
+        (:serviceGroups g)))
 
 (defn is-hp-name?
   "Checks a game to make sure n is a valid player's name. Returns the name if true,

@@ -4,7 +4,7 @@
             [hphelper.server.chargen.generator :as cg]
             [taoensso.timbre :as log]
             [hphelper.server.shared.indicies :refer :all]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             )
   (:gen-class)
   )
@@ -169,11 +169,14 @@
 (defn- select-minion-lists
   "Creates minion lists for each service group under :serviceGroups"
   ([scenRec]
-   (assoc-in scenRec [:serviceGroups]
-             (map (comp sort-minion-list
-                        (partial add-additional-minions 14 14) ;; Want at least 14 minions on each list
-                        (partial create-single-minion-list))
-                  (sql/query "SELECT * FROM `sg`;")))))
+   (let [sgs (apply merge {} ; Throw it all into the one map
+                    (map (comp (fn [{sg_abbr :sg_abbr :as sg}] {sg_abbr sg}) ; Map each service group to its abbreviation
+                               sort-minion-list
+                               (partial add-additional-minions 14 14) ;; Want at least 14 minions on each list
+                               (partial create-single-minion-list))
+                         (sql/query "SELECT * FROM `sg`;")))]
+     (log/trace "select-minion-lists. sgs:" sgs)
+     (assoc scenRec :serviceGroups sgs))))
 
 (defn- select-news
   "Selects crisis-related news and other news articles"

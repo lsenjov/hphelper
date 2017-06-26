@@ -1,7 +1,7 @@
 (ns hphelper.server.live.api
   (:require
             [taoensso.timbre :as log]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [hphelper.server.shared.spec :as ss]
 
             [hphelper.server.shared.sql :as sql]
@@ -142,7 +142,8 @@
   ([^String gUid ^String uUid]
    (log/trace "get-minions:" gUid uUid)
    (if-let [g (get-game gUid)]
-     {:status "okay" :serviceGroups (:serviceGroups (update-in g [:serviceGroups] #(map (partial get-minions-single g uUid) %)))}
+     ;{:status "okay" :serviceGroups (:serviceGroups (update-in g [:serviceGroups] #(map (partial get-minions-single g uUid) %)))} ; TODO remove
+     {:status "okay" :serviceGroups (map (partial get-minions-single g uUid) (-> g :serviceGroups vals))}
      (:invalidGame errors)
      )
    )

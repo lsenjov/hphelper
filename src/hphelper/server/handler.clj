@@ -5,6 +5,9 @@
             [taoensso.timbre :as log]
             [clojure.data.json :as json]
 
+            ;; Standalone server
+            [org.httpkit.server]
+
             ;; Character handling
             [hphelper.server.chargen.generator :as cgen]
             [hphelper.server.chargen.charform :as cform]
@@ -39,7 +42,7 @@
             [ring.middleware.cors :refer [wrap-cors]]
 
             ;; For turning on and off asserts
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             )
   (:gen-class))
 
@@ -341,3 +344,9 @@
       ;(wrap-cors #".*")
       )
   )
+
+(defn -main
+  "Entry when not using it as an uberwar"
+  [& _]
+  (println "Starting Webserver")
+  (org.httpkit.server/run-server app {:port 3000}))

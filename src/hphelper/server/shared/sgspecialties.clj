@@ -1,7 +1,7 @@
 (ns hphelper.server.shared.sgspecialties
   (:require [taoensso.timbre :as log]
             [hphelper.server.shared.sql :as sql]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [hphelper.server.shared.spec :as ss]
             ))
 

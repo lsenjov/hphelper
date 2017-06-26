@@ -161,7 +161,7 @@
                          (filter #(sgids (:sg_id %)))
                          (map (fn [{text :sgm_text sgid :sg_id}]
                                 (html [:div
-                                       (get-in g [:serviceGroups (helpers/get-sg-index g (str sgid)) :sg_abbr])
+                                       (get-in g [:serviceGroups (helpers/get-sg-abbr g (str sgid)) :sg_abbr])
                                        ": "
                                        text
                                        [:br]

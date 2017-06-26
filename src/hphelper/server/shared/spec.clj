@@ -1,5 +1,5 @@
 (ns hphelper.server.shared.spec
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             )
   (:gen-class)
   )
@@ -85,7 +85,7 @@
 (s/def ::crisisRecord (s/keys :req-un [::c_id ::c_type ::c_desc ::extraDesc]))
 (s/def ::directiveRecord (s/keys :req-un [::sgm_id ::sgm_text ::sg_id ::c_id]))
 (s/def ::socieites (s/coll-of ::societyMissionSingle))
-(s/def ::serviceGroups (s/coll-of ::serviceGroupRecord))
+(s/def ::serviceGroups (s/map-of ::sg_abbr ::serviceGroupRecord))
 (s/def ::crisises (s/coll-of ::crisisRecord))
 (s/def ::directives (s/coll-of ::directiveRecord))
 (s/def ::indicies (s/coll-of (s/map-of string? integer?)))
@@ -98,6 +98,8 @@
           :opt-un [::directives ::societies ::zone ::serviceGroups ::crisises ::keywords]
           )
   )
+
+(s/def ::liveGames (s/map-of string? ::liveScenario))
 
 ;; Storage for player investments
 ;; (get-in invests [player zone])
