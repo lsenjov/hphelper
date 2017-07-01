@@ -3,6 +3,7 @@
             [taoensso.timbre :as log]
             [clojure.spec.alpha :as s]
             [hphelper.server.shared.spec :as ss]
+            [hphelper.server.shared.calls :as cs]
 
             [hphelper.server.shared.sql :as sql]
             [hphelper.server.shared.saveload :as sl]
@@ -142,7 +143,6 @@
   ([^String gUid ^String uUid]
    (log/trace "get-minions:" gUid uUid)
    (if-let [g (get-game gUid)]
-     ;{:status "okay" :serviceGroups (:serviceGroups (update-in g [:serviceGroups] #(map (partial get-minions-single g uUid) %)))} ; TODO remove
      {:status "okay" :serviceGroups (map (partial get-minions-single g uUid) (-> g :serviceGroups vals))}
      (:invalidGame errors)
      )
@@ -298,6 +298,16 @@
       )
     )
   )
+(defn get-player-calls
+  "Gets the current calls in the queue"
+  ([^String gUid]
+   (get-player-calls gUid ""))
+  ([^String gUid ^String uUid]
+   (log/trace "get-player-calls:" gUid uUid)
+   (if-let [g (get-game gUid)]
+     {:status "okay" :calls (-> g :calls (cs/get-calls-player (-> g :hps (get uUid) :name)))}
+     (:invalidGame errors)
+     )))
 
 ;; Admin commands
 (defn admin-debug
@@ -431,6 +441,7 @@
     :missions (get-player-society-missions gUid uUid)
     :directives (get-player-directives gUid uUid)
     :serviceGroups (get-minions gUid uUid)
+    :calls (get-player-calls gUid uUid)
     (do (log/trace "Could not do index in get-index:" ind) {})
     )
   )

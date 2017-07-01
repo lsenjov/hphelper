@@ -53,7 +53,7 @@
   :plugins [[lein-figwheel "0.5.8"]
             [lein-cljsbuild "1.1.4" :exclusions [[org.clojure/clojure]]]
             [lein-ring "0.9.7"]
-            [cider/cider-nrepl "0.10.1"]
+            [cider/cider-nrepl "0.14.0"]
             ]
 
   ;; Okay, uncommenting this somehow makes the combined builds not work. Don't do it.

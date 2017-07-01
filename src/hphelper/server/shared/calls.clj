@@ -35,13 +35,13 @@
   (log/trace "add-call-inner. cq:" cq "call:" call)
   (if (->> cq (map :owner) (some #{owner}))
     ;; Call already in the queue, replace it
-    (map (fn [{c-own :owner :as c-call}]
-           (if (= c-own owner)
-             ;; Replace the call
-             call
-             ;; Don't replace it
-             c-call))
-         cq)
+    (mapv (fn [{c-own :owner :as c-call}]
+            (if (= c-own owner)
+              ;; Replace the call
+              call
+              ;; Don't replace it
+              c-call))
+          cq)
     ;; No call in the queue, add it to the end
     (conj cq call)
     ))
@@ -61,12 +61,14 @@
   [{:keys [callNumber callQueue] :as calls}]
   {:pre [(s/assert ::calls calls)]
    :post [(s/assert ::calls %)]}
+  (log/trace "next-call")
   (assoc calls :callNumber (min (inc callNumber) (count callQueue))))
 (defn get-calls
   "Returns the current call queue"
   [{:keys [callNumber callQueue] :as calls}]
   {:pre [(s/assert ::calls calls)]
    :post [(s/assert ::callQueue %)]}
+  (log/trace "get-calls")
   (subvec callQueue callNumber))
 (defn- filter-call-player
   "Takes a single call, filters it if it's a private call the player hasn't bought in to"
@@ -74,6 +76,7 @@
   {:pre [(s/assert ::callWaiting call)
          (s/assert ::owner player)]
    :post [(s/assert ::callFiltered %)]}
+  (log/trace "filter-call-player" player)
   (if (and privateCall ; If it's a private call
            (not= player owner) ; It's not the owner
            (not (some #{player} paid))) ; and this person hasn't paid to listen in
@@ -85,6 +88,7 @@
   "Returns the current call queue for a player, with private calls filtered"
   [{:keys [callNumber callQueue] :as calls} player]
   {:pre [(s/assert ::calls calls)]}
+  (log/trace "get-calls-player" player)
   (mapv (partial filter-call-player player) (get-calls calls)))
 (defn join-private-call
   "Adds a player to a specified private call of another"
@@ -102,23 +106,34 @@
                          ;; This is the one we need
                          (do
                            (log/trace "Found call to add self to:" call)
-                           (update-in call :paid #(if %
-                                                    (-> % (conj player) distinct vec)
-                                                    [])))
+                           (update-in call [:paid] #(if %
+                                                      (-> % (conj player) distinct vec)
+                                                      [player])))
                          ;; Don't need this, leave it alone
                          call))
                      (subvec callQueue callNumber)))))
+(defn get-call-for-player
+  "Returns the unfiltered call in the queue for a player. If no call, returns nil"
+  [calls player]
+  {:pre [(s/assert ::calls calls)
+         (s/assert ::owner player)]
+   :post [(or (nil? %)
+              (s/assert ::callWaiting %))]}
+  (some (fn [{owner :owner :as call}] (if (= player owner) call nil))
+        (get-calls calls)))
 
 
 (comment
   (as-> empty-calls v
-      (add-call v {:owner "hp2" :sg_abbr "HP" :minion_id 5})
-      (add-call v {:owner "hp1" :sg_abbr "AF" :minion_id 3})
-      (add-call v {:owner "hp3" :sg_abbr "HP" :minion_id 5 :privateCall 2})
-      (add-call v {:owner "hp4" :sg_abbr "HP" :minion_id 5 :privateCall 3 :paid ["hp1"]})
-      (add-call v {:owner "hp1" :sg_abbr "RD" :minion_id 8})
-      (next-call v)
-      (join-private-call v "hp1" "hp3")
-      ;((partial get-calls-player "hp1"))
-      )
+    (add-call v {:owner "hp2" :sg_abbr "HP" :minion_id 5})
+    (add-call v {:owner "hp1" :sg_abbr "AF" :minion_id 3})
+    (add-call v {:owner "hp3" :sg_abbr "HP" :minion_id 5 :privateCall 2})
+    (add-call v {:owner "hp4" :sg_abbr "HP" :minion_id 5 :privateCall 3 :paid ["hp1"]})
+    (add-call v {:owner "hp1" :sg_abbr "RD" :minion_id 8})
+    (next-call v)
+    (join-private-call v "hp1" "hp3")
+    (join-private-call v "hp2" "hp3")
+    (get-call-for-player v "hp1")
+    ;((partial get-calls-player "hp1"))
+    )
   )

@@ -1,5 +1,6 @@
 (ns hphelper.server.shared.spec
   (:require [clojure.spec.alpha :as s]
+            [hphelper.server.shared.calls :as cs]
             )
   (:gen-class)
   )
@@ -96,7 +97,7 @@
 
 (s/def ::liveScenario
   (s/keys :req-un [::cbay ::hps ::indicies ::news ::access ::updated]
-          :opt-un [::directives ::societies ::zone ::serviceGroups ::crisises ::keywords]
+          :opt-un [::directives ::societies ::zone ::serviceGroups ::crisises ::keywords ::cs/calls]
           )
   )
 

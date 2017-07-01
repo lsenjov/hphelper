@@ -6,6 +6,7 @@
             [taoensso.timbre :as log]
             [clojure.spec.alpha :as s]
             [hphelper.server.shared.spec :as ss]
+            [hphelper.server.shared.calls :as cs]
             [clojure.data.json :as json]
             [hphelper.server.shared.helpers :as help]
             [clojure.core.async :as async]
@@ -150,7 +151,7 @@
   [sMap ^Integer t]
   (log/trace "setup-last-updated. time:" t)
   (-> sMap
-      (assoc :updated (reduce merge {} (map (fn [k] {k t}) (conj (keys sMap) :missions :hps :investments))))
+      (assoc :updated (reduce merge {} (map (fn [k] {k t}) (conj (keys sMap) :missions :hps :investments :calls))))
       )
   )
 (defn- player-all-setup
@@ -160,12 +161,6 @@
       ;; Setup individual players
       (update-in [:hps] (fn [pl] (apply merge {}
                                         (map player-setup pl))))
-      ;; Setup indicies history
-      setup-indicies-history
-      ;; Setup current access totals and access history
-      setup-current-access-totals
-      ;; Setup last updated to now
-      (setup-last-updated (current-time))
       )
   )
 (defn new-game
@@ -186,12 +181,18 @@
                            (assoc :adminPass (uni/uuid))
                            ;; Adds passwords to everyone
                            (player-all-setup)
+                           ;; Setup indicies history
+                           setup-indicies-history
+                           ;; Setup current access totals and access history
+                           setup-current-access-totals
+                           ;; Setup last updated to now
+                           (setup-last-updated (current-time))
                            ;; Make sure cbay exists, even if it's just an empty list
                            (update-in [:cbay] (partial concat []))
                            ;; Add the call queue.
                            ;; While it *should* be a queue, our queue won't ever be more than 9 objects long,
                            ;;   so we can just use a vector instead
-                           (assoc :callQueue [])
+                           (assoc :calls cs/empty-calls)
                        )))
   ([]
    (new-game {:indicies (indicies/create-base-indicies-list)})))
@@ -568,7 +569,14 @@
 
 ;; Debug stuff
 (comment
+  ; Current games in the atom
+  (-> @current-games keys)
   (-> @current-games vals first :serviceGroups (get "TD") :minions)
   (-> @current-games vals first :serviceGroups (get "TD"))
-  (-> (clojure.lang.PersistentQueue/EMPTY) (conj 1 2 3 4) pop pop vec)
+  (-> @current-games vals first keys)
+  (-> @current-games vals first :calls)
+  (-> @current-games vals first :indicies)
+  (-> @current-games vals first :updated)
+  (-> @current-games vals first :updated keys)
+  (reset! current-games {})
   )
