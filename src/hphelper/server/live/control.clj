@@ -9,7 +9,6 @@
             [hphelper.server.shared.calls :as cs]
             [clojure.data.json :as json]
             [hphelper.server.shared.helpers :as help]
-            [clojure.core.async :as async]
             )
   (:gen-class)
 )
@@ -31,7 +30,7 @@
                )
              )
         :validator (fn [m] (if (s/valid? (s/map-of ::ss/zone ::ss/access) m)
-                             (do (async/go (spit "indicies.edn" (pr-str m))) true)
+                             (do (future (spit "indicies.edn" (pr-str m))) true)
                              false
                              ))
         )
@@ -47,7 +46,7 @@
                )
              )
         :validator (fn [m] (if (s/valid? ::ss/investments m)
-                             (do (async/go (spit "investments.edn" (pr-str m))) true)
+                             (do (future (spit "investments.edn" (pr-str m))) true)
                              false
                              ))
         )
@@ -559,13 +558,35 @@
   )
 
 ;; Call queue
-(defn- player-construct-call
-  "Constructs a single call record for a player"
-  [player sg_abbr minion_id]
-  {:post [(s/assert ::ss/callWaiting %)]}
-  {:owner player
-   :sg_abbr sg_abbr
-   :minion_id minion_id})
+
+(defn player-make-call-inner
+  "Actually adds/replaces a player's call in the call queue"
+  [g player sg minionId privateCall]
+  (-> g
+      (update-in [:calls] cs/add-call (cs/construct-call player sg minionId privateCall))
+      (assoc-in [:updated :calls] (current-time))
+      ))
+
+(defn player-make-call
+  "Adds/replaces a player's call in the call queue"
+  [^String uid ^String player ^String sg ^Integer minionId ^Integer privateCall]
+  (log/trace "player-make-call. uid:" uid "player:" player "sg:" sg "minionId:" minionId "privateCall:" privateCall)
+  (let [g (get-game uid)
+        minion (as-> g v
+                   (get-in v [:serviceGroups sg])
+                   (some (fn [{minion_id :minion_id :as m}]
+                           (if (= minionId minion_id) m nil))
+                         v))]
+    (cond
+      ;; Does the minion exist?
+      (not minion)
+      (do (log/trace "Minion does not exist.") nil)
+      ;; Does the character not exist?
+      (not (help/is-hp-name? g player))
+      (do (log/trace "Character" player "does not exist.") nil)
+      ;; All seems well
+      :all-well
+      (swap-game! uid player-make-call-inner player sg minionId privateCall))))
 
 ;; Debug stuff
 (comment

@@ -121,6 +121,21 @@
               (s/assert ::callWaiting %))]}
   (some (fn [{owner :owner :as call}] (if (= player owner) call nil))
         (get-calls calls)))
+(defn construct-call
+  "Constructs a single call record for a player"
+  ([player sg_abbr minion_id]
+  {:post [(s/assert ::callWaiting %)]}
+  {:owner player
+   :sg_abbr sg_abbr
+   :minion_id minion_id})
+  ([player sg_abbr minion_id privateCall]
+   (if privateCall
+     {:owner player
+      :sg_abbr sg_abbr
+      :minion_id minion_id
+      :privateCall privateCall
+      :paid [player]}
+     (construct-call player sg_abbr minion_id))))
 
 
 (comment

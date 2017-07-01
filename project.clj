@@ -14,7 +14,7 @@
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  ;; Server Deps
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                 [org.clojure/core.async "0.2.391"
+                 [org.clojure/core.async "0.3.443"
                   :exclusions [org.clojure/tools.reader]]
 
                  ;; Web Server
@@ -27,7 +27,7 @@
                  [http-kit "2.2.0"]
 
                  ;; Logging Deps
-                 [com.taoensso/timbre "4.7.4"]
+                 [com.taoensso/timbre "4.10.0"]
 
                  ;; Json Deps
                  [org.clojure/data.json "0.2.6"]
@@ -45,14 +45,14 @@
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  ;; Frontend Deps
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                 [org.clojure/clojurescript "1.9.229"]
-                 [reagent "0.6.0"]
-                 [cljs-ajax "0.5.8"]
+                 [org.clojure/clojurescript "1.9.671"]
+                 [reagent "0.7.0"]
+                 [cljs-ajax "0.6.0"]
                  ]
 
-  :plugins [[lein-figwheel "0.5.8"]
-            [lein-cljsbuild "1.1.4" :exclusions [[org.clojure/clojure]]]
-            [lein-ring "0.9.7"]
+  :plugins [[lein-figwheel "0.5.11"]
+            [lein-cljsbuild "1.1.6" :exclusions [[org.clojure/clojure]]]
+            [lein-ring "0.12.0"]
             [cider/cider-nrepl "0.14.0"]
             ]
 

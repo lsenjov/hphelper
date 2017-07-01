@@ -350,3 +350,10 @@
   [& _]
   (println "Starting Webserver")
   (org.httpkit.server/run-server app {:port 3000}))
+
+(comment
+  ;; Starts the server
+  (def debug-server (org.httpkit.server/run-server app {:port 3000}))
+  ;; Shuts down the server
+  (debug-server)
+  )
