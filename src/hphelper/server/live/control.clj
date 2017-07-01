@@ -188,6 +188,10 @@
                            (player-all-setup)
                            ;; Make sure cbay exists, even if it's just an empty list
                            (update-in [:cbay] (partial concat []))
+                           ;; Add the call queue.
+                           ;; While it *should* be a queue, our queue won't ever be more than 9 objects long,
+                           ;;   so we can just use a vector instead
+                           (assoc :callQueue [])
                        )))
   ([]
    (new-game {:indicies (indicies/create-base-indicies-list)})))
@@ -553,8 +557,18 @@
     )
   )
 
+;; Call queue
+(defn- player-construct-call
+  "Constructs a single call record for a player"
+  [player sg_abbr minion_id]
+  {:post [(s/assert ::ss/callWaiting %)]}
+  {:owner player
+   :sg_abbr sg_abbr
+   :minion_id minion_id})
+
 ;; Debug stuff
 (comment
   (-> @current-games vals first :serviceGroups (get "TD") :minions)
   (-> @current-games vals first :serviceGroups (get "TD"))
+  (-> (clojure.lang.PersistentQueue/EMPTY) (conj 1 2 3 4) pop pop vec)
   )
