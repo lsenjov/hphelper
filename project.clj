@@ -48,6 +48,7 @@
                  [org.clojure/clojurescript "1.9.671"]
                  [reagent "0.7.0"]
                  [cljs-ajax "0.6.0"]
+                 [com.cemerick/url "0.1.1"]
                  ]
 
   :plugins [[lein-figwheel "0.5.11"]

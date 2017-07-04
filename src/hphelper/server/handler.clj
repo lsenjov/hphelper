@@ -210,8 +210,8 @@
        (secgen/html-print-neighbours 7))
 
   ;; LIVE
-  (GET "/live/new/:scen_id/" {{scen_id :scen_id} :params baseURL :context}
-       (lview/new-game baseURL scen_id))
+  (GET "/live/new/:scen_id/" {{scen_id :scen_id} :params headers :headers baseURL :context :as all}
+       (lview/new-game (str (headers "host") baseURL) scen_id))
   (GET "/live/view/:uuid/" {{uid :uuid} :params baseURL :context}
        (lview/view-game baseURL uid))
   (GET "/live/view/:uuid/:confirm/" {{uid :uuid confirm :confirm} :params baseURL :context}

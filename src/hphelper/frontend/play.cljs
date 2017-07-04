@@ -3,16 +3,17 @@
             [reagent.core :as reagent :refer [atom]]
             [ajax.core :refer [GET POST] :as ajax]
             [hphelper.frontend.shared :refer [wrap-context add-button-size] :as shared]
+            [cemerick.url :as url]
             ))
 
 ; Atom containing login information and game status, but not game state
 (defonce ^:private play-atom
-  (atom {:gameUuid nil
-         :userUuid nil
-         :playing false
-         ;; userLevel can be public, player, or admin
-         :userlevel "public"})
-  )
+  (let [query (-> js/window .-location .-href url/url :query)]
+    (atom {:gameUuid (get query "guid")
+           :userUuid (get query "uuid")
+           :playing false
+           ;; userLevel can be public, player, or admin
+           :userlevel "public"})))
 
 ; Atom containing game state information
 (defonce ^:private game-atom
