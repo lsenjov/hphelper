@@ -558,7 +558,6 @@
   )
 
 ;; Call queue
-
 (defn player-make-call-inner
   "Actually adds/replaces a player's call in the call queue"
   [g player sg minionId privateCall]
@@ -595,6 +594,24 @@
   (swap-game! uid #(-> %
                        (update-in [:calls] cs/next-call)
                        (assoc-in [:updated :calls] (current-time)))))
+
+;; Adding custom minions
+(defonce next-minion-id-number (atom (int 100000))) ; We start this at a high number, just to be sure
+(defn add-custom-minion
+  "Constructs and adds a custom minion to the specified service group. Assumes fields have been validated"
+  [gameUuid sg_abbr minionName minionClearance minionDesc]
+  (let [minionId (swap! next-minion-id-number inc)]
+    (log/trace "add-custom-minion. guid:" gameUuid "abbr:" sg_abbr "minionName:" minionName "minionClearance:" minionClearance "minionDesc:" minionDesc "minionId:" minionId)
+    (swap-game! gameUuid #(-> %
+                              (update-in [:serviceGroups sg_abbr :minions]
+                                         conj
+                                         {:minion_id minionId
+                                          :minion_name minionName
+                                          :minion_clearance minionClearance
+                                          :minion_cost 0
+                                          :mskills minionDesc
+                                          :bought? true})
+                              (assoc-in [:updated :serviceGroups] (current-time))))))
 
 ;; Debug stuff
 (comment

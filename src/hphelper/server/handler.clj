@@ -262,6 +262,9 @@
   (GET "/api/player/trade-investments/"
        {{:keys [gameUuid userUuid group amount]} :params}
        (json/write-str (lapi/player-trade-investment gameUuid userUuid group amount)))
+  (GET "/api/player/add-minion/"
+       {{:keys [gameUuid userUuid sgid minionName minionClearance minionDesc]} :params}
+       (json/write-str (lapi/player-add-custom-minion gameUuid userUuid sgid minionName minionClearance minionDesc)))
   ;; Old api
   (GET "/api/player/:gameUuid/:userUuid/updates/:lastUpdated/"
        {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}

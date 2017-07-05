@@ -339,6 +339,36 @@
          {:status "okay"} ; TODO
          )
        ))))
+(defn player-add-custom-minion
+  "Validates and then adds a custom minion to the service group"
+  [gUid uUid sgid minionName minionClearance minionDesc]
+  (log/trace "player-add-custom-minion. guid:" gUid "sgid:" sgid "minionName:" minionName "minionClearance:" minionClearance "minionDesc:" minionDesc)
+  (let [g (get-game gUid)
+        sg_abbr (help/get-sg-abbr g sgid)
+        ]
+    (cond
+      ;; Game doesn't exist
+      (not g)
+      (:login errors)
+      ;; Incorrect sgid
+      (not sg_abbr)
+      (json/write-str {:status "error" :message "Invalid sgid"})
+      ;; Test admin/owner
+      (not (or (is-admin-get-game gUid uUid) ; Not an admin
+               (= (get-in g [:hps uUid :name]) ; Player is not service group owner
+                  (get-in g [:serviceGroups sg_abbr :owner]))))
+      (json/write-str {:status "error" :message "Invalid login"})
+      ;; Name is not blank, or not long enough
+      (or (not (string? minionName))
+          (< (count minionName) 3))
+      (json/write-str {:status "error" :message "Invalid Minion Name"})
+      ;; Invalid clearance
+      (not (#{"IR" "R" "O" "Y" "G" "B" "I" "V"} minionClearance))
+      (json/write-str {:status "error" :message "Invalid Clearance"})
+      ;; All seems to be in order
+      :all-good
+      (do (lcon/add-custom-minion gUid sg_abbr minionName minionClearance minionDesc)
+          (json/write-str {:status "okay"})))))
 
 ;; Admin commands
 (defn admin-debug

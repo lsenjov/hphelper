@@ -535,6 +535,24 @@
           ]
          (if (and @expand-atom (not (= 0 (count minions))))
            [:div
+            (if owner?
+              [:div {:class "btn btn-default"
+                     :onClick #(let [minionName (js/prompt "Enter minion name")
+                                     minionClearance (js/prompt "Enter minion clearance (IR/R/O/Y/G/B/I/V)")
+                                     minionDesc (js/prompt "Enter minion desc (private except for you and GM)")]
+                                 (ajax/GET (wrap-context "/api/player/add-minion/")
+                                                  {:response-format (ajax/json-response-format {:keywords? true})
+                                                   :handler (fn [m]
+                                                              (log/info "Added minion")
+                                                              (get-updates)
+                                                              )
+                                                   :params (merge @play-atom {:sgid sg_id
+                                                                              :minionName minionName
+                                                                              :minionClearance minionClearance
+                                                                              :minionDesc minionDesc})
+                                                   }))}
+               "Add Minion to Service Group"]
+              )
             [:table {:class "table table-striped table-hover"}
              [:thead
               [:tr [:th "Name"] [:th "Clear"] [:th "Cost"] [:th "Skills"] [:th "Buy"]]
