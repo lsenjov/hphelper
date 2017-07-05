@@ -341,10 +341,11 @@
        ))))
 (defn player-add-custom-minion
   "Validates and then adds a custom minion to the service group"
-  [gUid uUid sgid minionName minionClearance minionDesc]
-  (log/trace "player-add-custom-minion. guid:" gUid "sgid:" sgid "minionName:" minionName "minionClearance:" minionClearance "minionDesc:" minionDesc)
+  [gUid uUid sgid minionName clearance minionDesc]
+  (log/trace "player-add-custom-minion. guid:" gUid "sgid:" sgid "minionName:" minionName "minionClearance:" clearance "minionDesc:" minionDesc)
   (let [g (get-game gUid)
         sg_abbr (help/get-sg-abbr g sgid)
+        minionClearance (clojure.string/upper-case clearance)
         ]
     (cond
       ;; Game doesn't exist

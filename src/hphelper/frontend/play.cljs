@@ -823,7 +823,7 @@
               ;; SG abbreviations
               [:tr
                [:td ] ;; For name
-               (map (fn [k] ^{:key k} [:th k]) sgs)
+               (map (fn [k] ^{:key k} [:th (shared/wrap-any k)]) sgs)
                ]
               ;; Prices
               [:tr
