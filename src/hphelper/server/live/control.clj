@@ -566,14 +566,13 @@
       (update-in [:calls] cs/add-call (cs/construct-call player sg minionId privateCall))
       (assoc-in [:updated :calls] (current-time))
       ))
-
 (defn player-make-call
   "Adds/replaces a player's call in the call queue"
   [^String uid ^String player ^String sg ^Integer minionId ^Integer privateCall]
   (log/trace "player-make-call. uid:" uid "player:" player "sg:" sg "minionId:" minionId "privateCall:" privateCall)
   (let [g (get-game uid)
         minion (as-> g v
-                   (get-in v [:serviceGroups sg])
+                   (get-in v [:serviceGroups sg :minions])
                    (do (log/trace "Servicegroups:" v) v)
                    (some (fn [{minion_id :minion_id :as m}]
                            (log/trace "player-make-call. minion_id:" minion_id "Equals?" (= minionId minion_id) "Minion:" m)
@@ -589,6 +588,13 @@
       ;; All seems well
       :all-well
       (swap-game! uid player-make-call-inner player sg minionId privateCall))))
+(defn admin-call-next
+  "Moves the call queue to the next call"
+  [^String uid]
+  (log/trace "admin-call-next. uid:" uid)
+  (swap-game! uid #(-> %
+                       (update-in [:calls] cs/next-call)
+                       (assoc-in [:updated :calls] (current-time)))))
 
 ;; Debug stuff
 (comment

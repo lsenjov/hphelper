@@ -305,7 +305,12 @@
   ([^String gUid ^String uUid]
    (log/trace "get-player-calls:" gUid uUid)
    (if-let [g (get-game gUid)]
-     {:status "okay" :calls (-> g :calls (cs/get-calls-player (-> g :hps (get uUid) :name)))}
+     ; Game exists
+     (if (is-admin-get-game gUid uUid)
+       ; It's an admin, get all the calls unfiltered
+       {:status "okay" :calls (-> g :calls (cs/get-calls))}
+       ; It's a player or spectator, filter it
+       {:status "okay" :calls (-> g :calls (cs/get-calls-player (-> g :hps (get uUid) :name)))})
      (:invalidGame errors)
      )))
 (defn player-call-minion
@@ -445,6 +450,14 @@
   (log/trace "admin-lock-zone." gUid uUid status)
   (if-let [g (is-admin-get-game gUid uUid)]
     (lcon/set-lock (:zone g) (if (or (= status true) (= status "true")) true false))))
+(defn admin-call-next
+  "Moves on to the next phone call."
+  [^String gUid ^String uUid]
+  (log/trace "admin-call-next." gUid uUid)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (do (lcon/admin-call-next gUid)
+        (json/write-str {:status "okay"}))
+    (:login errors)))
 
 
 ;; Aggregete get-updated

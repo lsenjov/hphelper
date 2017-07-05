@@ -142,6 +142,16 @@
        (some (fn [{:keys [sg_id sg_name]}] (if (= id sg_id) sg_name nil)))
        )
   )
+(defn get-sg
+  "Returns the service group referred to by id or abbr, nil if none"
+  [id]
+  (->> @game-atom
+       :serviceGroups
+       (some (fn [{:keys [sg_id sg_abbr] :as sg}]
+               (if (or (= id sg_id)
+                       (= id sg_abbr))
+                 sg
+                 nil)))))
 
 ;; Begin display components
 ;; Display news
@@ -464,7 +474,7 @@
 ;; Display minions
 (defn display-single-minion
   "Displays a single minion"
-  [{:keys [minion_id minion_name minion_clearance minion_cost mskills bought?] :as minion} sgid]
+  ([{:keys [minion_id minion_name minion_clearance minion_cost mskills bought?] :as minion} sgid owned?]
   ^{:key minion_id}
   [:tr {:class (if bought? "success" "")}
    [:td minion_name]
@@ -472,20 +482,22 @@
    [:td minion_cost]
    [:td (shared/wrap-any mskills)]
    (if bought?
-     ;; Already bought, add the call button
-     [:td>span {:class "btn-default"
-                :onClick #(ajax/GET (wrap-context "/api/player/callminion/")
-                                    {:response-format (ajax/json-response-format {:keywords? true})
-                                     :handler (fn [m]
-                                                (log/info "Called minion")
-                                                (get-updates)
-                                                )
-                                     :params (merge @play-atom {:sgid sgid :minionid minion_id})
-                                     }
-                                    )
-                }
-      "Call"
-      ]
+     (if owned?
+       ;; Already bought, and owned, add the call button
+       [:td>span {:class "btn-default"
+                  :onClick #(ajax/GET (wrap-context "/api/player/callminion/")
+                                      {:response-format (ajax/json-response-format {:keywords? true})
+                                       :handler (fn [m]
+                                                  (log/info "Called minion")
+                                                  (get-updates)
+                                                  )
+                                       :params (merge @play-atom {:sgid sgid :minionid minion_id})
+                                       }
+                                      )
+                  }
+        "Call"
+        ]
+       [:td])
      [:td>span {:class "btn-success"
                 :onClick #(ajax/GET (wrap-context "/api/player/purchaseminion/")
                                     {:response-format (ajax/json-response-format {:keywords? true})
@@ -497,10 +509,9 @@
                                      }
                                     )
                 }
-      "buy"
-      ]
-     )
-   ]
+      "buy"])])
+  ([minion sgid]
+   (display-single-minion minion sgid false))
   )
 (defn single-service-group-component
   "Displays a single service group"
@@ -510,8 +521,9 @@
       (let [{:keys [sg_id sg_name sg_abbr minions owner] :as sg}
             (some #(if (= service-group-id (:sg_id %)) % nil)
                   (:serviceGroups @game-atom))
+            owner? (= owner (get-in @game-atom [:character :name]))
             ]
-        [:div {:class (if (= owner (get-in @game-atom [:character :name]))
+        [:div {:class (if owner?
                         "panel-success"
                         "panel-info"
                         )
@@ -542,10 +554,8 @@
                                (sort-by (comp {"IR" 8 "R" 7 "O" 6 "Y" 5 "G" 4 "B" 3 "I" 2 "V" 1} :minion_clearance))
                                )
                           (repeat service-group-id)
-                          )
-                     )
-              ]
-             ]
+                          (repeat owner?)
+                          ))]]
             ;; If admin, show the switcher
             (if (and (= "admin" (:userlevel @play-atom)) (:showAssignGroups @play-atom))
               [:div {:class "alert alert-warning"}
@@ -900,6 +910,7 @@
                               :investments (str "Sector investments increase " (+ 20 (rand-int 50)) "%. Invest in your economy today!")
                               :cbay (str "Cbay currently listing " (count (:cbay @game-atom)) " items above 1MC")
                               :directives "Service group communications spike. Possible change in directives."
+                              :calls "Call activity waiting."
                               ;; Either nil or unrecognised, display a random item
                               ;; Rand-nth picks a random function (without arguments) from the list below and executes it, returning a string to display
                               ((rand-nth
@@ -1417,6 +1428,27 @@
   )
 
 ;; For call queue
+(defn admin-call-component
+  "Admin controls for selecting next call"
+  []
+  ; Only show for admins
+  (if (= "admin" (:userlevel @play-atom))
+    (fn []
+      [:div
+       [:span {:class "btn btn-warning"
+               :onClick nil} ; TODO
+        "Return back a call"]
+       [:span {:class "btn btn-success"
+               :onClick #(ajax/GET (wrap-context "/api/admin/call/next/")
+                                   {:response-format (ajax/json-response-format {:keywords? true})
+                                    :handler (fn [m]
+                                               (log/info "Requested next call")
+                                               (get-updates)
+                                               )
+                                    :params @play-atom})}
+        "Forward one call"]
+       ])
+    nil))
 (defn call-component
   "Displays user's public standing, as well as upcoming live vidshows"
   []
@@ -1432,8 +1464,19 @@
           (shared/tutorial-text
             "Text goes here"
             )
-          [:br]
-          (-> @game-atom :calls pr-str)
+          [admin-call-component]
+          [:table {:class "table table-striped table-hover"}
+           [:tr [:td "owner"] [:td "sg"] [:td "Minion"]]
+           (doall (map (fn [{:keys [owner sg_abbr minion_id]}]
+                         (let [m (->> sg_abbr get-sg :minions (some #(if (= minion_id (:minion_id %)) % nil)))]
+                           [:tr
+                            [:td owner]
+                            [:td sg_abbr]
+                            [:td (:minion_name m)]
+                            [:td (:minion_clearance m)]
+                            ]))
+                       (-> @game-atom :calls)))
+           ]
           ]
          )])))
 

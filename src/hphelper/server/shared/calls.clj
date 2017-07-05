@@ -73,8 +73,7 @@
 (defn- filter-call-player
   "Takes a single call, filters it if it's a private call the player hasn't bought in to"
   [player {:keys [owner privateCall paid] :as call}]
-  {:pre [(s/assert ::callWaiting call)
-         (s/assert ::owner player)]
+  {:pre [(s/assert ::callWaiting call)]
    :post [(s/assert ::callFiltered %)]}
   (log/trace "filter-call-player" player)
   (if (and privateCall ; If it's a private call

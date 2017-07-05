@@ -300,6 +300,9 @@
   (GET "/api/admin/lock-zone/" ;; Locks or unlocks a zone
        {{:keys [gameUuid userUuid status]} :params}
        (json/write-str (lapi/admin-lock-zone gameUuid userUuid status)))
+  (GET "/api/admin/call/next/" ;; Locks or unlocks a zone
+       {{:keys [gameUuid userUuid]} :params}
+       (json/write-str (lapi/admin-call-next gameUuid userUuid)))
   ;; Old api
   (GET "/api/admin/:gameUuid/:userUuid/debug/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}
@@ -335,8 +338,10 @@
   (GET "/admin/spec/on/" [] (do (s/check-asserts true) "Asserts turned on."))
   (GET "/admin/spec/off/" [] (do (s/check-asserts false) "Asserts turned off."))
   (route/resources "/")
-  (route/not-found
-    (json/write-str {:status "error" :message "Invalid endpoint"}))
+  (ANY "*" {{host "host" :as headers} :headers uri :uri :as all}
+    (do
+      (log/error "Invalid path. Host:" host "Uri:" uri)
+      (json/write-str {:status "error" :message "Invalid endpoint"})))
   )
 
 (def app
