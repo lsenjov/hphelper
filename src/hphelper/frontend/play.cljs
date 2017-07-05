@@ -1480,18 +1480,19 @@
        (if @expand-atom
          [:div {:class ""}
           (shared/tutorial-text
-            "Text goes here"
+            "Here is a list of waiting calls. The top call is the latest call waiting.
+            Pressing the 'call' button on bought (or created) minions queue or replace your current call."
             )
           [admin-call-component]
           [:table {:class "table table-striped table-hover"}
-           [:tr [:td "owner"] [:td "sg"] [:td "Minion"]]
+           [:tr [:td "Owner"] [:td "SG"] [:td "Clearance"] [:td "Minion Name"]]
            (doall (map (fn [{:keys [owner sg_abbr minion_id]}]
                          (let [m (->> sg_abbr get-sg :minions (some #(if (= minion_id (:minion_id %)) % nil)))]
                            [:tr
                             [:td owner]
                             [:td sg_abbr]
-                            [:td (:minion_name m)]
                             [:td (:minion_clearance m)]
+                            [:td (:minion_name m)]
                             ]))
                        (-> @game-atom :calls)))
            ]
