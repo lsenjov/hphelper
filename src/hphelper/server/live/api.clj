@@ -308,14 +308,15 @@
      {:status "okay" :calls (-> g :calls (cs/get-calls-player (-> g :hps (get uUid) :name)))}
      (:invalidGame errors)
      )))
-(defn player-make-call
+(defn player-call-minion
   "Adds a call to a minion to the call queue."
-  ([^String gUid ^String uUid ^String sg ^String minionId ^String privateCall]
-   (log/trace "player-make-call. gUid:" gUid "uUid:" uUid "sg:" sg "minionId:" minionId "privateCall:" privateCall)
+  ([^String gUid ^String uUid ^String sgid ^String minionId ^String privateCall]
    (let [g (get-game gUid)
          p (-> g :hps (get uUid) :name)
          zone (:zone g)
+         sg (help/get-sg-abbr g sgid)
          ]
+     (log/trace "player-make-call. gUid:" gUid "uUid:" uUid "sgid:" sgid "minionId:" minionId "privateCall:" privateCall "sg_abbr:" sg)
      (cond
        ;; Game doesn't exist
        (not g)
@@ -328,7 +329,10 @@
        {:status "error" :message "Invalid Group"}
        ;; All seems good
        :all-good
-       {:status "okay"} ; TODO
+       (do
+         (lcon/player-make-call gUid p sg (help/parse-int minionId) (help/parse-int privateCall))
+         {:status "okay"} ; TODO
+         )
        ))))
 
 ;; Admin commands

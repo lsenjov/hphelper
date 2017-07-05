@@ -472,8 +472,20 @@
    [:td minion_cost]
    [:td (shared/wrap-any mskills)]
    (if bought?
-     ;; Already bought
-     [:td ]
+     ;; Already bought, add the call button
+     [:td>span {:class "btn-default"
+                :onClick #(ajax/GET (wrap-context "/api/player/callminion/")
+                                    {:response-format (ajax/json-response-format {:keywords? true})
+                                     :handler (fn [m]
+                                                (log/info "Called minion")
+                                                (get-updates)
+                                                )
+                                     :params (merge @play-atom {:sgid sgid :minionid minion_id})
+                                     }
+                                    )
+                }
+      "Call"
+      ]
      [:td>span {:class "btn-success"
                 :onClick #(ajax/GET (wrap-context "/api/player/purchaseminion/")
                                     {:response-format (ajax/json-response-format {:keywords? true})
@@ -1404,6 +1416,27 @@
     )
   )
 
+;; For call queue
+(defn call-component
+  "Displays user's public standing, as well as upcoming live vidshows"
+  []
+  (let [expand-atom (atom true)] ; TODO set back to false
+    (fn []
+      [:div {:class "panel-info"}
+       [:div {:class "panel-heading"
+              :onClick #(swap! expand-atom not)}
+        "Call Queue"
+        ]
+       (if @expand-atom
+         [:div {:class ""}
+          (shared/tutorial-text
+            "Text goes here"
+            )
+          [:br]
+          (-> @game-atom :calls pr-str)
+          ]
+         )])))
+
 ;; Display panel for the game in total
 (defn game-component
   "Component for displaying and playing a game"
@@ -1431,7 +1464,7 @@
      ]
     [:tbody
      [:tr
-      [:td {:style {:width "50%"}}
+      [:td {:style {:width "33%"}}
        [access-component]
        [directives-component]
        [society-missions-component]
@@ -1446,10 +1479,10 @@
          nil
          )
        ]
-      ;[:td {:style {:width "33%"}}
-      ; "Chat window and votes here"
-      ; ]
-      [:td {:style {:width "50%"}}
+      [:td {:style {:width "33%"}}
+       [call-component]
+       ]
+      [:td {:style {:width "33%"}}
        [program-group-component]
        [service-group-component]
        ]

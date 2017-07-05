@@ -574,7 +574,9 @@
   (let [g (get-game uid)
         minion (as-> g v
                    (get-in v [:serviceGroups sg])
+                   (do (log/trace "Servicegroups:" v) v)
                    (some (fn [{minion_id :minion_id :as m}]
+                           (log/trace "player-make-call. minion_id:" minion_id "Equals?" (= minionId minion_id) "Minion:" m)
                            (if (= minionId minion_id) m nil))
                          v))]
     (cond

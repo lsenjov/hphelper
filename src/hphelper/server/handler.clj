@@ -47,7 +47,7 @@
   (:gen-class))
 
 ;; Set logging level to info, so we don't overload the server with logging
-(log/set-level! :info)
+(log/set-level! :trace) ;TODO Set back to :info
 (log/info "Compile asserts is set to:" s/*compile-asserts*)
 (log/info "System property is:" (System/getProperty "clojure.spec.compile-asserts"))
 
@@ -253,6 +253,9 @@
   (GET "/api/player/purchaseminion/"
        {{:keys [gameUuid userUuid sgid minionid]} :params}
        (json/write-str (lapi/player-buy-minion gameUuid userUuid sgid minionid)))
+  (GET "/api/player/callminion/"
+       {{:keys [gameUuid userUuid sgid minionid privateCall]} :params}
+       (json/write-str (lapi/player-call-minion gameUuid userUuid sgid minionid privateCall)))
   (GET "/api/player/sendaccess/"
        {{:keys [gameUuid userUuid playerto amount]} :params}
        (json/write-str (lapi/player-send-access gameUuid userUuid playerto amount)))
