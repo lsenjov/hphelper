@@ -47,7 +47,7 @@
   (:gen-class))
 
 ;; Set logging level to info, so we don't overload the server with logging
-(log/set-level! :trace) ;TODO Set back to :info
+(log/set-level! :info)
 (log/info "Compile asserts is set to:" s/*compile-asserts*)
 (log/info "System property is:" (System/getProperty "clojure.spec.compile-asserts"))
 
