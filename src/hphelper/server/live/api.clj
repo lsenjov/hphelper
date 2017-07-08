@@ -246,7 +246,12 @@
   (let [g (get-game gUid)]
     (if-let [p (-> g :hps (get uUid))]
       (let
-        [sgids (set (map :sg_id (filter #(= (:name p) (:owner %)) (:serviceGroups g))))
+        [sgids (->> g
+                    :serviceGroups
+                    (map val)
+                    (filter (fn [m] (= (:name p) (:owner m))))
+                    (map :sg_id)
+                    set)
          ret (->> (:directives g)
                   (filter #(sgids (:sg_id %)))
                   )
