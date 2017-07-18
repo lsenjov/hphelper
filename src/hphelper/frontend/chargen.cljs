@@ -113,7 +113,8 @@
 (defn finalize-drawbacks
   "Finalizes the societies section, returns an error message or nil"
   [^Atom c]
-  (if (not (get-in @c [:drawbackCount]))
+  (if (and (not (get-in @c [:drawbacks]))
+           (not (get-in @c [:drawbackCount])))
     "Missing drawback count"
     )
   )
@@ -174,6 +175,9 @@
     )
   )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Components
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn final-page-component
   [^Atom c]
   (fn []
@@ -182,7 +186,7 @@
                   (finalize-stats c)
                   (finalize-mutation c)
                   (finalize-societies c)
-                  ;(finalize-drawbacks c)
+                  (finalize-drawbacks c)
                   )
           ]
       (cond
@@ -240,6 +244,44 @@
       )
     )
   )
+
+(defn- load-component
+  "Component for loading characters from the database"
+  [^Atom c]
+  (let [charlist (atom '())]
+    (fn []
+      [:div {:class "col-lg-12"}
+       [:div
+        (shared/tutorial-text
+          "If you already have a character, you can load it up and change your secret societies here. Newer characters appear first.
+          Yes, it is possible to look at other player's sheets. Yes, getting caught will get you erased."
+          )]
+       [:div {:class "btn btn-warning"
+              :onClick #(ajax/GET (wrap-context "/api/char/get-filtered/")
+                                  {;:response-format (ajax/json-response-format {:keywords? true})
+                                   :format :text
+                                   :handler (fn [m]
+                                              (log/info "Get char:" m)
+                                              ;; Load completed char
+                                              (reset! charlist (sort-by :char_id > (cljs.reader/read-string m)))
+                                              )
+                                   :params {:filter_string (js/prompt "Enter the first couple of letters of your character.")
+                                            } ;; Move :lastUpdated somewhere
+                                   }
+                                  )}
+        "Get characters by name"]
+       (map (fn [{:keys [char_id char_name]}]
+              ^{:key char_id}
+              [:div {:class "btn btn-default"
+                     :onClick #(ajax/GET (wrap-context "/api/char/get/")
+                                         {:format :text
+                                          :handler (fn [m]
+                                                     (log/info "Got char:" m)
+                                                     (reset! c (cljs.reader/read-string m)))
+                                          :params {:char_id char_id}})}
+               (str char_name " " char_id)])
+            @charlist)])))
+
 
 (defn- name-primary-component
   "Component for choosing name"
@@ -353,6 +395,7 @@
     ]
    ]
   )
+
 (defn stats-secondary-component
   "Displays secondary stats"
   [^Atom c]
@@ -373,10 +416,11 @@
      )
    ]
   )
+
 (defn mutation-component
   "Selector for mutations"
   [^Atom c]
-  (let [muts (shared/get-mutations)]
+  (let [muts (sort-by :name (shared/get-mutations))]
     [:div
      (display-points-remaining c)
      (shared/tutorial-text
@@ -408,7 +452,6 @@
     )
   )
 
-
 (defn stats-component
   [^Atom c]
   (fn []
@@ -424,11 +467,7 @@
       (map (fn [stat] ^{:key stat} [:div [stat-chooser [:priStats stat] c stat 1 20 true]]) stats-knowledge)
       ]
      [:div
-      [stats-secondary-component c]
-      ]
-     ]
-    )
-  )
+      [stats-secondary-component c]]]))
 
 (defn drawbacks-component
   [^Atom c]
@@ -436,21 +475,18 @@
     [:div {:class "bs-docs-section"}
      (display-points-remaining c)
      (shared/tutorial-text
-       [:p "Drawbacks can give you additional starting ACCESS, at the cost of hindering you during play. Some drawbacks are purely roleplay drawbacks, while some can debilitate you if you aren't skilled enough to play around them."]
+       [:p "Drawbacks can give you additional starting ACCESS, at the cost of hindering you during play.
+           Some drawbacks are purely roleplay drawbacks, while some can debilitate you if you aren't skilled enough to play around them.
+           Asking about changes to the drawback system will involve your character getting Impending Doom in addition to any other drawbacks."]
        )
      [:p "New players should take a maximum of a single drawback."]
-     [stat-chooser [:drawbackCount] c "Drawback Count" 0 3 false]
+     [stat-chooser [:drawbackCount] c "Drawback Count" 1 3 false]
      [:table {:class "table table-striped"}
       [:thead>tr>th "Possible Drawbacks"]
       [:tbody
        (map (comp (fn [desc] ^{:key desc} [:tr>td desc]) :text)
-            (shared/get-drawbacks)
-            )
-       ]
-      ]
-     ]
-    )
-  )
+            (sort-by :text (shared/get-drawbacks))
+            )]]]))
 
 (defn public-standing-component
   [^Atom c]
@@ -470,6 +506,9 @@
     )
   )
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Pages
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defn character-creation
   "Page for creating characters"
   []
@@ -480,7 +519,7 @@
        [:div {:class "btn-group"}
         (shared/switcher-toolbar page-atom [:page]
                                  [[:name "Name"] [:stats "Statistics"] [:public "Public Standing"] [:mutation "Mutation"]
-                                  [:societies "Secret Societies"] [:drawbacks "Drawbacks"] [:finalize "Finalize Character"]]
+                                  [:societies "Secret Societies"] [:drawbacks "Drawbacks"] [:finalize "Finalize Character"] [:load "Load Character"]]
                                  )
         ]
        ;; TODO
@@ -494,6 +533,7 @@
           :societies [societies-component c]
           :drawbacks [drawbacks-component c]
           :finalize [final-page-component c]
+          :load [load-component c]
           )
         ]
        ;; Debug
@@ -572,7 +612,8 @@
         (shared/switcher-toolbar page-atom [:page]
                                  [[:sheet "Display Sheet"]
                                   [:societies "Secret Societies"]
-                                  [:finalize "Finalize Character"]]
+                                  [:finalize "Finalize Character"]
+                                  [:load "Load Character"]]
                                  )
         ]
        ;; TODO
@@ -588,6 +629,7 @@
           :societies [societies-component c]
           :drawbacks [drawbacks-component c]
           :finalize [final-page-component c]
+          :load [load-component c]
           [:div "Make a selection"]
           )
         ]

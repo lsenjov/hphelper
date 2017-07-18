@@ -74,7 +74,11 @@
 (defn update-char
   "Replaces the char_file in the db with the new character file"
   ([id char-file]
-   (jdb/update! db :chars {:char_file (pr-str char-file)} ["char_id = ?" id]))
+   (jdb/update! db
+                :chars
+                {:char_file (pr-str char-file)
+                 :char_name (:name char-file)}
+                ["char_id = ?" id]))
   ([char-file]
    (update-char (:char_id char-file) char-file)))
 (defn load-char-from-db
@@ -95,6 +99,15 @@
   "Returns a list of characters, both :char_id and :char_name"
   []
   (jdb/query db ["SELECT char_id, char_name FROM chars"]))
+(defn get-filtered-char-list
+  "Returns a list of characters starting with the specified letters"
+  [s]
+  (jdb/query db ["SELECT char_id, char_name FROM chars WHERE char_name LIKE CONCAT(?,'%');" s]))
+(comment
+  (get-filtered-char-list "test")
+  (get-filtered-char-list "gh")
+  (get-filtered-char-list "")
+  )
 
 ;; Users
 (defn save-user-to-db ;; TODO bcrypt

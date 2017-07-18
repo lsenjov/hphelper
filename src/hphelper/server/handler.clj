@@ -127,20 +127,35 @@
                     )
               charid (:char_id c)
               ]
-          (log/trace "/api/char/update/" "charid:" charid "type:" (type charid))
+          (log/trace "/api/char/update/" "charid:" charid "character:")
           ;; Update it
           (if charid
             (do
+              (log/trace "Updating character" charid "in database.")
               (sl/update-char (int charid) c)
               (json/write-str {:status "okay"})
               )
-            (json/write-str {:status "error"})
+            (do
+              (log/error "Could not update character" charid "in database.")
+              (json/write-str {:status "error"})
+              )
             )
           )
         )
   ;; Display a character
   (GET "/char/print/" {params :params}
     (cprint/html-print-sheet-one-page (sl/load-char-from-db (:char_id params))))
+  ;; Gets the edn representation of a character
+  (GET "/api/char/get/"
+       {{charid :char_id} :params}
+       (do
+         (log/trace "Getting character id:" charid)
+         (pr-str (sl/load-char-from-db (Integer/parseInt charid)))))
+  (GET "/api/char/get-filtered/"
+       {{filter-string :filter_string} :params}
+       (do
+         (log/tracef "Getting characters for filter string '%s'" filter-string)
+         (pr-str (sl/get-filtered-char-list filter-string))))
 
   ;; SCENARIOS
   ;; Show page to create a new scenario, or select a partially completed or fully completed scenario
@@ -363,6 +378,8 @@
   (org.httpkit.server/run-server app {:port 3000}))
 
 (comment
+  ;; Turn on debug goodness
+  (log/set-level! :trace)
   ;; Starts the server
   (def debug-server (org.httpkit.server/run-server app {:port 3000}))
   ;; Shuts down the server
