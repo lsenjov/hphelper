@@ -91,12 +91,14 @@
          [:div [:b "Sector News:"] [:br]
           (interpose [:br] (scenRec :news))]
          [:div [:b "Message summary follows:"]]
-         [:div (interpose [:br] (map html-print-single-society-mission
-                    (filter (fn [mission]
-                              (some #{(mission :ss_id)}
-                                    (map :ss_id
-                                         (or (:programGroup player) (get player "Program Group")))))
-                            (scenRec :societies))))]
+         [:div (interpose [:br]
+                          (distinct
+                            (map html-print-single-society-mission
+                                 (filter (fn [mission]
+                                           (some #{(mission :ss_id)}
+                                                 (map :ss_id
+                                                      (or (:programGroup player) (get player "Program Group")))))
+                                         (scenRec :societies)))))]
          (html-print-additional-messages player)
          (html-print-cbay scenRec)
          ]
