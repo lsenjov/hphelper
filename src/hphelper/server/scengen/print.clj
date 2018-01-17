@@ -130,7 +130,7 @@
 
 (defn- html-print-minion-table
   "Prints a single sg's minion table"
-  [{minions :minions :as sg}]
+  [[_ {minions :minions :as sg}]]
   (html [:div
          [:b (:sg_name sg)] [:br]
          [:table {:style "border: 1px solid black"}
@@ -138,7 +138,8 @@
                (partition-all 2 minions))
           ]
          ]
-        ))
+        )
+  )
 
 (defn- html-print-minions
   "Prints all sgs' minion tables"
