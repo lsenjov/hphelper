@@ -67,3 +67,9 @@
        )
   )
 
+(defn get-player-uid
+  "Given a game and a player name, will return the uid for that player, or null if that player doesn't exist"
+  [scenMap playerName]
+  (some (fn [[pass {p-name :name}]]
+          (if (= playerName p-name) pass nil))
+        (:hps scenMap)))

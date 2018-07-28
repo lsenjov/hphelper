@@ -423,6 +423,17 @@
       (json/write-str {:status "error" :message "modify-index failed"}))
     (:login errors)
     ))
+(defn admin-zap-character
+  "Zaps a character. Makes them lose 20 access and skills"
+  [^String gUid ^String uUid ^String player]
+  (log/trace "admin-modify-index." gUid uUid player)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (if (lcon/zap-character gUid
+                            player)
+      (json/write-str {:status "ok"})
+      (json/write-str {:status "error" :message "modify-index failed"}))
+    (:login errors)
+    ))
 (defn admin-modify-public-standing
   "Modifies public standing of a player"
   [^String gUid ^String uUid ^String player ^String amount]

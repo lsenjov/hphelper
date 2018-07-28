@@ -1218,6 +1218,23 @@
             )
           )
     ]
+   ;; Zap
+   [:td
+    [:div {:class (add-button-size "btn-default")
+           :onClick (fn []
+                      (log/info "Zap" p-name)
+                      (ajax/GET (wrap-context "/api/admin/character/zap/")
+                                {:response-format (ajax/json-response-format {:keywords? true})
+                                 :handler (fn [m]
+                                            (log/info "Synced Chars")
+                                            (get-updates)
+                                            )
+                                 :params (merge @play-atom {:player (name p-name)})})
+                      )
+           }
+     "Zap"
+     ]
+    ]
    ]
   )
 (defn convert-status-line-to-string
@@ -1302,7 +1319,7 @@
                     }
             [:thead
              [:tr
-              [:td "Name"] [:td "V"] [:td "M"] [:td "Su"] [:td "W"] [:td "So"] [:td "H"] [:td "Mut"] [:td "Descs"] [:td "Societies"] [:td "Drawbacks"]
+              [:td "Name"] [:td "V"] [:td "M"] [:td "Su"] [:td "W"] [:td "So"] [:td "H"] [:td "Mut"] [:td "Descs"] [:td "Societies"] [:td "Drawbacks"] [:td "Zap"]
               ]
              ]
             [:tbody

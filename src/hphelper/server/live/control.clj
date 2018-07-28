@@ -613,10 +613,57 @@
                                           :bought? true})
                               (assoc-in [:updated :serviceGroups] (current-time))))))
 
+;; Kills a player
+;; Removes skills at random, and takes off 20 ACCESS
+(defn- remove-stat
+  "Given a priStats map, will attempt to remove a single skill point at random.
+  If the skill is already at one, will leave at one and waste the attempt"
+  [priStats]
+  (log/info "remove-stat" priStats)
+  (let [rand-key (-> priStats keys rand-nth)]
+    (update-in priStats [rand-key] (comp (partial max 1) dec)))
+  )
+(defn- remove-stats
+  "Given a character, will remove stats and recalculate"
+  [hp]
+  (let [degredation (-> hp :secStats (get "Clone Degredation"))]
+    (update-in hp [:priStats] #(nth (iterate remove-stat %) degredation))
+    ))
+(defn zap-character-inner
+  [g player]
+  (if-let [player-uid (help/get-player-uid g player)]
+    (-> g
+        (update-in [:hps player-uid] remove-stats)
+        (assoc-in [:updated :hps] (current-time)))
+    g))
+(defn zap-character
+  "Given a game and character, remove stats and 20 access"
+  [^String uid ^String player]
+  (log/trace "zap-character:" uid player)
+  (swap-game! uid #(-> %
+                       (zap-character-inner player)
+                       (modify-access-inner player -20)
+                       )))
+
 ;; Debug stuff
 (comment
+  (log/set-level! :trace)
+  (reset! current-games {})
   ; Current games in the atom
   (-> @current-games keys)
+  (-> (zap-character (-> @current-games keys first) "Test-U-CHA-4")
+      :hps first)
+  (let [hp (-> @current-games vals first :hps first second)
+        ]
+    (remove-stats hp)
+    )
+  (-> (let [player "Test-U-CHA-4"
+            scenMap (-> @current-games vals first)]
+        ;;(zap-character-inner scenMap player)
+        (send-access-inner scenMap player "Misc" 20)
+        )
+      :hps first second :accessRemaining)
+  (-> @current-games vals first :hps first)
   (-> @current-games vals first :serviceGroups (get "TD") :minions)
   (-> @current-games vals first :serviceGroups (get "TD"))
   (-> @current-games vals first keys)

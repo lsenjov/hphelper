@@ -318,9 +318,12 @@
   (GET "/api/admin/lock-zone/" ;; Locks or unlocks a zone
        {{:keys [gameUuid userUuid status]} :params}
        (json/write-str (lapi/admin-lock-zone gameUuid userUuid status)))
-  (GET "/api/admin/call/next/" ;; Locks or unlocks a zone
+  (GET "/api/admin/call/next/" ;; Moves to the next call
        {{:keys [gameUuid userUuid]} :params}
        (json/write-str (lapi/admin-call-next gameUuid userUuid)))
+  (GET "/api/admin/character/zap/" ;; Zaps a player
+       {{:keys [gameUuid userUuid player]} :params}
+       (json/write-str (lapi/admin-zap-character gameUuid userUuid player)))
   ;; Old api
   (GET "/api/admin/:gameUuid/:userUuid/debug/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}
