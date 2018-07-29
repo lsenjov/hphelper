@@ -1203,91 +1203,85 @@
         ]
     (fn []
       [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        "Admin Panel"
-        ]
-       (if @expand-atom
-         [:div
-          (shared/tutorial-text
-            "Pressing 'Save Players' will save character information to the server. Pressing any of the buttons below will just roll against their statistic, and won't have any effect on the game (that's for you to do)"
-            )
-          [:div {:class "col-lg-12"}
-           [:div {:class "col-lg-10"}
-            [admin-show-status-line status-atom 3]
-            ]
-           [:div {:class "col-lg-2"}
-            [:div {:class "btn btn-info"
-                   :onClick sync-player-files
-                   }
-             "Save Players"
-             ]
-            ]
-           ]
-          [:div {:class "col-lg-12"}
-           [:table {:class "table-striped table-hover col-lg-12"
-                    }
-            [:thead
-             [:tr
-              [:td "Name"] [:td "V"] [:td "M"] [:td "Su"] [:td "W"] [:td "So"] [:td "H"] [:td "Mut"] [:td "Descs"] [:td "Societies"] [:td "Drawbacks"] [:td "Zap"]
-              ]
-             ]
-            [:tbody
-             (->> @game-atom
-                  :hps
-                  (sort-by #(-> % val :name))
-                  (map (fn [[uuid player-sheet]]
-                         ^{:key uuid}
-                         (admin-single-player-component player-sheet status-atom (:show-ss @other-opts-atom))
-                         )
-                       )
-                  doall
-                  )
-             ]
-            ]
-           ]
-          [:div {:class "col-lg-12"}
-           (shared/tutorial-text
-             "Sends a message to the server to lock or unlock player's investments."
-             )
-           ;; Lock investments
-           [:div {:class "col-lg-2"}
-            [:span {:class "btn btn-success"
-                    :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
-                                        {:response-format (ajax/json-response-format {:keywords? true})
-                                         :handler (fn [m]
-                                                    (log/info "Locked zone")
-                                                    (get-updates)
-                                                    )
-                                         :params (merge @play-atom {:status true})})
-                    }
-             "Lock Investments"
-             ]
-            ]
-           ;; Unlock Investments
-           [:div {:class "col-lg-2"}
-            [:span {:class "btn btn-secondary"
-                    :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
-                                        {:response-format (ajax/json-response-format {:keywords? true})
-                                         :handler (fn [m]
-                                                    (log/info "Locked zone")
-                                                    (get-updates)
-                                                    )
-                                         :params (merge @play-atom {:status false})})
-                    }
-             "Unlock Investments"
-             ]
-            ]
-           ;; Toggle displaying SS
-           [:div {:class "col-lg-2"}
-            [:span {:class "btn btn-secondary"
-                    :onClick #(swap! other-opts-atom update-in [:show-ss] not)}
-             "Toggle SS display"
-             ]
-            ]
+       [:div
+        (shared/tutorial-text
+          "Pressing 'Save Players' will save character information to the server. Pressing any of the buttons below will just roll against their statistic, and won't have any effect on the game (that's for you to do)"
+          )
+        [:div {:class "col-lg-12"}
+         [:div {:class "col-lg-10"}
+          [admin-show-status-line status-atom 3]
+          ]
+         [:div {:class "col-lg-2"}
+          [:div {:class "btn btn-info"
+                 :onClick sync-player-files
+                 }
+           "Save Players"
            ]
           ]
-         )
+         ]
+        [:div {:class "col-lg-12"}
+         [:table {:class "table-striped table-hover col-lg-12"
+                  }
+          [:thead
+           [:tr
+            [:td "Name"] [:td "V"] [:td "M"] [:td "Su"] [:td "W"] [:td "So"] [:td "H"] [:td "Mut"] [:td "Descs"] [:td "Societies"] [:td "Drawbacks"] [:td "Zap"]
+            ]
+           ]
+          [:tbody
+           (->> @game-atom
+                :hps
+                (sort-by #(-> % val :name))
+                (map (fn [[uuid player-sheet]]
+                       ^{:key uuid}
+                       (admin-single-player-component player-sheet status-atom (:show-ss @other-opts-atom))
+                       )
+                     )
+                doall
+                )
+           ]
+          ]
+         ]
+        [:div {:class "col-lg-12"}
+         (shared/tutorial-text
+           "Sends a message to the server to lock or unlock player's investments."
+           )
+         ;; Lock investments
+         [:div {:class "col-lg-2"}
+          [:span {:class "btn btn-success"
+                  :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
+                                      {:response-format (ajax/json-response-format {:keywords? true})
+                                       :handler (fn [m]
+                                                  (log/info "Locked zone")
+                                                  (get-updates)
+                                                  )
+                                       :params (merge @play-atom {:status true})})
+                  }
+           "Lock Investments"
+           ]
+          ]
+         ;; Unlock Investments
+         [:div {:class "col-lg-2"}
+          [:span {:class "btn btn-secondary"
+                  :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
+                                      {:response-format (ajax/json-response-format {:keywords? true})
+                                       :handler (fn [m]
+                                                  (log/info "Locked zone")
+                                                  (get-updates)
+                                                  )
+                                       :params (merge @play-atom {:status false})})
+                  }
+           "Unlock Investments"
+           ]
+          ]
+         ;; Toggle displaying SS
+         [:div {:class "col-lg-2"}
+          [:span {:class "btn btn-secondary"
+                  :onClick #(swap! other-opts-atom update-in [:show-ss] not)}
+           "Toggle SS display"
+           ]
+          ]
+         ]
+        ]
        ]
       )
     )
@@ -1397,16 +1391,18 @@
             )
           [admin-call-component]
           [:table {:class "table table-striped table-hover"}
-           [:tr [:td "Owner"] [:td "SG"] [:td "Clearance"] [:td "Minion Name"]]
-           (doall (map (fn [{:keys [owner sg_abbr minion_id]}]
-                         (let [m (->> sg_abbr get-sg :minions (some #(if (= minion_id (:minion_id %)) % nil)))]
-                           [:tr
-                            [:td owner]
-                            [:td sg_abbr]
-                            [:td (:minion_clearance m)]
-                            [:td (:minion_name m)]
-                            ]))
-                       (-> @game-atom :calls)))
+           [:tr [:td "Owner"] [:td "SG"] [:td "Clearance"] [:td "Minion Name"] [:td "Minion Skills"]]
+           (shared/wrap-unique-key
+             (map (fn [{:keys [owner sg_abbr minion_id]}]
+                    (let [m (->> sg_abbr get-sg :minions (some #(if (= minion_id (:minion_id %)) % nil)))]
+                      [:tr
+                       [:td owner]
+                       [:td sg_abbr]
+                       [:td (:minion_clearance m)]
+                       [:td (:minion_name m)]
+                       [:td (:mskills m)]
+                       ]))
+                  (-> @game-atom :calls)))
            ]
           ]
          ]))
@@ -1428,7 +1424,7 @@
      "Click on any of the headers below to see more"
      )
    (if (= "admin" (:userlevel @play-atom))
-     [admin-player-component]
+     [shared/comp-draggable "Admin Panel" admin-player-component {:x 400 :y 100} {:max-width "66%"}]
      nil
      )
    [:table {:class "table-striped"

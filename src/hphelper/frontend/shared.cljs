@@ -486,31 +486,33 @@
     (events/listen js/window EventType.MOUSEUP
                    ((partial mouse-up-handler pos-atom) on-move))))
 (defn min-or-maximize
-  [title]
+  [title e]
   (log/trace "min-or-maximize" title)
   (swap! pos-atom update-in [title :minimised?] not))
 (defn comp-draggable
-  [title body-comp {:keys [x y] :as ?start-coords}]
+  [title body-comp {:keys [x y] :as ?start-coords} ?style-map]
   (log/trace "comp-draggable")
+  (let [default-styles {:position "absolute"
+                        :max-width "33%"
+                        :display "flex"
+                        :overflow "auto"
+                        }
+        style (if ?style-map (merge default-styles ?style-map) default-styles)]
     (fn []
       (log/trace "comp-draggable inner")
       [:div
        [:div (pr-str (get-in @pos-atom [title]))]
        [:div.card.border-secondary
-        {:style {:position "absolute"
-                 :left (or (get-in @pos-atom [title :x]) x 100)
-                 :top (or (get-in @pos-atom [title :y]) y 100)
-                 :max-width "33%"
-                 :display "flex"
-                 :overflow "auto"
-                 :z-index (get-in @pos-atom [title :zindex])
-                 }}
+        {:style (merge style
+                       {:left (or (get-in @pos-atom [title :x]) x 100)
+                        :top (or (get-in @pos-atom [title :y]) y 100)
+                        :z-index (get-in @pos-atom [title :zindex])})}
         [:div.card-header.no-select
          ;:on-click #(rf/dispatch [::move-window :test {::x 200 ::y 200}])
          {:on-mouse-down (partial mouse-down-handler title)}
-         (str title)
+         (str title " ")
          ;; Minimise/maximise button
-         [:div.btn.btn-secondary-outline.btn-sm
+         [:div.btn.btn-secondary.btn-sm
           {:on-click (partial min-or-maximize title)} ;; TODO
           (if (get-in @pos-atom [title :minimised?]) "\u21D2" "\u21D3")
           ]
@@ -523,4 +525,4 @@
            [body-comp]
            ]
           )
-        ]]))
+        ]])))
