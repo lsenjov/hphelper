@@ -426,31 +426,31 @@
    (if bought?
      (if owned?
        ;; Already bought, and owned, add the call button
-       [:td>span {:class "btn-outline-primary"
-                  :onClick #(ajax/GET (wrap-context "/api/player/callminion/")
-                                      {:response-format (ajax/json-response-format {:keywords? true})
-                                       :handler (fn [m]
-                                                  (log/info "Called minion")
-                                                  (get-updates)
-                                                  )
-                                       :params (merge @play-atom {:sgid sgid :minionid minion_id})
-                                       }
-                                      )
-                  }
+       [:td>span.btn.btn-sm.btn-outline-primary
+        {:onClick #(ajax/GET (wrap-context "/api/player/callminion/")
+                             {:response-format (ajax/json-response-format {:keywords? true})
+                              :handler (fn [m]
+                                         (log/info "Called minion")
+                                         (get-updates)
+                                         )
+                              :params (merge @play-atom {:sgid sgid :minionid minion_id})
+                              }
+                             )
+         }
         "Call"
         ]
        [:td])
-     [:td>span {:class "btn-outline-secondary"
-                :onClick #(ajax/GET (wrap-context "/api/player/purchaseminion/")
-                                    {:response-format (ajax/json-response-format {:keywords? true})
-                                     :handler (fn [m]
-                                                (log/info "Purchased minion")
-                                                (get-updates)
-                                                )
-                                     :params (merge @play-atom {:sgid sgid :minionid minion_id})
-                                     }
-                                    )
-                }
+     [:td>span.btn.btn-sm.btn-outline-secondary
+      { :onClick #(ajax/GET (wrap-context "/api/player/purchaseminion/")
+                            {:response-format (ajax/json-response-format {:keywords? true})
+                             :handler (fn [m]
+                                        (log/info "Purchased minion")
+                                        (get-updates)
+                                        )
+                             :params (merge @play-atom {:sgid sgid :minionid minion_id})
+                             }
+                            )
+       }
       "Buy"])])
   ([minion sgid]
    (display-single-minion minion sgid false))
