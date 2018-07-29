@@ -158,170 +158,131 @@
 (defn news-component
   "Component for displaying news items"
   []
-  (let [expand-atom (atom false)]
-    (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        "News"
+  (fn []
+    [:div {:class "panel-info"}
+     [:div {:class ""}
+      [:table {:class "table-striped table-hover"
+               :style {:width "100%"}
+               }
+       [:tbody
+        (doall (map (fn [cbi] ^{:key cbi} [:tr>td cbi])
+                    (:news @game-atom)
+                    )
+               )
         ]
-       (if @expand-atom
-         [:div {:class ""}
-          [:table {:class "table-striped table-hover"
-                   :style {:width "100%"}
-                   }
-           [:tbody
-            (doall (map (fn [cbi] ^{:key cbi} [:tr>td cbi])
-                        (:news @game-atom)
-                        )
-                   )
-            ]
-           ]
-          ]
-         )
        ]
-      )
+      ]
+     ]
     )
   )
 ;; Display cbay
 (defn cbay-component
   "Component for displaying cbay items (and later bidding on them)" ;; TODO cbay bids
   []
-  (let [expand-atom (atom false)]
-    (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        "Cbay"
+  (fn []
+    [:div {:class "panel-info"}
+     [:div {:class ""}
+      (shared/tutorial-text
+        "To place a bid on any of the objects below, simply state you're purchasing it of the stated price. Others are free to bid higher than you until the time arrives. You do not pay until the auction is up. NOTE: Times currently do not count down and are static."
+        )
+      [:table {:class "table-striped table-hover"
+               :style {:width "100%"}
+               }
+       [:tbody
+        (doall (map (fn [cbi] ^{:key cbi} [:tr>td cbi])
+                    (:cbay @game-atom)
+                    )
+               )
         ]
-       (if @expand-atom
-         [:div {:class ""}
-          (shared/tutorial-text
-            "To place a bid on any of the objects below, simply state you're purchasing it of the stated price. Others are free to bid higher than you until the time arrives. You do not pay until the auction is up. NOTE: Times currently do not count down and are static."
-            )
-          [:table {:class "table-striped table-hover"
-                   :style {:width "100%"}
-                   }
-           [:tbody
-            (doall (map (fn [cbi] ^{:key cbi} [:tr>td cbi])
-                        (:cbay @game-atom)
-                        )
-                   )
-            ]
-           ]
-          ]
-         )
        ]
-      )
+      ]
+     ]
     )
   )
 ;; Display access
 (defn access-component
   "Component for displaying cbay items (and later bidding on them)" ;; TODO cbay bids
   []
-  (let [expand-atom (atom false)]
-    (fn []
-      (let [players (->> @game-atom :access first (map first) (map name) sort)]
-        (log/info "players is: " players)
-        [:div {:class "panel-info"}
-         [:div {:class "panel-heading"
-                :onClick #(swap! expand-atom not)}
-          "ACCESS: Last Change: "
-          (map-to-str (calculate-last-access))
+  (fn []
+    (let [players (->> @game-atom :access first (map first) (map name) sort)]
+      (log/info "players is: " players)
+      [:div {:class "panel-info"}
+       [:div {:class ""}
+        (shared/tutorial-text
+          "This is a list of the current access totals for all players, plus access in the public pool and a misc spending column. Pressing the buttons will send access to each of the players, except the pool which will take that much access. Note that while it doesn't prevent you or the pool from going into negatives, it is extremely treasonous to do so (it shows a lack of management)"
+          )
+        [:table {:class "table-striped table-hover"
+                 :style {:width "100%"}
+                 }
+         [:thead>tr
+          (doall (map (fn [k] ^{:key k} [:th (take 5 k)]) players))
           ]
-         (if @expand-atom
-           [:div {:class ""}
-            (shared/tutorial-text
-              "This is a list of the current access totals for all players, plus access in the public pool and a misc spending column. Pressing the buttons will send access to each of the players, except the pool which will take that much access. Note that while it doesn't prevent you or the pool from going into negatives, it is extremely treasonous to do so (it shows a lack of management)"
-              )
-            [:table {:class "table-striped table-hover"
-                     :style {:width "100%"}
-                     }
-             [:thead>tr
-              (doall (map (fn [k] ^{:key k} [:th (take 5 k)]) players))
-              ]
-             [:tbody
-              ;; Line of current totals
+         [:tbody
+          ;; Line of current totals
+          [:tr
+           (->> @game-atom
+                :access
+                first
+                (sort-by first)
+                (map (fn [[k v]] ^{:key k} [:td {:class (if (< v 0) "text-danger" "")} (-> v (* 100) int (/ 100))]))
+                )
+           ]
+          ;; If admin, add buttons for changing access. Will change values by the amount listed
+          (if (= (:userlevel @play-atom) "admin")
+            (for [change [20 10 5 -1 -2 -3 -4 -5 -6 -7 -8 -9 -10 -20]]
               [:tr
-               (->> @game-atom
-                    :access
-                    first
-                    (sort-by first)
-                    (map (fn [[k v]] ^{:key k} [:td {:class (if (< v 0) "text-danger" "")} (-> v (* 100) int (/ 100))]))
+               (for [player players]
+                 ^{:key player}
+                 [:td>div
+                  {:class "btn btn-default btn-xs btn-block"
+                   :title (str "Change " player " by " change " ACCESS.")
+                   :onClick #(ajax/GET (wrap-context "/api/admin/modify-access/")
+                                       {:response-format (ajax/json-response-format {:keywords? true})
+                                        :handler (fn [m]
+                                                   (log/info "Modified access")
+                                                   (get-updates)
+                                                   )
+                                        :params (merge @play-atom {:player (name player)
+                                                                   :amount change
+                                                                   })})
+                   }
+                  change
+                  ]
+                 )])
+            nil)
+          ;; Lines of changes to reach current total
+          (->> @game-atom
+               :access
+               (take 10)
+               (partition 2 1)
+               (map calculate-diffs)
+               (map (fn [im]
+                      [:tr (doall
+                             (map
+                               (fn [[_ v]] [:td (if (= 0 v) "" (-> v (* 100) int (/ 100)))])
+                               (sort-by first im)
+                               )
+                             )
+                       ]
+                      )
                     )
-               ]
-              ;; If admin, add buttons for changing access. Will change values by the amount listed
-              (if (= (:userlevel @play-atom) "admin")
-                (for [change [20 10 5 -1 -2 -3 -4 -5 -6 -7 -8 -9 -10 -20]]
-                  [:tr
+               )
+          ;; Players get buttons to send access to anyone but themselves
+          (if (= "player" (:userlevel @play-atom))
+            (doall
+              (for [change [1 2 3 4 5 10 20]]
+                [:tr
+                 (doall
                    (for [player players]
-                     ^{:key player}
-                     [:td>div
-                      {:class "btn btn-default btn-xs btn-block"
-                       :title (str "Change " player " by " change " ACCESS.")
-                       :onClick #(ajax/GET (wrap-context "/api/admin/modify-access/")
-                                           {:response-format (ajax/json-response-format {:keywords? true})
-                                            :handler (fn [m]
-                                                       (log/info "Modified access")
-                                                       (get-updates)
-                                                       )
-                                            :params (merge @play-atom {:player (name player)
-                                                                       :amount change
-                                                                       })})
-                       }
-                      change
-                      ]
-                     )])
-                nil)
-              ;; Lines of changes to reach current total
-              (->> @game-atom
-                   :access
-                   (take 10)
-                   (partition 2 1)
-                   (map calculate-diffs)
-                   (map (fn [im]
-                          [:tr (doall
-                                 (map
-                                   (fn [[_ v]] [:td (if (= 0 v) "" (-> v (* 100) int (/ 100)))])
-                                   (sort-by first im)
-                                   )
-                                 )
-                           ]
-                          )
-                        )
-                   )
-              ;; Players get buttons to send access to anyone but themselves
-              (if (= "player" (:userlevel @play-atom))
-                (doall
-                  (for [change [1 2 3 4 5 10 20]]
-                    [:tr
-                     (doall
-                       (for [player players]
-                         [:td ^{:key player}
-                          (cond
-                            ;; Don't send to yourself
-                            (= player (get-in @game-atom [:character :name]))
-                            [:td]
-                            ;; Something different for the pool TODO
-                            (= player "Pool")
-                            [:td {:class "btn btn-success btn-xs btn-block"
-                                  :title (str "Take " change " from the public pool. \nDoing this without consensus is heavily treasonous. \nPushing the pool into negatives is heavily treasonous.")
-                                  :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
-                                                      {:response-format (ajax/json-response-format {:keywords? true})
-                                                       :handler (fn [m]
-                                                                  (log/info "Modified access")
-                                                                  (get-updates)
-                                                                  )
-                                                       :params (merge @play-atom {:playerto (name player)
-                                                                                  :amount (- change)
-                                                                                  })})}
-                             change
-                             ]
-                            ;; Other players
-                            :else
-                            [:td
-                             {:class "btn btn-default btn-xs btn-block"
-                              :title (str "Send " change " access to " player)
+                     [:td ^{:key player}
+                      (cond
+                        ;; Don't send to yourself
+                        (= player (get-in @game-atom [:character :name]))
+                        [:td]
+                        ;; Something different for the pool TODO
+                        (= player "Pool")
+                        [:td {:class "btn btn-success btn-xs btn-block"
+                              :title (str "Take " change " from the public pool. \nDoing this without consensus is heavily treasonous. \nPushing the pool into negatives is heavily treasonous.")
                               :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
                                                   {:response-format (ajax/json-response-format {:keywords? true})
                                                    :handler (fn [m]
@@ -329,110 +290,116 @@
                                                               (get-updates)
                                                               )
                                                    :params (merge @play-atom {:playerto (name player)
-                                                                              :amount change
+                                                                              :amount (- change)
                                                                               })})}
-                             change
-                             ]
-                            )
-                          ]
-                         )
-                       )
-                     ]
-                    )
-                  )
-                )
-              ]
-             ]
-            ]
-           )
-         ]
-        )
-      )
-    )
-  )
-;; Display indicies
-(defn indicies-component
-  "Component for displaying cbay items (and later bidding on them)" ;; TODO cbay bids
-  []
-  (let [expand-atom (atom false)]
-    (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        (map-to-str (first (:indicies @game-atom)))
-        ]
-       (if @expand-atom
-         [:div {:class ""}
-          (shared/tutorial-text
-            "This is the current sector indicies and current value of the service groups. Below is the recent changes"
-            )
-          [:table {:class "table-striped table-hover"
-                   :style {:width "100%"}
-                   }
-           [:thead>tr
-            (doall (map (fn [[k _]] [:th (-> k name shared/wrap-any)])
-                        (->> @game-atom :indicies first sort)))
-            ]
-           [:tbody
-            ;; Row of current values
-            [:tr
-             (->> @game-atom
-                  :indicies
-                  first
-                  (sort-by first)
-                  (map (fn [[k v]] ^{:key k} [:td v]))
-                  doall
-                  )
-             ]
-            ;; If admin, add buttons for changing. Will change values by the amount listed +-up to 3
-            (if (= "admin" (:userlevel @play-atom))
-              (for [change [-20 -10 -5 0 +5 +10 +20]]
-                [:tr
-                 (for [ind (->> @game-atom :indicies first keys (map name) doall sort)]
-                   [:td>td {:class "btn-warning btn-xs btn-block"
-                            :onClick #(ajax/GET
-                                        (wrap-context "/api/admin/modify-index/")
-                                        {:response-format (ajax/json-response-format {:keywords? true})
-                                         :handler (fn [m]
-                                                    (log/info "Modified index")
-                                                    (get-updates)
-                                                    )
-                                         :params (merge @play-atom {:ind (name ind)
-                                                                    :amount (-> (rand-int 7) (+ -3) (+ change))
-                                                                    })
-                                         }
-                                        )
-                            }
-                    change
-                    ]
+                         change
+                         ]
+                        ;; Other players
+                        :else
+                        [:td
+                         {:class "btn btn-default btn-xs btn-block"
+                          :title (str "Send " change " access to " player)
+                          :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
+                                              {:response-format (ajax/json-response-format {:keywords? true})
+                                               :handler (fn [m]
+                                                          (log/info "Modified access")
+                                                          (get-updates)
+                                                          )
+                                               :params (merge @play-atom {:playerto (name player)
+                                                                          :amount change
+                                                                          })})}
+                         change
+                         ]
+                        )
+                      ]
+                     )
                    )
                  ]
                 )
               )
-            (->> @game-atom
-                 :indicies
-                 (take 10)
-                 (partition 2 1)
-                 (map calculate-diffs)
-                 (map (partial sort-by first))
-                 (map (fn [im] ^{:key im}
-                        [:tr (doall
-                               (map
-                                 (fn [[_ v]] [:td (if (= 0 v) "" v)])
-                                 im
-                                 )
-                               )
-                         ]
-                        )
-                      )
-                 doall
-                 )
-            ]
-           ]
-          ]
-         )
+            )
+]
+]
+]
+]
+)
+)
+)
+;; Display indicies
+(defn indicies-component
+  "Component for displaying cbay items (and later bidding on them)" ;; TODO cbay bids
+  []
+  (fn []
+    [:div {:class "panel-info"}
+     [:div {:class ""}
+      (shared/tutorial-text
+        "This is the current sector indicies and current value of the service groups. Below is the recent changes"
+        )
+      [:table {:class "table-striped table-hover"
+               :style {:width "100%"}
+               }
+       [:thead>tr
+        (doall (map (fn [[k _]] [:th (-> k name shared/wrap-any)])
+                    (->> @game-atom :indicies first sort)))
+        ]
+       [:tbody
+        ;; Row of current values
+        [:tr
+         (->> @game-atom
+              :indicies
+              first
+              (sort-by first)
+              (map (fn [[k v]] ^{:key k} [:td v]))
+              doall
+              )
+         ]
+        ;; If admin, add buttons for changing. Will change values by the amount listed +-up to 3
+        (if (= "admin" (:userlevel @play-atom))
+          (for [change [-20 -10 -5 0 +5 +10 +20]]
+            [:tr
+             (for [ind (->> @game-atom :indicies first keys (map name) doall sort)]
+               [:td>td {:class "btn-warning btn-xs btn-block"
+                        :onClick #(ajax/GET
+                                    (wrap-context "/api/admin/modify-index/")
+                                    {:response-format (ajax/json-response-format {:keywords? true})
+                                     :handler (fn [m]
+                                                (log/info "Modified index")
+                                                (get-updates)
+                                                )
+                                     :params (merge @play-atom {:ind (name ind)
+                                                                :amount (-> (rand-int 7) (+ -3) (+ change))
+                                                                })
+                                     }
+                                    )
+                        }
+                change
+                ]
+               )
+             ]
+            )
+          )
+        (->> @game-atom
+             :indicies
+             (take 10)
+             (partition 2 1)
+             (map calculate-diffs)
+             (map (partial sort-by first))
+             (map (fn [im] ^{:key im}
+                    [:tr (doall
+                           (map
+                             (fn [[_ v]] [:td (if (= 0 v) "" v)])
+                             im
+                             )
+                           )
+                     ]
+                    )
+                  )
+             doall
+             )
+        ]
        ]
-      )
+      ]
+     ]
     )
   )
 ;; Display society missions
@@ -443,32 +410,24 @@
 (defn society-missions-component
   "Component for displaying secret society missions (and later marking them as done)" ;; TODO cbay bids
   []
-  (let [expand-atom (atom false)]
-    (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        "Secret Society Missions"
+  (fn []
+    [:div {:class "panel-info"}
+     [:div {:class ""}
+      (shared/tutorial-text
+        "These are (highly treasonous) secret society missions. They give 5 ACCESS on completion, and unlike directives do not lose you ACCESS on failure."
+        )
+      [:table {:class "table table-striped table-hover"}
+       [:tbody
+        (doall (map display-single-society-mission
+                    (sort-by :ss_name (:missions @game-atom))))
+        (doall (map (fn [i] [:tr [:td] [:td i]])
+                    (get-in @game-atom [:character :msgs])
+                    )
+               )
         ]
-       (if @expand-atom
-         [:div {:class ""}
-          (shared/tutorial-text
-            "These are (highly treasonous) secret society missions. They give 5 ACCESS on completion, and unlike directives do not lose you ACCESS on failure."
-            )
-          [:table {:class "table table-striped table-hover"}
-           [:tbody
-            (doall (map display-single-society-mission
-                        (sort-by :ss_name (:missions @game-atom))))
-            (doall (map (fn [i] [:tr [:td] [:td i]])
-                        (get-in @game-atom [:character :msgs])
-                        )
-                   )
-            ]
-           ]
-          ]
-         )
        ]
-      )
+      ]
+     ]
     )
   )
 ;; Display minions
@@ -516,7 +475,6 @@
 (defn single-service-group-component
   "Displays a single service group"
   [{service-group-id :sg_id}]
-  (let [expand-atom (atom true)]
     (fn []
       (let [{:keys [sg_id sg_name sg_abbr minions owner] :as sg}
             (some #(if (= service-group-id (:sg_id %)) % nil)
@@ -528,12 +486,7 @@
                         "panel-info"
                         )
                }
-         [:div {:class "panel-heading"
-                :onClick #(swap! expand-atom not)}
-          (str sg_name ". Owner: " owner ". ")
-          (if (not @expand-atom) (str "Active: " (count (filter :bought? minions))) "")
-          ]
-         (if (and @expand-atom (not (= 0 (count minions))))
+         (if (not (= 0 (count minions)))
            [:div
             (if owner?
               [:div {:class "btn btn-default"
@@ -611,7 +564,6 @@
          ]
         )
       )
-    )
   )
 (defn service-group-component
   "Component for displaying service group minions (And later purchasing them)" ;; TODO purchasing
@@ -645,95 +597,71 @@
 (defn directives-component
   "Component for displaying directives (and later marking them as done)" ;; TODO marking as done
   []
-  (let [expand-atom (atom false)]
-    (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        "Directives"
+  (fn []
+    [:div {:class "panel-info"}
+     [:div {:class ""}
+      (shared/tutorial-text
+        "When you are assigned service groups, below will show a list of directives. These directives will give you 10 ACCESS at the end of a session if completed, but will lose you 10 ACCESS if you fail to complete them. Their success/failure will also influence their price"
+        )
+      [:table {:class "table table-striped table-hover"}
+       [:tbody
+        (doall (map display-single-directive
+                    (sort-by :sg_id (:directives @game-atom))))
         ]
-       (if @expand-atom
-         [:div {:class ""}
-          (shared/tutorial-text
-            "When you are assigned service groups, below will show a list of directives. These directives will give you 10 ACCESS at the end of a session if completed, but will lose you 10 ACCESS if you fail to complete them. Their success/failure will also influence their price"
-            )
-          [:table {:class "table table-striped table-hover"}
-           [:tbody
-            (doall (map display-single-directive
-                        (sort-by :sg_id (:directives @game-atom))))
-            ]
-           ]
-          ]
-         )
        ]
-      )
+      ]
+     ]
     )
   )
 ;; Display Keywords
 (defn keywords-component
   "Displays all the keywords for the mission"
   []
-  (let [expand-atom (atom false)]
-    (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        "Keywords"
-        ]
-       (if @expand-atom
-         [:div {:class ""}
-          [:div (shared/tutorial-text "A list of keywords highlighted in an IntSec sweep. May be nothing, may be everything, may be a decoy.")]
-          (->> @game-atom
-               :keywords
-               (interpose ", ")
-               )
-          ]
-         )
-       ]
-      )
+  (fn []
+    [:div {:class "panel-info"}
+     [:div {:class ""}
+      [:div (shared/tutorial-text "A list of keywords highlighted in an IntSec sweep. May be nothing, may be everything, may be a decoy.")]
+      (->> @game-atom
+           :keywords
+           (interpose ", ")
+           )
+      ]
+     ]
     )
   )
 ;; Display secret society minions
 (defn program-group-component
   "Displays a single service group"
   []
-  (let [expand-atom (atom false)]
-    (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        "Program Group"
+  (fn []
+    [:div {:class "panel-info"}
+     [:div
+      (shared/tutorial-text
+        "To use a cover identity, privately message the GM before calling with both their name and who you're calling. e.g.: 'Calling Communists as Printing Services'."
+        )
+      "Reminder: These are treasonous secret societies! Always call using a cover identity!"
+      [:table {:class "table-striped table-hover"
+               :style {:width "100%"}
+               }
+       [:thead
+        [:tr [:th "Name"] [:th "Skills"]]
         ]
-       (if @expand-atom
-         [:div
-          (shared/tutorial-text
-            "To use a cover identity, privately message the GM before calling with both their name and who you're calling. e.g.: 'Calling Communists as Printing Services'."
-            )
-          "Reminder: These are treasonous secret societies! Always call using a cover identity!"
-          [:table {:class "table-striped table-hover"
-                   :style {:width "100%"}
-                   }
-           [:thead
-            [:tr [:th "Name"] [:th "Skills"]]
-            ]
-           [:tbody
-            (doall (map
-                     (fn [{:keys [ss_id ss_name sskills] :as ss}]
-                       ^{:key ss_id}
-                       [:tr
-                        [:td (shared/wrap-any ss_name)]
-                        [:td (shared/wrap-any sskills)]
-                        ]
-                       )
-                     (->> @game-atom :character :programGroup)
-                     )
+       [:tbody
+        (doall (map
+                 (fn [{:keys [ss_id ss_name sskills] :as ss}]
+                   ^{:key ss_id}
+                   [:tr
+                    [:td (shared/wrap-any ss_name)]
+                    [:td (shared/wrap-any sskills)]
+                    ]
                    )
-            ]
-           ]
-          ]
-         )
+                 (->> @game-atom :character :programGroup)
+                 )
+               )
+        ]
        ]
-      )
+      ]
+     ]
     )
   )
 ;; Display investments
@@ -804,63 +732,45 @@
 (defn investment-component
   "Allows players to buy and sell investments in the sector"
   []
-  (let [expand-atom (atom false)]
-    (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        "Investments"
-        ]
-       (if @expand-atom
-         [:div {:class "panel-body"}
-          (shared/tutorial-text
-            "Whoever has the highest investment in a service group will gain control of that group for the session. You can buy and sell shares in the group until the GM locks it."
-            )
-          (let [sgs (sort ["AF" "CP" "IS" "PL" "TS" "TD" "PS" "RD" "HP"])]
-            (log/info "sgs:" sgs "vestments:" (:investments @game-atom))
-            [:table {:class "table-hover table-striped col-lg-12"}
-             [:thead
-              ;; SG abbreviations
-              [:tr
-               [:td ] ;; For name
-               (map (fn [k] ^{:key k} [:th (shared/wrap-any k)]) sgs)
-               ]
-              ;; Prices
-              [:tr
-               [:th "Buy Price"]
-               (map (fn [sg] ^{:key sg} [:th ;(-> @game-atom :indicies first (get (keyword sg))
-                                             ;    ;; We have the index, now to convert to price
-                                             ;    (+ 100) (/ 100) (max 0.1)
-                                             ;    ;; We have price, now to reduce to 2 decimal places
-                                             ;    (* 100) int (/ 100))])
-                                             "1.00"])
-                    sgs
-                    )
-               ]
-              [:tr
-               [:th "Sell Price"]
-               (map (fn [sg] ^{:key sg} [:th "0.90"]) sgs)
-               ]
-              ]
-             [:tbody
-              (investment-trade-row sgs)
-              (doall
-                (map
-                  investment-table-row
-                  (:investments @game-atom)
-                  (repeat sgs)
-                  )
+  (fn []
+    [:div {:class "panel-info"}
+     [:div {:class "panel-body"}
+      (shared/tutorial-text
+        "Whoever has the highest investment in a service group will gain control of that group for the session. You can buy and sell shares in the group until the GM locks it."
+        )
+      (let [sgs (sort ["AF" "CP" "IS" "PL" "TS" "TD" "PS" "RD" "HP"])]
+        (log/info "sgs:" sgs "vestments:" (:investments @game-atom))
+        [:table {:class "table-hover table-striped col-lg-12"}
+         [:thead
+          ;; SG abbreviations
+          [:tr
+           [:td ] ;; For name
+           (map (fn [k] ^{:key k} [:th (shared/wrap-any k)]) sgs)
+           ]
+          ;; Prices
+          [:tr
+           [:th "Buy Price"]
+           (map (fn [sg] ^{:key sg} [:th ;(-> @game-atom :indicies first (get (keyword sg))
+                                     ;    ;; We have the index, now to convert to price
+                                     ;    (+ 100) (/ 100) (max 0.1)
+                                     ;    ;; We have price, now to reduce to 2 decimal places
+                                     ;    (* 100) int (/ 100))
+                                     "1.00"])
+                sgs
                 )
-              ]
-             ]
-            )
+           ]
+          [:tr
+           [:th "Sell Price"]
+           (map (fn [sg] ^{:key sg} [:th "0.90"]) sgs)
+           ]
           ]
-         nil
-         )
-       ]
-      )
-    )
-  )
+         [:tbody
+          (investment-trade-row sgs)
+          (doall
+            (map
+              investment-table-row
+              (:investments @game-atom)
+              (repeat sgs)))]])]]))
 ;; Display news ticker
 (defn- ^String news-read-access
   "Returns a string of a news reader detailing an access change"
@@ -991,73 +901,65 @@
 (defn character-component
   "Component for displaying a character sheet"
   []
-  (let [expand-atom (atom false)]
-    (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        (get-in @game-atom [:character :name]) "'s character sheet."
+  (fn []
+    [:div {:class "panel-info"}
+     [:div {:class "panel-body"}
+      [:div {:class "panel-default"}
+       [:div {:class "panel-heading"}
+        "Statistics"
         ]
-       (if @expand-atom
-         [:div {:class "panel-body"}
-          [:div {:class "panel-default"}
-           [:div {:class "panel-heading"}
-            "Statistics"
-            ]
-           [:div
-            (doall (map (fn [[stat value]] ^{:key stat} [:div (shared/wrap-any (name stat)) ": " value])
-                        (sort-by key (get-in @game-atom [:character :priStats]))))
-            ]
-           ]
-          [:div {:class "panel-default"}
-           [:div {:class "panel-heading"}
-            "Mutation"
-            ]
-           [:div
-            "Mutation Strength: "
-            (get-in @game-atom [:character :mutation :power])
-            ]
-           [:div
-            "Mutations: "
-            (let [muts (get-in @game-atom [:character :mutation :description])]
-              (if (string? muts)
-                muts
-                [:table {:class "table table-striped table-hover"}
-                 [:tbody
-                  (doall
-                    (map (fn [{m-name :name m-desc :desc}]
-                           ^{:key m-name}
-                           [:tr [:td m-name] [:td m-desc]])
-                         muts
-                         )
-                    )
-                  ]
-                 ]
+       [:div
+        (doall (map (fn [[stat value]] ^{:key stat} [:div (shared/wrap-any (name stat)) ": " value])
+                    (sort-by key (get-in @game-atom [:character :priStats]))))
+        ]
+       ]
+      [:div {:class "panel-default"}
+       [:div {:class "panel-heading"}
+        "Mutation"
+        ]
+       [:div
+        "Mutation Strength: "
+        (get-in @game-atom [:character :mutation :power])
+        ]
+       [:div
+        "Mutations: "
+        (let [muts (get-in @game-atom [:character :mutation :description])]
+          (if (string? muts)
+            muts
+            [:table {:class "table table-striped table-hover"}
+             [:tbody
+              (doall
+                (map (fn [{m-name :name m-desc :desc}]
+                       ^{:key m-name}
+                       [:tr [:td m-name] [:td m-desc]])
+                     muts
+                     )
                 )
-              )
-            ]
-           ;; Drawbacks
-           (if (get-in @game-atom [:character :drawbacks])
-             [:div {:class "panel-default"}
-              [:div {:class "panel-heading"}
-               "Drawbacks"
-               ]
-              (->> @game-atom
-                   :character
-                   :drawbacks
-                   (map :text)
-                   (map (fn [t]
-                          [:div t]
-                          ))
-                  )
               ]
-             nil
-             )
+             ]
+            )
+          )
+        ]
+       ;; Drawbacks
+       (if (get-in @game-atom [:character :drawbacks])
+         [:div {:class "panel-default"}
+          [:div {:class "panel-heading"}
+           "Drawbacks"
            ]
+          (->> @game-atom
+               :character
+               :drawbacks
+               (map :text)
+               (map (fn [t]
+                      [:div t]
+                      ))
+               )
           ]
+         nil
          )
        ]
-      )
+      ]
+     ]
     )
   )
 ;; Display admin panel
@@ -1386,79 +1288,70 @@
 (defn public-standing-component
   "Displays user's public standing, as well as upcoming live vidshows"
   []
-  (let [expand-atom (atom false)]
-    (fn []
-      [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        "Public Relations"
+  (fn []
+    [:div {:class "panel-info"}
+     [:div {:class ""}
+      (shared/tutorial-text
+        "NOTE: player's can't currently see this. Let them research it if they're wanting to know how much their standing changed in a game."
+        )
+      [:table {:class "table-striped table-hover"
+               :style {:width "100%"}}
+       [:thead
+        [:tr
+         [:th "Name"] [:th "Public Standing"] [:th]
+         ]
         ]
-       (if @expand-atom
-         [:div {:class ""}
-          (shared/tutorial-text
-            "NOTE: player's can't currently see this. Let them research it if they're wanting to know how much their standing changed in a game."
-            )
-          [:table {:class "table-striped table-hover"
-                   :style {:width "100%"}}
-           [:thead
-            [:tr
-             [:th "Name"] [:th "Public Standing"] [:th]
-             ]
-            ]
-           [:tbody
-            (->> (get-in @game-atom [:hps])
-                 (map (fn [[_ {p-name :name ps :publicStanding}]]
-                        ^{:key p-name} [p-name ps]
-                        )
-                      )
-                 (sort-by first)
-                 (map (fn [[p-name ps]]
-                        ^{:key p-name}
-                        [:tr [:td p-name] [:td (if ps ps "-")]
-                         ;; TODO buttons for modifying public standing
-                         (if (= "admin" (:userlevel @play-atom))
-                           [:td
-                            [:span {:class (add-button-size "btn-success")
-                                    :onClick #(ajax/GET (wrap-context "/api/admin/modify-public-standing/")
-                                                        {:response-format (ajax/json-response-format {:keywords? true})
-                                                         :handler (fn [m]
-                                                                    (log/info "Modified public standing")
-                                                                    (get-updates)
-                                                                    )
-                                                         :params (merge @play-atom {:player (name p-name)
-                                                                                    :amount 1
-                                                                                    })})
-                                    }
-                             "+1"
-                             ]
-                            [:span {:class (add-button-size "btn-warning")
-                                    :onClick #(ajax/GET (wrap-context "/api/admin/modify-public-standing/")
-                                                        {:response-format (ajax/json-response-format {:keywords? true})
-                                                         :handler (fn [m]
-                                                                    (log/info "Modified public standing")
-                                                                    (get-updates)
-                                                                    )
-                                                         :params (merge @play-atom {:player (name p-name)
-                                                                                    :amount -1
-                                                                                    })})
-                                    }
-                             "-1"
-                             ]
-                            ]
-                           nil
-                           )
+       [:tbody
+        (->> (get-in @game-atom [:hps])
+             (map (fn [[_ {p-name :name ps :publicStanding}]]
+                    ^{:key p-name} [p-name ps]
+                    )
+                  )
+             (sort-by first)
+             (map (fn [[p-name ps]]
+                    ^{:key p-name}
+                    [:tr [:td p-name] [:td (if ps ps "-")]
+                     ;; TODO buttons for modifying public standing
+                     (if (= "admin" (:userlevel @play-atom))
+                       [:td
+                        [:span {:class (add-button-size "btn-success")
+                                :onClick #(ajax/GET (wrap-context "/api/admin/modify-public-standing/")
+                                                    {:response-format (ajax/json-response-format {:keywords? true})
+                                                     :handler (fn [m]
+                                                                (log/info "Modified public standing")
+                                                                (get-updates)
+                                                                )
+                                                     :params (merge @play-atom {:player (name p-name)
+                                                                                :amount 1
+                                                                                })})
+                                }
+                         "+1"
                          ]
-                        )
-                      )
-                 doall
-                 )
-            ]
-           ]
-          ]
-         nil
-         )
+                        [:span {:class (add-button-size "btn-warning")
+                                :onClick #(ajax/GET (wrap-context "/api/admin/modify-public-standing/")
+                                                    {:response-format (ajax/json-response-format {:keywords? true})
+                                                     :handler (fn [m]
+                                                                (log/info "Modified public standing")
+                                                                (get-updates)
+                                                                )
+                                                     :params (merge @play-atom {:player (name p-name)
+                                                                                :amount -1
+                                                                                })})
+                                }
+                         "-1"
+                         ]
+                        ]
+                       nil
+                       )
+                     ]
+                    )
+                  )
+             doall
+             )
+        ]
        ]
-      )
+      ]
+     ]
     )
   )
 
@@ -1487,14 +1380,8 @@
 (defn call-component
   "Displays user's public standing, as well as upcoming live vidshows"
   []
-  (let [expand-atom (atom true)] ; TODO set back to false
     (fn []
       [:div {:class "panel-info"}
-       [:div {:class "panel-heading"
-              :onClick #(swap! expand-atom not)}
-        "Call Queue"
-        ]
-       (if @expand-atom
          [:div {:class ""}
           (shared/tutorial-text
             "Here is a list of waiting calls. The top call is the latest call waiting.
@@ -1514,7 +1401,7 @@
                        (-> @game-atom :calls)))
            ]
           ]
-         )])))
+         ]))
 
 ;; Display panel for the game in total
 (defn game-component
@@ -1544,14 +1431,22 @@
     [:tbody
      [:tr
       [:td {:style {:width "33%"}}
-       [access-component]
-       [directives-component]
-       [society-missions-component]
-       [indicies-component]
-       [investment-component]
-       [cbay-component]
-       [news-component]
-       [keywords-component]
+       ;[access-component]
+       [shared/comp-draggable "ACCESS" access-component {:x 100 :y 100}]
+       ;[directives-component]
+       [shared/comp-draggable "Directives" directives-component {:x 100 :y 100}]
+       ;[society-missions-component]
+       [shared/comp-draggable "Private Messages" society-missions-component {:x 100 :y 100}]
+       ;[indicies-component]
+       [shared/comp-draggable "Indicies" indicies-component {:x 100 :y 100}]
+       ;[investment-component]
+       [shared/comp-draggable "Investments" investment-component {:x 100 :y 100}]
+       ;[cbay-component]
+       [shared/comp-draggable "Cbay" cbay-component {:x 100 :y 100}]
+       ;[news-component]
+       [shared/comp-draggable "News" news-component {:x 100 :y 100}]
+       ;[keywords-component]
+       [shared/comp-draggable "Keywords" keywords-component {:x 200 :y 400}]
        (case (:userlevel @play-atom)
          "player" [character-component]
          "admin" [public-standing-component]

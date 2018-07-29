@@ -2,7 +2,10 @@
   (:require [taoensso.timbre :as log]
             [reagent.core :as reagent :refer [atom]]
             [ajax.core :refer [GET POST] :as ajax]
-            ))
+            [goog.events :as events]
+            )
+  (:import [goog.events EventType])
+  )
 
 (defonce ^:private system-info
   (atom {:context (-> js/window
@@ -426,3 +429,64 @@
       )
     )
   )
+
+;; Draggable Components
+(defn get-client-rect [evt]
+  (log/trace "get-client-rect" evt)
+  (let [r (.getBoundingClientRect (.-target evt))]
+    {:left (.-left r), :top (.-top r)}))
+(defn mouse-move-handler [a offset]
+  (fn [evt]
+    (log/trace "mouse-move-handler")
+    (let [x (- (.-clientX evt) (:x offset))
+          y (- (.-clientY evt) (:y offset))]
+      (log/trace "mouse-move-handler" x y @a)
+      (swap! a merge {:x x :y y}))))
+(defn mouse-up-handler [id on-move]
+  (fn me [evt]
+    (log/trace "mouse-up-handler")
+    (events/unlisten js/window EventType.MOUSEMOVE
+                     on-move)))
+(defn mouse-down-handler
+  [a e]
+  (let [{:keys [left top]} (get-client-rect e)
+        offset             {::x (- (.-clientX e) left)
+                            ::y (- (.-clientY e) top)}
+        on-move            ((partial mouse-move-handler a e) offset)]
+    (log/trace "mouse-down-handler" e)
+    (events/listen js/window EventType.MOUSEMOVE
+                   on-move)
+    (events/listen js/window EventType.MOUSEUP
+                   ((partial mouse-up-handler a) on-move))))
+(defn min-or-maximize
+  [a]
+  (log/trace "min-or-maximize" @a)
+  (swap! a update-in [:minimised?] not))
+(defn comp-draggable
+  [title body-comp ?start-coords]
+  (log/trace "comp-draggable")
+  (let [pos (atom (or ?start-coords {:x 100 :y 100}))]
+    (fn []
+      (log/trace "comp-draggable inner")
+      [:div
+       [:div (pr-str @pos)]
+       [:div.card.border-secondary
+        {:style {:position "absolute"
+                 :left (or (:x @pos) 100)
+                 :top (or (:y @pos) 100)}}
+        [:div.card-header.no-select
+         ;:on-click #(rf/dispatch [::move-window :test {::x 200 ::y 200}])
+         {:on-mouse-down (partial mouse-down-handler pos)}
+         (str title)
+         ;; Minimise/maximise button
+         [:div.btn.btn-secondary-outline.btn-sm
+          {:on-click (partial min-or-maximize pos)} ;; TODO
+          (if (:minimised? @pos) "\u21D2" "\u21D3")
+          ]
+         ]
+        (if (not (:minimised? @pos))
+          [:div.card-body
+           [body-comp]
+           ]
+          )
+        ]])))
