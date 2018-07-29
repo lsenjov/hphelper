@@ -431,62 +431,72 @@
   )
 
 ;; Draggable Components
+
+;; Records position data for the entire session
+(defonce pos-atom
+  (atom {}))
 (defn get-client-rect [evt]
   (log/trace "get-client-rect" evt)
   (let [r (.getBoundingClientRect (.-target evt))]
     {:left (.-left r), :top (.-top r)}))
-(defn mouse-move-handler [a offset]
+(defn mouse-move-handler [title offset]
   (fn [evt]
     (log/trace "mouse-move-handler")
     (let [x (- (.-clientX evt) (:x offset))
           y (- (.-clientY evt) (:y offset))]
-      (log/trace "mouse-move-handler" x y @a)
-      (swap! a merge {:x x :y y}))))
+      (log/trace "mouse-move-handler" x y @pos-atom)
+      (swap! pos-atom update-in [title] merge {:x x :y y}))))
 (defn mouse-up-handler [id on-move]
   (fn me [evt]
     (log/trace "mouse-up-handler")
     (events/unlisten js/window EventType.MOUSEMOVE
                      on-move)))
 (defn mouse-down-handler
-  [a e]
+  [title e]
   (let [{:keys [left top]} (get-client-rect e)
         offset             {::x (- (.-clientX e) left)
                             ::y (- (.-clientY e) top)}
-        on-move            ((partial mouse-move-handler a e) offset)]
+        on-move            ((partial mouse-move-handler title e) offset)]
     (log/trace "mouse-down-handler" e)
     (events/listen js/window EventType.MOUSEMOVE
                    on-move)
     (events/listen js/window EventType.MOUSEUP
-                   ((partial mouse-up-handler a) on-move))))
+                   ((partial mouse-up-handler pos-atom) on-move))))
 (defn min-or-maximize
-  [a]
-  (log/trace "min-or-maximize" @a)
-  (swap! a update-in [:minimised?] not))
+  [title]
+  (log/trace "min-or-maximize" title)
+  (swap! pos-atom update-in [title :minimised?] not))
 (defn comp-draggable
-  [title body-comp ?start-coords]
+  [title body-comp {:keys [x y] :as ?start-coords}]
   (log/trace "comp-draggable")
-  (let [pos (atom (or ?start-coords {:x 100 :y 100}))]
     (fn []
       (log/trace "comp-draggable inner")
       [:div
-       [:div (pr-str @pos)]
+       [:div (pr-str (get-in @pos-atom [title]))]
        [:div.card.border-secondary
         {:style {:position "absolute"
-                 :left (or (:x @pos) 100)
-                 :top (or (:y @pos) 100)}}
+                 :left (or (get-in @pos-atom [title :x]) x 100)
+                 :top (or (get-in @pos-atom [title :y]) y 100)
+                 :max-width "33%"
+                 :display "flex"
+                 :overflow "auto"
+                 }}
         [:div.card-header.no-select
          ;:on-click #(rf/dispatch [::move-window :test {::x 200 ::y 200}])
-         {:on-mouse-down (partial mouse-down-handler pos)}
+         {:on-mouse-down (partial mouse-down-handler title)}
          (str title)
          ;; Minimise/maximise button
          [:div.btn.btn-secondary-outline.btn-sm
-          {:on-click (partial min-or-maximize pos)} ;; TODO
-          (if (:minimised? @pos) "\u21D2" "\u21D3")
+          {:on-click (partial min-or-maximize title)} ;; TODO
+          (if (get-in @pos-atom [title :minimised?]) "\u21D2" "\u21D3")
           ]
          ]
-        (if (not (:minimised? @pos))
+        (if (not (get-in @pos-atom [title :minimised?]))
           [:div.card-body
+           {:style {:position "relative"
+                    :width "100%"
+                    }}
            [body-comp]
            ]
           )
-        ]])))
+        ]]))

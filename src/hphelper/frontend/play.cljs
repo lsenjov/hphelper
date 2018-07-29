@@ -234,7 +234,7 @@
                (for [player players]
                  ^{:key player}
                  [:td>div
-                  {:class "btn btn-default btn-xs btn-block"
+                  {:class "btn btn-secondary btn-xs btn-block"
                    :title (str "Change " player " by " change " ACCESS.")
                    :onClick #(ajax/GET (wrap-context "/api/admin/modify-access/")
                                        {:response-format (ajax/json-response-format {:keywords? true})
@@ -297,7 +297,7 @@
                         ;; Other players
                         :else
                         [:td
-                         {:class "btn btn-default btn-xs btn-block"
+                         {:class "btn btn-secondary btn-xs btn-block"
                           :title (str "Send " change " access to " player)
                           :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
                                               {:response-format (ajax/json-response-format {:keywords? true})
@@ -405,7 +405,10 @@
 ;; Display society missions
 (defn display-single-society-mission
   [{:keys [ssm_id ss_id c_id ssm_text ss_name]}]
-  ^{:key ssm_id} [:tr [:td (shared/wrap-any ss_name)] [:td ssm_text]]
+  ^{:key ssm_id} [:tr
+                  [:td (shared/wrap-any ss_name)]
+                  [:td
+                   ssm_text]]
   )
 (defn society-missions-component
   "Component for displaying secret society missions (and later marking them as done)" ;; TODO cbay bids
@@ -443,7 +446,7 @@
    (if bought?
      (if owned?
        ;; Already bought, and owned, add the call button
-       [:td>span {:class "btn-default"
+       [:td>span {:class "btn-secondary"
                   :onClick #(ajax/GET (wrap-context "/api/player/callminion/")
                                       {:response-format (ajax/json-response-format {:keywords? true})
                                        :handler (fn [m]
@@ -489,7 +492,7 @@
          (if (not (= 0 (count minions)))
            [:div
             (if owner?
-              [:div {:class "btn btn-default"
+              [:div {:class "btn btn-secondary"
                      :onClick #(let [minionName (js/prompt "Enter minion name")
                                      minionClearance (js/prompt "Enter minion clearance (IR/R/O/Y/G/B/I/V)")
                                      minionDesc (js/prompt "Enter minion desc (private except for you and GM)")]
@@ -572,18 +575,20 @@
    (shared/tutorial-text
      "If on, will only show minions that have been purchased. If off, will show all minions (you can't see unbought minions of groups you don't own"
      )
-   [:div {:class (add-button-size (if (:filterBought? @play-atom) "btn btn-success btn-block" "btn btn-default btn-block"))
+   [:div {:class (add-button-size (if (:filterBought? @play-atom) "btn btn-success btn-block" "btn btn-secondary btn-block"))
           :onClick #(swap! play-atom update-in [:filterBought?] not)}
     "Show bought minions only?"
     ]
    (if (= "admin" (:userlevel @play-atom))
-     [:div {:class (add-button-size (if (:showAssignGroups @play-atom) "btn btn-warning btn-block" "btn btn-default btn-block"))
+     [:div {:class (add-button-size (if (:showAssignGroups @play-atom) "btn btn-warning btn-block" "btn btn-secondary btn-block"))
             :onClick #(swap! play-atom update-in [:showAssignGroups] not)}
       "Show assign service group panel?"
       ]
      )
    (doall
-     (map (fn [sg] ^{:key sg} [single-service-group-component sg])
+     (map (fn [sg] ^{:key sg}
+            [shared/comp-draggable (:sg_name sg) (partial single-service-group-component sg)
+             {:x 2000 :y 200 :minimised? true}])
           (sort-by :sg_id (:serviceGroups @game-atom))
           )
      )
@@ -693,7 +698,7 @@
 (defn- create-trade-button
   "Creates a single button for buying or selling"
   ([zone group amount]
-   [:div {:class "btn-default btn-xs"
+   [:div {:class "btn-secondary btn-xs"
            :onClick
            #(do (ajax/GET (wrap-context "/api/player/trade-investments/")
                           {:response-format (ajax/json-response-format {:keywords? true})
@@ -1053,7 +1058,7 @@
   "When pressed, rolls a number between 1 and 20 and displays the result in the status atom as a string"
   [^Atom status n ^String player ^String stat]
   (log/info "create-stat-roller. n:" n "player:" player "stat:" stat)
-  [:div {:class (add-button-size "btn-default")
+  [:div {:class (add-button-size "btn-secondary")
          :onClick (fn [] (let [r (inc (rand-int 20))
                                tension (inc (rand-int 20))
                                ]
@@ -1122,7 +1127,7 @@
     ]
    ;; Zap
    [:td
-    [:div {:class (add-button-size "btn-default")
+    [:div {:class (add-button-size "btn-secondary")
            :onClick (fn []
                       (log/info "Zap" p-name)
                       (ajax/GET (wrap-context "/api/admin/character/zap/")
@@ -1258,7 +1263,7 @@
             ]
            ;; Unlock Investments
            [:div {:class "col-lg-2"}
-            [:span {:class "btn btn-default"
+            [:span {:class "btn btn-secondary"
                     :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
                                         {:response-format (ajax/json-response-format {:keywords? true})
                                          :handler (fn [m]
@@ -1272,7 +1277,7 @@
             ]
            ;; Toggle displaying SS
            [:div {:class "col-lg-2"}
-            [:span {:class "btn btn-default"
+            [:span {:class "btn btn-secondary"
                     :onClick #(swap! other-opts-atom update-in [:show-ss] not)}
              "Toggle SS display"
              ]
@@ -1430,34 +1435,31 @@
      ]
     [:tbody
      [:tr
-      [:td {:style {:width "33%"}}
+      [:td {:style {}}
        ;[access-component]
        [shared/comp-draggable "ACCESS" access-component {:x 100 :y 100}]
        ;[directives-component]
-       [shared/comp-draggable "Directives" directives-component {:x 100 :y 100}]
+       [shared/comp-draggable "Directives" directives-component {:x 100 :y 150}]
        ;[society-missions-component]
-       [shared/comp-draggable "Private Messages" society-missions-component {:x 100 :y 100}]
+       [shared/comp-draggable "Private Messages" society-missions-component {:x 100 :y 200}]
        ;[indicies-component]
-       [shared/comp-draggable "Indicies" indicies-component {:x 100 :y 100}]
+       [shared/comp-draggable "Indicies" indicies-component {:x 100 :y 250}]
        ;[investment-component]
-       [shared/comp-draggable "Investments" investment-component {:x 100 :y 100}]
+       [shared/comp-draggable "Investments" investment-component {:x 100 :y 300}]
        ;[cbay-component]
-       [shared/comp-draggable "Cbay" cbay-component {:x 100 :y 100}]
+       [shared/comp-draggable "Cbay" cbay-component {:x 100 :y 350}]
        ;[news-component]
-       [shared/comp-draggable "News" news-component {:x 100 :y 100}]
+       [shared/comp-draggable "News" news-component {:x 100 :y 400}]
        ;[keywords-component]
-       [shared/comp-draggable "Keywords" keywords-component {:x 200 :y 400}]
+       [shared/comp-draggable "Keywords" keywords-component {:x 100 :y 450}]
        (case (:userlevel @play-atom)
-         "player" [character-component]
-         "admin" [public-standing-component]
+         "player" [shared/comp-draggable "Character Sheet" character-component {:x 100 :y 500}]
+         "admin" [shared/comp-draggable "Public Standing" public-standing-component {:x 100 :y 500}]
          nil
          )
-       ]
-      [:td {:style {:width "33%"}}
-       [call-component]
-       ]
-      [:td {:style {:width "33%"}}
-       [program-group-component]
+       [shared/comp-draggable "Call queue" call-component {:x 100 :y 550}]
+       [shared/comp-draggable "Program Group" program-group-component {:x 100 :y 600}]
+       ;; The service groups are pushed to windows in their own component
        [service-group-component]
        ]
       ]
@@ -1479,7 +1481,7 @@
       (shared/text-input play-atom [:gameUuid] "eg: abcdefgh-ijkl-mnop-qrst-uvwxyz123456")
       "Player Uuid: (If spectating, leave blank)"
       (shared/text-input play-atom [:userUuid] "eg: abcdefgh-ijkl-mnop-qrst-uvwxyz123456")
-      [:div {:class (add-button-size "btn btn-default")
+      [:div {:class (add-button-size "btn btn-secondary")
              :onClick (fn []
                         (swap! play-atom assoc :userlevel "public")
                         (get-updates)
@@ -1487,7 +1489,7 @@
              }
        "Spectate"
        ]
-      [:div {:class (add-button-size "btn btn-default")
+      [:div {:class (add-button-size "btn btn-secondary")
              :onClick (fn []
                         (swap! play-atom assoc :userlevel "player")
                         (get-updates)
@@ -1495,7 +1497,7 @@
              }
        "Play as Player"
        ]
-      [:div {:class (add-button-size "btn btn-default")
+      [:div {:class (add-button-size "btn btn-secondary")
              :onClick (fn []
                         (swap! play-atom assoc :userlevel "admin")
                         (get-updates)
