@@ -418,7 +418,7 @@
   "Displays a single minion"
   ([{:keys [minion_id minion_name minion_clearance minion_cost mskills bought?] :as minion} sgid owned?]
   ^{:key minion_id}
-  [:tr {:class (if bought? "success" "")}
+  [:tr {:class (if bought? "table-primary" "table-secondary")}
    [:td minion_name]
    [:td minion_clearance]
    [:td minion_cost]
@@ -426,7 +426,7 @@
    (if bought?
      (if owned?
        ;; Already bought, and owned, add the call button
-       [:td>span {:class "btn-secondary"
+       [:td>span {:class "btn-primary"
                   :onClick #(ajax/GET (wrap-context "/api/player/callminion/")
                                       {:response-format (ajax/json-response-format {:keywords? true})
                                        :handler (fn [m]
@@ -440,7 +440,7 @@
         "Call"
         ]
        [:td])
-     [:td>span {:class "btn-success"
+     [:td>span {:class "btn-secondary"
                 :onClick #(ajax/GET (wrap-context "/api/player/purchaseminion/")
                                     {:response-format (ajax/json-response-format {:keywords? true})
                                      :handler (fn [m]
@@ -451,7 +451,7 @@
                                      }
                                     )
                 }
-      "buy"])])
+      "Buy"])])
   ([minion sgid]
    (display-single-minion minion sgid false))
   )
@@ -464,11 +464,7 @@
                   (:serviceGroups @game-atom))
             owner? (= owner (get-in @game-atom [:character :name]))
             ]
-        [:div {:class (if owner?
-                        "panel-success"
-                        "panel-info"
-                        )
-               }
+        [:div
          (if (not (= 0 (count minions)))
            [:div
             (if owner?
@@ -489,7 +485,7 @@
                                                    }))}
                "Add Minion to Service Group"]
               )
-            [:table {:class "table table-striped table-hover"}
+            [:table.table.table-striped.table-hover
              [:thead
               [:tr [:th "Name"] [:th "Clear"] [:th "Cost"] [:th "Skills"] [:th "Buy"]]
               ]
@@ -555,12 +551,12 @@
    (shared/tutorial-text
      "If on, will only show minions that have been purchased. If off, will show all minions (you can't see unbought minions of groups you don't own"
      )
-   [:div {:class (add-button-size (if (:filterBought? @play-atom) "btn btn-success btn-block" "btn btn-secondary btn-block"))
+   [:div.btn {:class (add-button-size (if (:filterBought? @play-atom) "btn-success" "btn-secondary"))
           :onClick #(swap! play-atom update-in [:filterBought?] not)}
     "Show bought minions only?"
     ]
    (if (= "admin" (:userlevel @play-atom))
-     [:div {:class (add-button-size (if (:showAssignGroups @play-atom) "btn btn-warning btn-block" "btn btn-secondary btn-block"))
+     [:div.btn {:class (add-button-size (if (:showAssignGroups @play-atom) "btn-warning" "btn-secondary"))
             :onClick #(swap! play-atom update-in [:showAssignGroups] not)}
       "Show assign service group panel?"
       ]
