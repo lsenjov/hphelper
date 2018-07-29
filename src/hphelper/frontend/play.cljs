@@ -154,27 +154,6 @@
                  nil)))))
 
 ;; Begin display components
-;; Display news
-(defn news-component
-  "Component for displaying news items"
-  []
-  (fn []
-    [:div {:class "panel-info"}
-     [:div {:class ""}
-      [:table {:class "table-striped table-hover"
-               :style {:width "100%"}
-               }
-       [:tbody
-        (doall (map (fn [cbi] ^{:key cbi} [:tr>td cbi])
-                    (:news @game-atom)
-                    )
-               )
-        ]
-       ]
-      ]
-     ]
-    )
-  )
 ;; Display cbay
 (defn cbay-component
   "Component for displaying cbay items (and later bidding on them)" ;; TODO cbay bids
@@ -339,7 +318,7 @@
                :style {:width "100%"}
                }
        [:thead>tr
-        (doall (map (fn [[k _]] [:th (-> k name shared/wrap-any)])
+        (doall (map (fn [[k _]] ^{:key k} [:th (-> k name shared/wrap-any)])
                     (->> @game-atom :indicies first sort)))
         ]
        [:tbody
@@ -349,8 +328,8 @@
               :indicies
               first
               (sort-by first)
-              (map (fn [[k v]] ^{:key k} [:td v]))
-              doall
+              (map (fn [[k v]] [:td v]))
+              shared/wrap-unique-key
               )
          ]
         ;; If admin, add buttons for changing. Will change values by the amount listed +-up to 3
@@ -358,20 +337,20 @@
           (for [change [-20 -10 -5 0 +5 +10 +20]]
             [:tr
              (for [ind (->> @game-atom :indicies first keys (map name) doall sort)]
-               [:td>td {:class "btn-warning btn-xs btn-block"
-                        :onClick #(ajax/GET
-                                    (wrap-context "/api/admin/modify-index/")
-                                    {:response-format (ajax/json-response-format {:keywords? true})
-                                     :handler (fn [m]
-                                                (log/info "Modified index")
-                                                (get-updates)
-                                                )
-                                     :params (merge @play-atom {:ind (name ind)
-                                                                :amount (-> (rand-int 7) (+ -3) (+ change))
-                                                                })
-                                     }
-                                    )
-                        }
+               [:td>td.btn-xs.btn-block.btn-outline-warning
+                {:onClick #(ajax/GET
+                             (wrap-context "/api/admin/modify-index/")
+                             {:response-format (ajax/json-response-format {:keywords? true})
+                              :handler (fn [m]
+                                         (log/info "Modified index")
+                                         (get-updates)
+                                         )
+                              :params (merge @play-atom {:ind (name ind)
+                                                         :amount (-> (rand-int 7) (+ -3) (+ change))
+                                                         })
+                              }
+                             )
+                 }
                 change
                 ]
                )
@@ -385,7 +364,7 @@
              (map calculate-diffs)
              (map (partial sort-by first))
              (map (fn [im] ^{:key im}
-                    [:tr (doall
+                    [:tr (shared/wrap-unique-key
                            (map
                              (fn [[_ v]] [:td (if (= 0 v) "" v)])
                              im
@@ -404,11 +383,11 @@
   )
 ;; Display society missions
 (defn display-single-society-mission
-  [{:keys [ssm_id ss_id c_id ssm_text ss_name]}]
-  ^{:key ssm_id} [:tr
-                  [:td (shared/wrap-any ss_name)]
-                  [:td
-                   ssm_text]]
+  [{:keys [ssm_id ss_id c_id ssm_text ss_name]} k]
+  ^{:key k} [:tr
+             [:td (shared/wrap-any ss_name)]
+             [:td
+              ssm_text]]
   )
 (defn society-missions-component
   "Component for displaying secret society missions (and later marking them as done)" ;; TODO cbay bids
@@ -422,7 +401,8 @@
       [:table {:class "table table-striped table-hover"}
        [:tbody
         (doall (map display-single-society-mission
-                    (sort-by :ss_name (:missions @game-atom))))
+                    (sort-by :ss_name (:missions @game-atom))
+                    (range)))
         (doall (map (fn [i] [:tr [:td] [:td i]])
                     (get-in @game-atom [:character :msgs])
                     )
@@ -892,14 +872,36 @@
         ;; How many milliseconds to wait between refreshing screens
         4000
         )
-      [:div {:class (str "navbar navbar-default navbar-fixed-bottom label " (if (:kw @ticker-atom) "label-info" ""))}
+      [:div.alert.alert-dismissible {:class (if (:kw @ticker-atom) "alert-primary" "alert-light")}
        [:div
-        [:h5
+        [:h5.nav-link
          (:text @ticker-atom)
          ]
         ]
        ]
       )
+    )
+  )
+;; Display news
+(defn news-component
+  "Component for displaying news items"
+  []
+  (fn []
+    [:div {:class "panel-info"}
+     [:div {:class ""}
+      [:table {:class "table-striped table-hover"
+               :style {:width "100%"}
+               }
+       [:tbody
+        (doall (map (fn [cbi] ^{:key cbi} [:tr>td cbi])
+                    (:news @game-atom)
+                    )
+               )
+        ]
+       ]
+      [news-ticker-component ticker-keyword-atom]
+      ]
+     ]
     )
   )
 ;; Display character sheet
@@ -1098,7 +1100,7 @@
    ;; Societies
    [:td
     (when show-ss
-      (doall
+      (shared/wrap-unique-key
         (map
           (fn [{:keys [ss_name sskills]}]
             [:div (shared/wrap-any ss_name) ": " (shared/wrap-any sskills)]
@@ -1466,7 +1468,6 @@
      ]
     ]
    [loop-updates-component]
-   [news-ticker-component ticker-keyword-atom]
    ]
   )
 ;; Top-level display panel for logging into games

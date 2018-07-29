@@ -93,6 +93,15 @@
   (str (:context @system-info) url)
   )
 
+(defn wrap-unique-key
+  "Given a collection, returns the collection with a unique key mapped to each column.
+  Mainly because JS throwing warning after warning about it otherwise"
+  [coll]
+  (doall
+    (map (fn [k e] ^{:key k} e)
+       (range)
+       coll)))
+
 ;; For easier class work
 (defn add-button-size
   "Adds button size to the end of a string"
@@ -423,12 +432,7 @@
                 :onClick #(log-in (:email @login-atom) (:pass @login-atom))
                 }
          "Log In"
-         ]
-        ]
-       ]
-      )
-    )
-  )
+         ]]])))
 
 ;; Draggable Components
 
@@ -443,9 +447,14 @@
   (fn [evt]
     (log/trace "mouse-move-handler")
     (let [x (- (.-clientX evt) (:x offset))
-          y (- (.-clientY evt) (:y offset))]
+          y (- (.-clientY evt) (:y offset))
+          ;; Pretty hacky, but gets the distance we've scrolled down/left
+          ;; It's equivalent to $(js/window).scrollTop()
+          scrollTop (.scrollTop ((js* "$") js/window))
+          scrollLeft (.scrollLeft ((js* "$") js/window))
+          ]
       (log/trace "mouse-move-handler" x y @pos-atom)
-      (swap! pos-atom update-in [title] merge {:x x :y y}))))
+      (swap! pos-atom update-in [title] merge {:x (+ x scrollLeft) :y (+ y scrollTop)}))))
 (defn mouse-up-handler [id on-move]
   (fn me [evt]
     (log/trace "mouse-up-handler")
