@@ -151,7 +151,7 @@
 (defn debug-switcher-button
   "Switches the :debug tag in system-info"
   []
-  [:span {:class (if (:debug @system-info) "btn btn-success btn-xs" "btn btn-default btn-xs")
+  [:span {:class (if (:debug @system-info) "btn btn-success btn-xs" "btn btn-secondary btn-xs")
           :onClick #(swap! system-info update-in [:debug] not)
           }
    "Debug"
@@ -501,7 +501,8 @@
     (fn []
       (log/trace "comp-draggable inner")
       [:div
-       [:div (pr-str (get-in @pos-atom [title]))]
+       (if (get-debug-status)
+         [:div (pr-str (get-in @pos-atom [title]))])
        [:div.card.border-secondary
         {:style (merge style
                        {:left (or (get-in @pos-atom [title :x]) x 100)
