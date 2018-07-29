@@ -117,7 +117,7 @@
                  ^{:key (if k k :nil-key)}
                  [:span {:class (add-button-size (if (= (get-in @a path) k)
                                                    "btn btn-success"
-                                                   "btn btn-default"
+                                                   "btn btn-secondary"
                                                    )
                                                  )
                          :onClick #(swap! a assoc-in path k)
@@ -160,7 +160,7 @@
 (defn tutorial-switcher-button
   "Switches the :tutorial tag in system-info"
   []
-  [:span {:class (add-button-size (if (:tutorial @system-info) "btn btn-primary" "btn btn-default"))
+  [:span {:class (add-button-size (if (:tutorial @system-info) "btn btn-primary" "btn btn-secondary"))
           :onClick #(swap! system-info update-in [:tutorial] not)
           }
    "Tutorial"

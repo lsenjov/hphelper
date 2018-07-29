@@ -33,7 +33,7 @@
              :style {:width "90%"}
              }
        ;; Page Selection
-       [:div {:class "navbar navbar-default navbar-fixed-top"}
+       [:div.navbar.navbar-expand-lg.navbar-light.bg-light.navbar-fixed-top
         [:div {:class "container"}
          [:div {:class "navbar-header"}
           (shared/switcher-toolbar system-info

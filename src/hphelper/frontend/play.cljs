@@ -974,7 +974,7 @@
 (def ^:private problem-list
   "Large list of random issues"
   {:management
-   ["It looks like someone sabotaged the initial reports, so the High Programmer’s solution was applied to the wrong department. Now they’ve got a new problem and need to fi nd the old one with Assessment."
+   ["It looks like someone sabotaged the initial reports, so the High Programmer’s solution was applied to the wrong department. Now they’ve got a new problem and need to find the old one with Assessment."
     "Your management efforts have caused a bureaucratic turf war; grenades are being chucked over cubicle walls, foxholes behind the photocopiers and so on. With a bit more Co-Ordination, you might be able to arrange a cease-fire."
     "Alert! Alert! It looks like the original Minion is spreading a nasty bug around Alpha Complex. What people need is more Hygiene! Remember to sterilise all exposed surfaces. With fire."
     "Someone’s hiding something from someone else. Communication is only possible between equals; the lower Clearances always lie to their superiors until the truth is dragged out of them with Interrogation."
@@ -1159,7 +1159,7 @@
     [:span {:class (cond
                     (= 1 roll) "text-success"
                     (= 20 roll) "text-danger"
-                    success "text-primary"
+                    :success "text-info"
                     :failure "text-warning")}
      (if success "Success! " "Failure! ")
      "Player " player " rolled " roll " to beat " diff " for " stat " with a margin of " (- roll diff) ". Tension: " tension
@@ -1424,7 +1424,7 @@
      "Click on any of the headers below to see more"
      )
    (if (= "admin" (:userlevel @play-atom))
-     [shared/comp-draggable "Admin Panel" admin-player-component {:x 400 :y 100} {:max-width "66%"}]
+     [shared/comp-draggable "Admin Panel" admin-player-component {:x 400 :y 100} {:max-width "66%" :width "66%"}]
      nil
      )
    [:table {:class "table-striped"
