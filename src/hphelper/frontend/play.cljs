@@ -426,7 +426,7 @@
    (if bought?
      (if owned?
        ;; Already bought, and owned, add the call button
-       [:td>span {:class "btn-primary"
+       [:td>span {:class "btn-outline-primary"
                   :onClick #(ajax/GET (wrap-context "/api/player/callminion/")
                                       {:response-format (ajax/json-response-format {:keywords? true})
                                        :handler (fn [m]
@@ -440,7 +440,7 @@
         "Call"
         ]
        [:td])
-     [:td>span {:class "btn-secondary"
+     [:td>span {:class "btn-outline-secondary"
                 :onClick #(ajax/GET (wrap-context "/api/player/purchaseminion/")
                                     {:response-format (ajax/json-response-format {:keywords? true})
                                      :handler (fn [m]
