@@ -438,7 +438,7 @@
 
 ;; Records position data for the entire session
 (defonce pos-atom
-  (atom {}))
+  (atom {:_zindex 1}))
 (defn get-client-rect [evt]
   (log/trace "get-client-rect" evt)
   (let [r (.getBoundingClientRect (.-target evt))]
@@ -455,6 +455,19 @@
           ]
       (log/trace "mouse-move-handler" x y @pos-atom)
       (swap! pos-atom update-in [title] merge {:x (+ x scrollLeft) :y (+ y scrollTop)}))))
+(defn- update-zindex-inner
+  [m id]
+  (let [highest (or (:_zindex m) 1)
+        current (get-in m [id :zindex])]
+    (if (< current highest) ;; If current is less than highest
+      (-> m
+          (update-in [:_zindex] inc) ;; Increment zindex tracker
+          (assoc-in [id :zindex] (inc highest))) ;; And associate the new value with this zindex
+      m)))
+(defn- update-zindex
+  "Ensures this now has the highest z index of any of the draggables"
+  [id]
+  (swap! pos-atom update-zindex-inner id))
 (defn mouse-up-handler [id on-move]
   (fn me [evt]
     (log/trace "mouse-up-handler")
@@ -467,6 +480,7 @@
                             ::y (- (.-clientY e) top)}
         on-move            ((partial mouse-move-handler title e) offset)]
     (log/trace "mouse-down-handler" e)
+    (update-zindex title)
     (events/listen js/window EventType.MOUSEMOVE
                    on-move)
     (events/listen js/window EventType.MOUSEUP
@@ -489,6 +503,7 @@
                  :max-width "33%"
                  :display "flex"
                  :overflow "auto"
+                 :z-index (get-in @pos-atom [title :zindex])
                  }}
         [:div.card-header.no-select
          ;:on-click #(rf/dispatch [::move-window :test {::x 200 ::y 200}])

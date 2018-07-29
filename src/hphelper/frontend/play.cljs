@@ -893,10 +893,11 @@
                :style {:width "100%"}
                }
        [:tbody
-        (doall (map (fn [cbi] ^{:key cbi} [:tr>td cbi])
-                    (:news @game-atom)
-                    )
+        (shared/wrap-unique-key
+          (map (fn [cbi]  [:tr>td cbi])
+               (:news @game-atom)
                )
+          )
         ]
        ]
       [news-ticker-component ticker-keyword-atom]
