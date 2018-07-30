@@ -174,6 +174,10 @@
      text
      ]
     nil))
+(defn tutorial?
+  "Returns if tutorial is set or not"
+  []
+  (:tutorial @system-info))
 (defn get-debug-status
   "Gets the current debug status (true/false)"
   []

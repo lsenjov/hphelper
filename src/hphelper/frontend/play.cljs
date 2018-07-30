@@ -212,9 +212,8 @@
               [:tr
                (for [player players]
                  ^{:key player}
-                 [:td>div
-                  {:class "btn btn-secondary btn-xs btn-block"
-                   :title (str "Change " player " by " change " ACCESS.")
+                 [:td>div.btn.btn-block.btn-sm.btn-secondary
+                  {:title (str "Change " player " by " change " ACCESS.")
                    :onClick #(ajax/GET (wrap-context "/api/admin/modify-access/")
                                        {:response-format (ajax/json-response-format {:keywords? true})
                                         :handler (fn [m]
@@ -260,24 +259,23 @@
                         [:td]
                         ;; Something different for the pool TODO
                         (= player "Pool")
-                        [:td {:class "btn btn-success btn-xs btn-block"
-                              :title (str "Take " change " from the public pool. \nDoing this without consensus is heavily treasonous. \nPushing the pool into negatives is heavily treasonous.")
-                              :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
-                                                  {:response-format (ajax/json-response-format {:keywords? true})
-                                                   :handler (fn [m]
-                                                              (log/info "Modified access")
-                                                              (get-updates)
-                                                              )
-                                                   :params (merge @play-atom {:playerto (name player)
-                                                                              :amount (- change)
-                                                                              })})}
+                        [:td.btn.btn-success.btn-sm.btn-block
+                         {:title (str "Take " change " from the public pool. \nDoing this without consensus is heavily treasonous. \nPushing the pool into negatives is heavily treasonous.")
+                          :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
+                                              {:response-format (ajax/json-response-format {:keywords? true})
+                                               :handler (fn [m]
+                                                          (log/info "Modified access")
+                                                          (get-updates)
+                                                          )
+                                               :params (merge @play-atom {:playerto (name player)
+                                                                          :amount (- change)
+                                                                          })})}
                          change
                          ]
                         ;; Other players
                         :else
-                        [:td
-                         {:class "btn btn-secondary btn-xs btn-block"
-                          :title (str "Send " change " access to " player)
+                        [:td.btn.btn-secondary.btn-sm.btn-block
+                         {:title (str "Send " change " access to " player)
                           :onClick #(ajax/GET (wrap-context "/api/player/sendaccess/")
                                               {:response-format (ajax/json-response-format {:keywords? true})
                                                :handler (fn [m]
@@ -674,18 +672,18 @@
 (defn- create-trade-button
   "Creates a single button for buying or selling"
   ([zone group amount]
-   [:div {:class "btn-secondary btn-xs"
-           :onClick
-           #(do (ajax/GET (wrap-context "/api/player/trade-investments/")
-                          {:response-format (ajax/json-response-format {:keywords? true})
-                           :handler (fn [m]
-                                      (log/info "Synced Chars")
-                                      (get-updates)
-                                      )
-                           :params (merge @play-atom {:group (name group) :amount amount :zone (name zone)})})
-                (get-updates)
-                )
-           }
+   [:div.btn-sm.btn-secondary.btn-block
+    {:onClick
+     #(do (ajax/GET (wrap-context "/api/player/trade-investments/")
+                    {:response-format (ajax/json-response-format {:keywords? true})
+                     :handler (fn [m]
+                                (log/info "Synced Chars")
+                                (get-updates)
+                                )
+                     :params (merge @play-atom {:group (name group) :amount amount :zone (name zone)})})
+          (get-updates)
+          )
+     }
     amount
     ]
    )
@@ -1325,7 +1323,7 @@
                                 }
                          "+1"
                          ]
-                        [:span {:class (add-button-size "btn-warning")
+                        [:span {:class (add-button-size "btn-danger")
                                 :onClick #(ajax/GET (wrap-context "/api/admin/modify-public-standing/")
                                                     {:response-format (ajax/json-response-format {:keywords? true})
                                                      :handler (fn [m]

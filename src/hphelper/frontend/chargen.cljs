@@ -42,9 +42,9 @@
      (let [v (get-in @c stat-vec)]
        [:span
         {:style {:align "right"}} ;; TODO
-        [:span {:class "btn btn-default btn-xs" :onClick #(swap! c assoc-in  stat-vec nil)} "Reset"]
-        [:span {:class "btn btn-default btn-xs" :onClick #(swap! c update-in stat-vec (fn [i] (min maximum (if i (inc i) minimum))))} "+"]
-        [:span {:class "btn btn-default btn-xs" :onClick #(swap! c update-in stat-vec (fn [i] (max minimum (if i (dec i) maximum))))} "-"]
+        [:span.btn.btn-sm.btn-secondary {:onClick #(swap! c assoc-in  stat-vec nil)} "Reset"]
+        [:span.btn.btn-sm.btn-secondary {:onClick #(swap! c update-in stat-vec (fn [i] (min maximum (if i (inc i) minimum))))} "+"]
+        [:span.btn.btn-sm.btn-secondary {:onClick #(swap! c update-in stat-vec (fn [i] (max minimum (if i (dec i) maximum))))} "-"]
         (shared/wrap-any label ", ") " "
         [:span {:class (if (and required (not v))
                          "label label-info"
@@ -149,25 +149,25 @@
     (cond
       (< pts-rem 0) ;; Negative points, full red bar
       [:div
-       [:span {:class "label label-danger"} "ACCESS remaining: " pts-rem]
-       [:div {:class "progress"}
-        [:div {:class "progress-bar progress-bar-danger" :style {:width "100%"}}
+       [:span.text-danger "ACCESS remaining: " pts-rem]
+       [:div.progress
+        [:div.progress-bar {:class "bg-danger" :style {:width "100%"}}
          ]
         ]
        ]
       (< pts-rem 30) ;; Low points, warning
       [:div
-       [:span {:class "label label-warning"} "ACCESS remaining: " pts-rem]
-       [:div {:class "progress"}
-        [:div {:class "progress-bar progress-bar-warning" :style {:width perc}}
+       [:span.text-warning "ACCESS remaining: " pts-rem]
+       [:div.progress
+        [:div.progress-bar {:class "bg-warning" :style {:width perc}}
          ]
         ]
        ]
       :else
       [:div
-       [:span {:class "label label-basic"} "ACCESS remaining: " pts-rem]
-       [:div {:class "progress"}
-        [:div {:class "progress-bar progress-bar-basic" :style {:width perc}}
+       [:span.text-primary "ACCESS remaining: " pts-rem]
+       [:div.progress
+        [:div.progress-bar {:class "bg-primary" :style {:width perc}}
          ]
         ]
        ]
@@ -289,18 +289,16 @@
   [:div {:class "col-lg-12"}
    [:div {:class "col-lg-4"}
     ;; Name
-    [:label {:class "control-label"} "Name: "]
-    [:input {:type "text"
-             :class (if (= 0 (count (get-in @c [:nameParts :nameFirst]))) "form-control alert-info" "form-control")
+    [:label.col-form-label {:class "control-label"} "Name: "]
+    [:input.form-control {:type "text"
              :value (get-in @c [:nameParts :nameFirst])
              :on-change #(swap! c assoc-in [:nameParts :nameFirst] (-> % .-target .-value))
              }
      ]
     ]
    [:div {:class "col-lg-4"}
-    [:label {:class "control-label"} "Zone: "]
-    [:input {:type "text"
-             :class (if (not (= 3 (count (get-in @c [:nameParts :zone])))) "form-control alert-info" "form-control")
+    [:label.col-form-label {:class "control-label"} "Zone: "]
+    [:input.form-control {:type "text"
              :value (get-in @c [:nameParts :zone])
              :on-change #(swap! c assoc-in [:nameParts :zone] (->> % .-target .-value (take 3) (apply str) clojure.string/upper-case))
              }
@@ -387,7 +385,11 @@
       ]
      ]
     [:tbody
-     (let [ss (shared/get-societies)]
+     ;; If players have left tutorial on, hide the extra societies
+     ;; Show them when they turn the tutorial off
+     (let [ss (if (shared/tutorial?)
+                (remove :ss_parent (shared/get-societies))
+                (shared/get-societies))]
        (map (fn [s] ^{:key s} [societies-single-component c s])
             (sort-by :ss_name ss))
        )
