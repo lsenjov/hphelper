@@ -256,7 +256,7 @@
           "If you already have a character, you can load it up and change your secret societies here. Newer characters appear first.
           Yes, it is possible to look at other player's sheets. Yes, getting caught will get you erased."
           )]
-       [:div {:class "btn btn-warning"
+       [:div {:class "btn btn-primary"
               :onClick #(ajax/GET (wrap-context "/api/char/get-filtered/")
                                   {;:response-format (ajax/json-response-format {:keywords? true})
                                    :format :text
@@ -272,7 +272,7 @@
         "Get characters by name"]
        (map (fn [{:keys [char_id char_name]}]
               ^{:key char_id}
-              [:div {:class "btn btn-default"
+              [:div {:class "btn btn-secondary"
                      :onClick #(ajax/GET (wrap-context "/api/char/get/")
                                          {:format :text
                                           :handler (fn [m]
