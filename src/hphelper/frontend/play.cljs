@@ -562,7 +562,7 @@
    (doall
      (map (fn [sg] ^{:key sg}
             [shared/comp-draggable (:sg_name sg) (partial single-service-group-component sg)
-             {:x 2000 :y 200 :minimised? true}])
+             {:x 1000 :y 200 :minimised? true}])
           (sort-by :sg_id (:serviceGroups @game-atom))
           )
      )
@@ -1240,7 +1240,7 @@
            "Sends a message to the server to lock or unlock player's investments."
            )
          ;; Lock investments
-         [:div {:class "col-lg-2"}
+         [:div.btn-group
           [:span {:class "btn btn-success"
                   :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
                                       {:response-format (ajax/json-response-format {:keywords? true})
@@ -1252,9 +1252,7 @@
                   }
            "Lock Investments"
            ]
-          ]
-         ;; Unlock Investments
-         [:div {:class "col-lg-2"}
+          ;; Unlock Investments
           [:span {:class "btn btn-secondary"
                   :onClick #(ajax/GET (wrap-context "/api/admin/lock-zone/")
                                       {:response-format (ajax/json-response-format {:keywords? true})
@@ -1266,20 +1264,11 @@
                   }
            "Unlock Investments"
            ]
-          ]
-         ;; Toggle displaying SS
-         [:div {:class "col-lg-2"}
+          ;; Toggle displaying SS
           [:span {:class "btn btn-secondary"
                   :onClick #(swap! other-opts-atom update-in [:show-ss] not)}
            "Toggle SS display"
-           ]
-          ]
-         ]
-        ]
-       ]
-      )
-    )
-  )
+           ]]]]])))
 ;; Display public standing of players
 (defn public-standing-component
   "Displays user's public standing, as well as upcoming live vidshows"
@@ -1418,9 +1407,10 @@
      "Click on any of the headers below to see more"
      )
    (if (= "admin" (:userlevel @play-atom))
-     [shared/comp-draggable "Admin Panel" admin-player-component {:x 400 :y 100} {:max-width "66%" :width "66%"}]
+     [shared/comp-draggable "Admin Panel" admin-player-component {:x 400 :y 100}]
      nil
      )
+   (shared/draggable-menu)
    [:table {:class "table-striped"
             :style {:width "100%"}
             }
@@ -1428,13 +1418,13 @@
      ]
     [:tbody
      [:tr
-      [:td {:style {}}
+      [:td
        ;[access-component]
        [shared/comp-draggable "ACCESS" access-component {:x 100 :y 100}]
        ;[directives-component]
-       [shared/comp-draggable "Directives" directives-component {:x 100 :y 150}]
+       [shared/comp-draggable "Directives" directives-component {:x 100 :y 150 :minimised? true}]
        ;[society-missions-component]
-       [shared/comp-draggable "Private Messages" society-missions-component {:x 100 :y 200}]
+       [shared/comp-draggable "Private Messages" society-missions-component {:x 100 :y 200 :minimised? true}]
        ;[indicies-component]
        [shared/comp-draggable "Indicies" indicies-component {:x 100 :y 250}]
        ;[investment-component]
@@ -1450,7 +1440,11 @@
          "admin" [shared/comp-draggable "Public Standing" public-standing-component {:x 100 :y 500}]
          nil
          )
+       ]
+      [:td ; Middle Column
        [shared/comp-draggable "Call queue" call-component {:x 100 :y 550}]
+       ]
+      [:td ; Last column
        [shared/comp-draggable "Program Group" program-group-component {:x 100 :y 600}]
        ;; The service groups are pushed to windows in their own component
        [service-group-component]

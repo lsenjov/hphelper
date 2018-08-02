@@ -444,12 +444,12 @@
 (defonce pos-atom
   (atom {:_zindex 1}))
 (defn get-client-rect [evt]
-  (log/trace "get-client-rect" evt)
+  (log/info "get-client-rect" evt)
   (let [r (.getBoundingClientRect (.-target evt))]
     {:left (.-left r), :top (.-top r)}))
 (defn mouse-move-handler [title offset]
   (fn [evt]
-    (log/trace "mouse-move-handler")
+    (log/info "mouse-move-handler")
     (let [x (- (.-clientX evt) (:x offset))
           y (- (.-clientY evt) (:y offset))
           ;; Pretty hacky, but gets the distance we've scrolled down/left
@@ -457,7 +457,7 @@
           scrollTop (.scrollTop ((js* "$") js/window))
           scrollLeft (.scrollLeft ((js* "$") js/window))
           ]
-      (log/trace "mouse-move-handler" x y @pos-atom)
+      (log/info "mouse-move-handler" x y scrollTop scrollLeft @pos-atom)
       (swap! pos-atom update-in [title] merge {:x (+ x scrollLeft) :y (+ y scrollTop)}))))
 (defn- update-zindex-inner
   [m id]
@@ -474,7 +474,7 @@
   (swap! pos-atom update-zindex-inner id))
 (defn mouse-up-handler [id on-move]
   (fn me [evt]
-    (log/trace "mouse-up-handler")
+    (log/info "mouse-up-handler")
     (events/unlisten js/window EventType.MOUSEMOVE
                      on-move)))
 (defn mouse-down-handler
@@ -483,42 +483,54 @@
         offset             {::x (- (.-clientX e) left)
                             ::y (- (.-clientY e) top)}
         on-move            ((partial mouse-move-handler title e) offset)]
-    (log/trace "mouse-down-handler" e)
+    (log/info "mouse-down-handler" e)
     (events/listen js/window EventType.MOUSEMOVE
                    on-move)
     (events/listen js/window EventType.MOUSEUP
                    ((partial mouse-up-handler pos-atom) on-move))))
 (defn min-or-maximize
   [title e]
-  (log/trace "min-or-maximize" title)
+  (log/info "min-or-maximize" title)
   (swap! pos-atom update-in [title :minimised?] not))
 (defn comp-draggable
   [title body-comp {:keys [x y] :as ?start-coords} ?style-map]
-  (log/trace "comp-draggable")
-  (let [default-styles {:position "absolute"
-                        :max-width "33%"
+  (log/info "comp-draggable")
+  (swap! pos-atom update-in [title] #(or % ?start-coords {}))
+  (let [default-styles {
                         :display "flex"
                         :overflow "auto"
                         }
         style (if ?style-map (merge default-styles ?style-map) default-styles)]
     (fn []
-      (log/trace "comp-draggable inner")
-      [:div {:on-click (partial update-zindex title)}
+      (log/info "comp-draggable inner")
+      [:div {:on-mouse-down (partial update-zindex title)}
        (if (get-debug-status)
          [:div (pr-str (get-in @pos-atom [title]))])
        [:div.card.border-secondary
         {:style (merge style
-                       {:left (or (get-in @pos-atom [title :x]) x 100)
-                        :top (or (get-in @pos-atom [title :y]) y 100)
-                        :z-index (get-in @pos-atom [title :zindex])})}
+                       {:z-index (get-in @pos-atom [title :zindex])}
+                       (if (get-in @pos-atom [title :undocked?])
+                         {:position "absolute"
+                          :left (or (get-in @pos-atom [title :x]) x 100)
+                          :top (or (get-in @pos-atom [title :y]) y 100)
+                          }
+                         {}
+                          ))}
         [:div.card-header.no-select
          ;:on-click #(rf/dispatch [::move-window :test {::x 200 ::y 200}])
-         {:on-mouse-down (partial mouse-down-handler title)}
+         {:class (if (= (:_zindex @pos-atom) (get-in @pos-atom [title :zindex]))
+                  "bg-primary text-white" "border-secondary")
+          :on-mouse-down (partial mouse-down-handler title)}
          (str title " ")
          ;; Minimise/maximise button
          [:div.btn.btn-secondary.btn-sm
           {:on-click (partial min-or-maximize title)} ;; TODO
           (if (get-in @pos-atom [title :minimised?]) "\u21D2" "\u21D3")
+          ]
+         ;; Dock/undock button
+         [:div.btn.btn-secondary.btn-sm
+          {:on-click #(swap! pos-atom update-in [title :undocked?] not)}
+          "D"
           ]
          ]
         (if (not (get-in @pos-atom [title :minimised?]))
@@ -530,3 +542,34 @@
            ]
           )
         ]])))
+
+(defn- draggable-button
+  "Creates a single draggable button (for dragging linked windows)"
+  [t]
+   [:div.btn.btn-outline-secondary.btn-sm
+    {:on-click (partial update-zindex t)
+     :on-mouse-down (partial mouse-down-handler t)}
+    t]
+   )
+(defn- draggable-button-row
+  "Creates a single row of buttons"
+  [ts]
+  [:div.btn-group (wrap-unique-key (map draggable-button ts))]
+  )
+(defn draggable-menu
+  "Not draggable itself, but has a full list of components that are draggable, that players can re-drag"
+  []
+  (let [titles (->> @pos-atom
+                    (filter (fn [[_ v]] (:undocked? v)))
+                    keys
+                    (remove keyword?)
+                    wrap-unique-key
+                    )]
+  [:div.btn-group-vertical
+   (->> titles
+        (partition-all 8)
+        (map draggable-button-row)
+        wrap-unique-key
+        )
+   ]
+  ))
