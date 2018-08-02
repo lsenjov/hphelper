@@ -484,7 +484,6 @@
                             ::y (- (.-clientY e) top)}
         on-move            ((partial mouse-move-handler title e) offset)]
     (log/trace "mouse-down-handler" e)
-    (update-zindex title)
     (events/listen js/window EventType.MOUSEMOVE
                    on-move)
     (events/listen js/window EventType.MOUSEUP
@@ -504,7 +503,7 @@
         style (if ?style-map (merge default-styles ?style-map) default-styles)]
     (fn []
       (log/trace "comp-draggable inner")
-      [:div
+      [:div {:on-click (partial update-zindex title)}
        (if (get-debug-status)
          [:div (pr-str (get-in @pos-atom [title]))])
        [:div.card.border-secondary
