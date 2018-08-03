@@ -549,16 +549,6 @@
    (shared/tutorial-text
      "If on, will only show minions that have been purchased. If off, will show all minions (you can't see unbought minions of groups you don't own"
      )
-   [:div.btn {:class (add-button-size (if (:filterBought? @play-atom) "btn-success" "btn-secondary"))
-          :onClick #(swap! play-atom update-in [:filterBought?] not)}
-    "Show bought minions only?"
-    ]
-   (if (= "admin" (:userlevel @play-atom))
-     [:div.btn {:class (add-button-size (if (:showAssignGroups @play-atom) "btn-warning" "btn-secondary"))
-            :onClick #(swap! play-atom update-in [:showAssignGroups] not)}
-      "Show assign service group panel?"
-      ]
-     )
    (doall
      (map (fn [sg] ^{:key sg}
             [shared/comp-draggable (:sg_name sg) (partial single-service-group-component sg)
@@ -1390,6 +1380,35 @@
           ]
          ]))
 
+;; Options panel on the left
+(defn- options-panel
+  "Lists options buttons for players to use along the left"
+  []
+  [:div.list-group
+   {:style {:position "fixed"
+            :left 0
+            :top 0
+            :z-index 999999}}
+   [:div.btn
+    {:class (add-button-size (if (:filterBought? @play-atom) "btn-success" "btn-secondary"))
+     :onClick #(swap! play-atom update-in [:filterBought?] not)
+     :title "Show only minions that have been bought (or created)"
+     }
+    "Show bought?"
+    ]
+   (if (= "admin" (:userlevel @play-atom))
+     [:div.btn
+      {:class (add-button-size (if (:showAssignGroups @play-atom) "btn-warning" "btn-secondary"))
+       :onClick #(swap! play-atom update-in [:showAssignGroups] not)
+       :title "Toggle panels for assigning service groups to players"
+       }
+      "Assign SG?"
+      ]
+     )
+   (shared/draggable-menu)
+   ]
+  )
+
 ;; Display panel for the game in total
 (defn game-component
   "Component for displaying and playing a game"
@@ -1410,7 +1429,7 @@
      [shared/comp-draggable "Admin Panel" admin-player-component {:x 400 :y 100}]
      nil
      )
-   (shared/draggable-menu)
+   (options-panel)
    [:table {:class "table-striped"
             :style {:width "100%"}
             }

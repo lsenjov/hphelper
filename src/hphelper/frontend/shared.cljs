@@ -530,7 +530,7 @@
          ;; Dock/undock button
          [:div.btn.btn-secondary.btn-sm
           {:on-click #(swap! pos-atom update-in [title :undocked?] not)}
-          "D"
+          (if (get-in @pos-atom [title :undocked?]) "\u23CE" "\u23CF")
           ]
          ]
         (if (not (get-in @pos-atom [title :minimised?]))
@@ -546,7 +546,7 @@
 (defn- draggable-button
   "Creates a single draggable button (for dragging linked windows)"
   [t]
-   [:div.btn.btn-outline-secondary.btn-sm
+   [:div.btn.btn-secondary.btn-outline-secondary.btn-sm
     {:on-click (partial update-zindex t)
      :on-mouse-down (partial mouse-down-handler t)}
     t]
@@ -554,7 +554,7 @@
 (defn- draggable-button-row
   "Creates a single row of buttons"
   [ts]
-  [:div.btn-group (wrap-unique-key (map draggable-button ts))]
+  [:div.btn-group-vertical (wrap-unique-key (map draggable-button ts))]
   )
 (defn draggable-menu
   "Not draggable itself, but has a full list of components that are draggable, that players can re-drag"
@@ -567,8 +567,9 @@
                     )]
   [:div.btn-group-vertical
    (->> titles
-        (partition-all 8)
-        (map draggable-button-row)
+        ;(partition-all 8)
+        sort
+        (map draggable-button)
         wrap-unique-key
         )
    ]
