@@ -9,7 +9,7 @@
   :dependencies [;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  ;; Shared Deps
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                 [org.clojure/clojure "1.9.0-alpha17"]
+                 [org.clojure/clojure "1.10.0"]
 
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  ;; Server Deps
@@ -45,16 +45,15 @@
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  ;; Frontend Deps
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                 [org.clojure/clojurescript "1.9.671"]
+                 [org.clojure/clojurescript "1.10.520"]
                  [reagent "0.7.0"]
                  [cljs-ajax "0.6.0"]
                  [com.cemerick/url "0.1.1"]
                  ]
 
-  :plugins [[lein-figwheel "0.5.11"]
-            [lein-cljsbuild "1.1.6" :exclusions [[org.clojure/clojure]]]
-            [lein-ring "0.12.0"]
-            [cider/cider-nrepl "0.14.0"]
+  :plugins [[lein-figwheel "0.5.18"]
+            [lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
+            [lein-ring "0.12.5"]
             ]
 
   ;; Okay, uncommenting this somehow makes the combined builds not work. Don't do it.
@@ -147,7 +146,8 @@
 
   :profiles {:dev {:dependencies [[binaryage/devtools "0.8.2"]
                                   [figwheel-sidecar "0.5.8"]
-                                  [com.cemerick/piggieback "0.2.1"]
+                                  ;[com.cemerick/piggieback "0.2.1"]
+                                  [cider/piggieback "0.4.0"]
                                   [org.clojure/test.check "0.9.0"]
                                   ]
                    ;; need to add dev source path here to get user.clj loaded
@@ -156,7 +156,7 @@
                    ;; :plugins [[cider/cider-nrepl "0.12.0"]]
                    :repl-options {; for nREPL dev you really need to limit output
                                   :init (set! *print-length* 50)
-                                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+                                  :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
                    }
              ;; Specifically remove asserts on compilation
              :prod {:jvm-opts ["-Dclojure.spec.compile-asserts=false"]}

@@ -62,14 +62,6 @@
         :validator (partial s/valid? (s/map-of ::ss/zone (s/nilable boolean?)))
         )
   )
-(defn get-lock
-  "Returns the lock status of a zone"
-  [^String zone]
-  (get @investment-locks zone))
-(defn set-lock
-  "Sets the lock of a zone"
-  [^String zone ^Boolean status]
-  (swap! investment-locks assoc zone status))
 
 
 ;; TODO change the above to refs and adjust other items accordingly
@@ -150,7 +142,7 @@
   [sMap ^Integer t]
   (log/trace "setup-last-updated. time:" t)
   (-> sMap
-      (assoc :updated (reduce merge {} (map (fn [k] {k t}) (conj (keys sMap) :missions :hps :investments :calls))))
+      (assoc :updated (reduce merge {} (map (fn [k] {k t}) (conj (keys sMap) :missions :hps :investments :calls :states))))
       )
   )
 (defn- player-all-setup
@@ -210,6 +202,21 @@
   (log/trace "swap-game! uid:" uid "func:" func)
   (apply uni/swap-uuid! current-games uid (comp #(s/assert ::ss/liveScenario %) func) args))
 
+(defn get-lock
+  "Returns the lock status of a zone"
+  ; TODO fix
+  [^String zone]
+  (get @investment-locks zone))
+(defn set-status
+  "Sets the lock of a zone"
+  [^String guid ^String status ^Boolean value]
+  (swap-game! guid #(-> %
+                        (assoc-in [:states status] value)
+                        (assoc-in [:updated :states] (current-time)))))
+(defn set-lock
+  "Sets the lock of a zone"
+  [^String guid ^Boolean status]
+  (set-status guid :investments-lock status))
 ;; Changes the access amount of an access member
 (defn modify-access-inner
   "Modifies an index by a certain amount, and fuzzifies the indices"
@@ -246,6 +253,29 @@
         (log/error "modify-access. Could not find game.")
         nil))
   ))
+(defn- player-delegate-directive-inner
+  [g sgm_id to-player]
+  (log/trace "player-delegate-directive-inner." sgm_id to-player)
+  (letfn [(mod-mission
+            [m]
+            (if (= (:sgm_id m) sgm_id)
+              (assoc m :delegatee to-player)
+              m))]
+    (-> g
+      (update-in [:directives] #(map mod-mission %))
+      (assoc-in [:updated :directives] (current-time))
+      )))
+(defn player-delegate-directive
+  "Assigns a directive to another player"
+  [gUid sgm_id to-player]
+  (swap-game! gUid player-delegate-directive-inner sgm_id to-player)
+  )
+(comment
+  (-> @current-games first val (player-delegate-directive-inner 382 "Test-U-NAM-3") :directives)
+  (-> (player-delegate-directive "8199f603-3c7c-4e96-b340-7a5306752b73" 382 "Test-U-NAM-3") :updated :directives)
+  (-> (get-game "8199f603-3c7c-4e96-b340-7a5306752b73") :hps first)
+  )
+
 
 ;; Changes the public standing of a player
 (defn modify-public-standing-inner
@@ -672,4 +702,6 @@
   (-> @current-games vals first :updated)
   (-> @current-games vals first :updated keys)
   (reset! current-games {})
+  (-> "8199f603-3c7c-4e96-b340-7a5306752b73" get-game :hps)
+  (keys (get-game "8199f603-3c7c-4e96-b340-7a5306752b73"))
   )

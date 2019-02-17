@@ -19,6 +19,7 @@
   "A map of precompiled error messages for an invalid game or user id login"
   {:login {:status "error" :message "Invalid game or user id"}
    :invalidGame {:status "error" :message "Invalid game"}
+   :unknown {:status "error" :message "Not quite sure what happened there, but something screwed up"}
    }
   )
 (defn- is-admin-get-game
@@ -253,7 +254,13 @@
                     (map :sg_id)
                     set)
          ret (->> (:directives g)
-                  (filter #(sgids (:sg_id %)))
+                  ; Get everything that matches our service group
+                  (filter #(or (sgids (:sg_id %))
+                               ; Or is assigned to us
+                               (= (:name p) (:delegatee %))))
+                  ; Remove any ones where it has a delegatee and it's not us
+                  (remove #(and (:delegatee %)
+                                (not= (:name p) (:delegatee %))))
                   )
          ]
         {:directives ret}
@@ -267,6 +274,23 @@
         )
       )
     )
+  )
+(defn player-delegate-directive
+  "Delegates a directive to a specified player"
+  [^String gUid ^String uUid sgm_id to-player]
+  (try
+    (let [g (get-game gUid)
+          player-from (-> g :hps (get uUid))
+          sgm_id (Integer. sgm_id)
+          ]
+      ;; XXX Look, this isn't secure, but frankly trying to re-check that all the conditions are also
+      ;;   fine server side is too much of a hassle for something that's not even tls protected :'D
+      (lcon/player-delegate-directive gUid sgm_id to-player)
+      ;; Not a player
+      (:login errors)
+      )
+    (catch Exception e
+      (:unknown errors)))
   )
 (defn player-trade-investment
   "Buys or sells an amount of cash on the market"
@@ -496,7 +520,16 @@
   [^String gUid ^String uUid ^String status]
   (log/trace "admin-lock-zone." gUid uUid status)
   (if-let [g (is-admin-get-game gUid uUid)]
-    (lcon/set-lock (:zone g) (if (or (= status true) (= status "true")) true false))))
+    (lcon/set-lock gUid
+                   (if (or (= status true) (= status "true")) true false))))
+(defn admin-set-state
+  "Sets the lock or unlock status of a zone"
+  [^String gUid ^String uUid ^String status ^String value]
+  (log/trace "admin-set-state." gUid uUid status value)
+  (if-let [g (is-admin-get-game gUid uUid)]
+    (lcon/set-status gUid
+                     status
+                     (if (or (= status true) (= status "true")) true false))))
 (defn admin-call-next
   "Moves on to the next phone call."
   [^String gUid ^String uUid]
@@ -507,6 +540,14 @@
     (:login errors)))
 
 
+(defn- get-states
+  "Gets the game state of a game (whether investments are locked, etc)"
+  [^String gUid]
+  (log/trace "get-news:" gUid)
+  (if-let [gc (:states (get-game gUid))]
+    {:status "ok" :states gc}
+    (:invalidGame errors)
+    ))
 ;; Aggregete get-updated
 (defn- get-index
   "Gets the data from an index, returns a map. Returns an empty map if no result"
@@ -521,6 +562,7 @@
     :zone (get-current-zone gUid)
     :keywords (get-keywords gUid)
     :investments (get-investments gUid)
+    :states (get-states gUid)
 
     ;; Players
     :hps (get-player-character-sheet gUid uUid)

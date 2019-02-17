@@ -280,6 +280,9 @@
   (GET "/api/player/add-minion/"
        {{:keys [gameUuid userUuid sgid minionName minionClearance minionDesc]} :params}
        (json/write-str (lapi/player-add-custom-minion gameUuid userUuid sgid minionName minionClearance minionDesc)))
+  (GET "/api/player/delegate-directive/"
+       {{:keys [gameUuid userUuid sgm_id ^String to-player]} :params}
+       (json/write-str (lapi/player-delegate-directive gameUuid userUuid sgm_id to-player)))
   ;; Old api
   (GET "/api/player/:gameUuid/:userUuid/updates/:lastUpdated/"
        {{gameUuid :gameUuid userUuid :userUuid lastUpdated :lastUpdated} :params}
@@ -318,6 +321,9 @@
   (GET "/api/admin/lock-zone/" ;; Locks or unlocks a zone
        {{:keys [gameUuid userUuid status]} :params}
        (json/write-str (lapi/admin-lock-zone gameUuid userUuid status)))
+  (GET "/api/admin/set-state/" ;; Locks or unlocks any game state
+       {{:keys [gameUuid userUuid status value]} :params}
+       (json/write-str (lapi/admin-set-state gameUuid userUuid status value)))
   (GET "/api/admin/call/next/" ;; Moves to the next call
        {{:keys [gameUuid userUuid]} :params}
        (json/write-str (lapi/admin-call-next gameUuid userUuid)))

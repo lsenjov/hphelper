@@ -448,3 +448,7 @@
   "Gets a random mutation from the database. Returns a map"
   []
   (get-random-row "mutations" "id"))
+
+(defn get-tags
+  []
+  (query "SELECT * FROM tag;"))

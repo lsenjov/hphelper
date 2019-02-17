@@ -558,10 +558,40 @@
      )
    ]
   )
+(defn- get-next-investment-player
+  "Figures out who we're sending this investment to, if any.
+  Returns nil if no valid player"
+  [sg]
+  (let [sg_kw (keyword (:sg_abbr (get-sg sg)))]
+    (->> @game-atom
+         :investments
+         ; Only keep entries that are actually invested in this sg
+         (filter #(if-let [v (-> % val sg_kw)] (< 0 v)))
+         ; Sort by investment in the SG
+         (sort-by #(-> % val sg_kw))
+         ; Get a list of names
+         (map #(-> % key name))
+         ; Take everyone that's not you (anyone with lower bids)
+         (take-while #(not= % (get-in @game-atom [:character :name])))
+         ; Now get the highest lower player
+         last
+         )
+    )
+  )
 ;; Display directives
 (defn display-single-directive
   [{:keys [sgm_id sgm_text sg_id c_id]}]
-  ^{:key sgm_id} [:tr [:td (get-sg-name sg_id)] [:td sgm_text]]
+  ^{:key sgm_id} [:tr
+                  [:td (get-sg-name sg_id)]
+                  [:td sgm_text]
+                  [:td (if-let [next-player
+                                (and
+                                  ; Check this player has more than one directive
+                                  (< 1 (count (:directives @game-atom)))
+                                  ; And there's someone to delegate to
+                                  (get-next-investment-player sg_id))]
+                         [:div.btn-sm.btn-secondary.btn-block (str "Delegate to " next-player)]
+                         )]]
   )
 (defn directives-component
   "Component for displaying directives (and later marking them as done)" ;; TODO marking as done
@@ -717,24 +747,29 @@
            (map (fn [k] ^{:key k} [:th (shared/wrap-any k)]) sgs)
            ]
           ;; Prices
-          [:tr
-           [:th "Buy Price"]
-           (map (fn [sg] ^{:key sg} [:th ;(-> @game-atom :indicies first (get (keyword sg))
-                                     ;    ;; We have the index, now to convert to price
-                                     ;    (+ 100) (/ 100) (max 0.1)
-                                     ;    ;; We have price, now to reduce to 2 decimal places
-                                     ;    (* 100) int (/ 100))
-                                     "1.00"])
-                sgs
-                )
-           ]
-          [:tr
-           [:th "Sell Price"]
-           (map (fn [sg] ^{:key sg} [:th "0.90"]) sgs)
-           ]
+          (when-not (get-in @game-atom [:states :investments-lock])
+            [:tr
+             [:th "Buy Price"]
+             (map (fn [sg] ^{:key sg} [:th ;(-> @game-atom :indicies first (get (keyword sg))
+                                       ;    ;; We have the index, now to convert to price
+                                       ;    (+ 100) (/ 100) (max 0.1)
+                                       ;    ;; We have price, now to reduce to 2 decimal places
+                                       ;    (* 100) int (/ 100))
+                                       "1.00"])
+                  sgs
+                  )
+             ])
+          (when-not (get-in @game-atom [:states :investments-lock])
+            [:tr
+             [:th "Sell Price"]
+             (map (fn [sg] ^{:key sg} [:th "0.90"]) sgs)
+             ]
+            )
           ]
          [:tbody
-          (investment-trade-row sgs)
+          (when-not (get-in @game-atom [:states :investments-lock])
+            (investment-trade-row sgs)
+          )
           (doall
             (map
               investment-table-row
