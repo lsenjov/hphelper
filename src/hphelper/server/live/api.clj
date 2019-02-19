@@ -527,9 +527,10 @@
   [^String gUid ^String uUid ^String status ^String value]
   (log/trace "admin-set-state." gUid uUid status value)
   (if-let [g (is-admin-get-game gUid uUid)]
-    (lcon/set-status gUid
-                     status
-                     (if (or (= status true) (= status "true")) true false))))
+    (lcon/set-state gUid
+                    ; Remove the colon(s) at the beginning of the string
+                    (keyword (clojure.string/replace status #"^:+" ""))
+                    (if (or (= value true) (= value "true")) true false))))
 (defn admin-call-next
   "Moves on to the next phone call."
   [^String gUid ^String uUid]
@@ -543,9 +544,12 @@
 (defn- get-states
   "Gets the game state of a game (whether investments are locked, etc)"
   [^String gUid]
-  (log/trace "get-news:" gUid)
+  (log/trace "get-states:" gUid)
   (if-let [gc (:states (get-game gUid))]
-    {:status "ok" :states gc}
+    (do
+      (log/trace "get-states:" gc)
+      {:status "ok" :states gc}
+      )
     (:invalidGame errors)
     ))
 ;; Aggregete get-updated

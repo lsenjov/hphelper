@@ -588,9 +588,23 @@
                                 (and
                                   ; Check this player has more than one directive
                                   (< 1 (count (:directives @game-atom)))
+                                  ; And directive delegatation is on
+                                  (get-in @game-atom [:states :allow-delegation])
                                   ; And there's someone to delegate to
-                                  (get-next-investment-player sg_id))]
-                         [:div.btn-sm.btn-secondary.btn-block (str "Delegate to " next-player)]
+                                  (get-next-investment-player sg_id)
+                                  )]
+                         ; Show the button to delegate to the next person
+                         [:div.btn-sm.btn-secondary.btn-block
+                          {:onClick #(do (ajax/GET (wrap-context "/api/player/delegate-directive/")
+                                                   {:response-format (ajax/json-response-format {:keywords? true})
+                                                    :handler (fn [m]
+                                                               (log/info "Synced Chars")
+                                                               (get-updates)
+                                                               )
+                                                    :params (merge @play-atom {:sgm_id sgm_id :to-player next-player})})
+                                         (get-updates)
+                                         )}
+                          (str "Delegate to " next-player)]
                          )]]
   )
 (defn directives-component
@@ -1288,6 +1302,32 @@
                                        :params (merge @play-atom {:status false})})
                   }
            "Unlock Investments"
+           ]
+          ;; Allow Delegation
+          [:span.btn.btn-success
+           {:onClick #(ajax/GET (wrap-context "/api/admin/set-state/")
+                                {:response-format (ajax/json-response-format {:keywords? true})
+                                 :handler (fn [m]
+                                            (log/info "Allowed delegation")
+                                            (get-updates)
+                                            )
+                                 :params (merge @play-atom {:status :allow-delegation
+                                                            :value true})})
+            }
+           "Unlock Delegation"
+           ]
+          ;; Stop Delegation
+          [:span.btn.btn-secondary
+           {:onClick #(ajax/GET (wrap-context "/api/admin/set-state/")
+                                {:response-format (ajax/json-response-format {:keywords? true})
+                                 :handler (fn [m]
+                                            (log/info "Allowed delegation")
+                                            (get-updates)
+                                            )
+                                 :params (merge @play-atom {:status :allow-delegation
+                                                            :value false})})
+            }
+           "Stop Delegation"
            ]
           ;; Toggle displaying SS
           [:span {:class "btn btn-secondary"

@@ -207,16 +207,17 @@
   ; TODO fix
   [^String zone]
   (get @investment-locks zone))
-(defn set-status
+(defn set-state
   "Sets the lock of a zone"
-  [^String guid ^String status ^Boolean value]
+  [^String guid ^clojure.lang.Keyword k ^Boolean value]
+  (log/trace "set-state" k value)
   (swap-game! guid #(-> %
-                        (assoc-in [:states status] value)
+                        (assoc-in [:states (-> k name keyword)] value)
                         (assoc-in [:updated :states] (current-time)))))
 (defn set-lock
   "Sets the lock of a zone"
   [^String guid ^Boolean status]
-  (set-status guid :investments-lock status))
+  (set-state guid :investments-lock status))
 ;; Changes the access amount of an access member
 (defn modify-access-inner
   "Modifies an index by a certain amount, and fuzzifies the indices"
