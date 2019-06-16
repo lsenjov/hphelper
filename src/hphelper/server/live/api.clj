@@ -156,13 +156,13 @@
         p (-> g :hps (get uUid))]
     (if p
       {:status "ok"
-       :missions (filter
-                   (let [pg (or (:programGroup p) (get p "Program Group"))
-                         ssids-unfil (concat (map :ss_parent pg) (map :ss_id pg))
-                         ssids (set (filter identity ssids-unfil))]
-                     (fn [mission]
-                       (ssids (:ss_id mission))))
-                   (g :societies))
+       :missions (distinct (filter
+                             (let [pg (or (:programGroup p) (get p "Program Group"))
+                                   ssids-unfil (concat (map :ss_parent pg) (map :ss_id pg))
+                                   ssids (set (filter identity ssids-unfil))]
+                               (fn [mission]
+                                 (ssids (:ss_id mission))))
+                             (g :societies)))
        }
       (if (= uUid (:adminPass g))
         ;; If we're an admin, return all the society missions

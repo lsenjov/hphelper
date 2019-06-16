@@ -24,7 +24,7 @@
                  [ring/ring-anti-forgery "1.0.1"]
 
                  ;; For running an uberjar
-                 [http-kit "2.2.0"]
+                 [http-kit "2.3.0"]
 
                  ;; Logging Deps
                  [com.taoensso/timbre "4.10.0"]
