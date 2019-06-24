@@ -330,6 +330,9 @@
   (GET "/api/admin/character/zap/" ;; Zaps a player
        {{:keys [gameUuid userUuid player]} :params}
        (json/write-str (lapi/admin-zap-character gameUuid userUuid player)))
+  (GET "/api/admin/trade-investments/"
+       {{:keys [gameUuid userUuid group amount playerName]} :params}
+       (json/write-str (lapi/admin-trade-investment gameUuid userUuid group amount playerName)))
   ;; Old api
   (GET "/api/admin/:gameUuid/:userUuid/debug/"
        {{gameUuid :gameUuid userUuid :userUuid} :params}

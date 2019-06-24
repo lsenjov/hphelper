@@ -295,7 +295,7 @@
 (defn player-trade-investment
   "Buys or sells an amount of cash on the market"
   [^String gUid ^String uUid ^String group ^String amount]
-  (log/trace "player-send-access:" gUid uUid group amount)
+  (log/trace "player-trade-investment:" gUid uUid group amount)
   (let [g (get-game gUid)
         p (-> g :hps (get uUid) :name)
         zone (:zone g)
@@ -306,6 +306,36 @@
       (:invalidGame errors)
       ;; Invalid player
       (not p)
+      (:login errors)
+      ;; Invalid group
+      (not (s/valid? ::ss/sg_abbr group))
+      {:status "error" :message "Invalid Group"}
+      ;; All seems good
+      :all-good
+      (if (lcon/player-trade-investment
+            gUid p zone group
+            (try (Integer/parseInt amount)
+                 (catch NumberFormatException e
+                   (log/trace "Failed to parse:" amount)
+                   0
+                   )
+                 )
+            )
+        {:status "ok"}
+        {:status "error" :message "Invalid argument"}
+        )
+      )
+    )
+  )
+(defn admin-trade-investment
+  [^String gUid ^String uUid ^String group ^String amount ^String playerName]
+  (let [g (get-game gUid)
+        p (name playerName)
+        zone (:zone g)
+        ]
+    (cond
+      ;; Not admin
+      (not (is-admin-get-game gUid uUid))
       (:login errors)
       ;; Invalid group
       (not (s/valid? ::ss/sg_abbr group))

@@ -681,7 +681,7 @@
 (defn- investment-table-row
   "Returns a row of an investment table"
   [[k invest-map] sgs]
-  (log/info "investment row. k:" k "invest-map:" invest-map "sgs:" sgs)
+  (log/trace "investment row. k:" k "invest-map:" invest-map "sgs:" sgs)
   ^{:key k}
   [:tr {:class (if (= (get-in @game-atom [:character :name]) (name k)) "text-success" "")}
    [:td k]
@@ -690,19 +690,31 @@
        (fn [sg]
          ^{:key sg}
          [:td
+          (if (and (= "admin" (:userlevel @play-atom))
+                   (not (get-in @game-atom [:states :investments-lock]))
+                   )
+            {:title (str "Sell for user: " sg)
+             :onClick
+             #(do (ajax/GET (wrap-context "/api/admin/trade-investments/")
+                            {:response-format (ajax/json-response-format {:keywords? true})
+                             :handler (fn [m]
+                                        (log/info "Synced Chars")
+                                        (get-updates)
+                                        )
+                             :params (merge @play-atom
+                                            {:group sg
+                                             :amount -1
+                                             :zone (get-in @game-atom [:zone])
+                                             :playerName (name k)})})
+                  (get-updates))}
+            ; Empty map
+            {})
           (let [v (get-in invest-map [(keyword sg)])]
             (if (or (not v) (= 0 v))
-                  "-"
-                  v
-                  )
-            )
-          ]
-         )
-       sgs
-       )
-     )
-   ]
-  )
+              "-"
+              v
+              ))])
+       sgs))])
 (defn- create-trade-button
   "Creates a single button for buying or selling"
   ([zone group amount]
@@ -728,13 +740,13 @@
   "Creates a row of buy and sell buttons"
   [sgs]
   [:tr
-   [:td "Buy/Sell"]
+   [:td "Buy Shares"]
    (->> sgs
         (map (fn [sg]
                ^{:key sg}
                [:td
                 ;; Buy button
-                (doall (map create-trade-button (repeat sg) [10 5 1 -1 -5 -10]))
+                (doall (map create-trade-button (repeat sg) [1]))
                 ]
                )
              )
@@ -752,7 +764,7 @@
         "Whoever has the highest investment in a service group will gain control of that group for the session. You can buy and sell shares in the group until the GM locks it."
         )
       (let [sgs (sort ["AF" "CP" "IS" "PL" "TS" "TD" "PS" "RD" "HP"])]
-        (log/info "sgs:" sgs "vestments:" (:investments @game-atom))
+        (log/trace "sgs:" sgs "Investments:" (:investments @game-atom))
         [:table {:class "table-hover table-striped col-lg-12"}
          [:thead
           ;; SG abbreviations
@@ -770,16 +782,7 @@
                                        ;    ;; We have price, now to reduce to 2 decimal places
                                        ;    (* 100) int (/ 100))
                                        "1.00"])
-                  sgs
-                  )
-             ])
-          (when-not (get-in @game-atom [:states :investments-lock])
-            [:tr
-             [:th "Sell Price"]
-             (map (fn [sg] ^{:key sg} [:th "0.90"]) sgs)
-             ]
-            )
-          ]
+                  sgs)])]
          [:tbody
           (when-not (get-in @game-atom [:states :investments-lock])
             (investment-trade-row sgs)
@@ -843,7 +846,7 @@
       (js/setTimeout
         #(if (:playing @play-atom)
            (let [new-kw (-> @a shuffle first)]
-             (log/info "Swapping Ticker. Possible Keys:" (pr-str @ticker-keyword-atom))
+             (log/trace "Swapping Ticker. Possible Keys:" (pr-str @ticker-keyword-atom))
              (swap! a disj new-kw)
              (reset! ticker-atom
                      {:kw new-kw
@@ -1093,7 +1096,7 @@
 (defn- create-stat-roller
   "When pressed, rolls a number between 1 and 20 and displays the result in the status atom as a string"
   [^Atom status n ^String player ^String stat]
-  (log/info "create-stat-roller. n:" n "player:" player "stat:" stat)
+  (log/trace "create-stat-roller. n:" n "player:" player "stat:" stat)
   [:div {:class (add-button-size "btn-secondary")
          :onClick (fn [] (let [r (inc (rand-int 20))
                                tension (inc (rand-int 20))
@@ -1218,7 +1221,7 @@
 (defn sync-player-files
   "Saves all the player files back in the database"
   []
-  (log/info "Sending sync request")
+  (log/trace "Sending sync request")
   (ajax/GET (wrap-context "/api/admin/sync-chars/")
             {:response-format (ajax/json-response-format {:keywords? true})
              :handler (fn [m]

@@ -563,7 +563,7 @@
                 (* 0.9 (- amount))
                 (- amount))
         ]
-    (log/trace "player-trade-investment:" gUid player zone group amount)
+    (log/info "player-trade-investment:" gUid player zone group amount)
     (cond
       ;; After this trade, will the total shares be less than zero?
       (< (+ amount (if current current 0)) 0)
