@@ -10,10 +10,10 @@
 (defonce ^:private system-info
   (atom {:context (-> js/window
                       .-location
-                      ;; This gets /context/index.html
-                      .-pathname
+                      ;; This gets /context/index
+                      .-origin
                       ;; Remove the ending
-                      (clojure.string/replace "/index.html" "")
+                      (clojure.string/replace "/index" "")
                       )
          ;; Adds this to button objects, affects the padding.
          :buttonSize " btn-sm "
