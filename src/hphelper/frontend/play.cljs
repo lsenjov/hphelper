@@ -317,7 +317,13 @@
                }
        [:thead>tr
         (doall (map (fn [[k _]] ^{:key k} [:th (-> k name shared/wrap-any)])
-                    (->> @game-atom :indicies first sort)))
+                    (->> @game-atom
+                         :indicies
+                         first
+                         sort
+                         ;; Object is a tuple of [:SI 10]. We're wanting to put all the ones ending with I at the front
+                         (sort-by (fn [s] (not (= \I (second (name (first s)))))))
+                         )))
         ]
        [:tbody
         ;; Row of current values
