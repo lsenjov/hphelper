@@ -377,23 +377,15 @@
                                              first
                                              (update-in [index] + amount)
                                              indicies/fuzzify-indicies
-                                             indicies/normalise-all-indicies
-                                             )
-                                         )
-                                   )
-                             )
-                           )
+                                             indicies/normalise-all-indicies)))))
                     ;; We have the result of the swap, now we get the indicies
                     (get zone)
-                    )
-        ]
+                    )]
     (log/trace "modify-index-inner. newInds:" newInds)
     (-> scenMap
         (assoc-in [:indicies] newInds)
         (assoc-in [:updated :indicies] (current-time))
-        )
-    )
-  )
+        )))
 (defn modify-index
   "Modifys an index by a certain amount, returns the map, or nil if the game doesn't exist"
   [^String uid index amount]
@@ -498,6 +490,7 @@
   (-> g
       (set-minion-bought-status sgid minionid true)
       (modify-access-inner player (- cost))
+      (modify-index-inner (help/get-sg-abbr g sgid) (* 2 cost))
       )
   )
 (defn purchase-minion
