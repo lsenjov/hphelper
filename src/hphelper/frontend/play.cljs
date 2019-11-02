@@ -543,7 +543,7 @@
       )
   )
 (defn service-group-component
-  "Component for displaying service group minions (And later purchasing them)" ;; TODO purchasing
+  "Component for displaying service group minions (And later purchasing them)"
   []
   [:div
    (shared/tutorial-text
@@ -552,7 +552,10 @@
    (doall
      (map (fn [sg] ^{:key sg}
             [shared/comp-draggable (:sg_name sg) (partial single-service-group-component sg)
-             {:x 1000 :y 200 :minimised? true}])
+             {:x 1000
+              :y 200
+              :minimised? false
+              :display-fn (fn [] (str (:sg_name sg) " - " (:owner sg) " "))}])
           (sort-by :sg_id (:serviceGroups @game-atom))
           )
      )

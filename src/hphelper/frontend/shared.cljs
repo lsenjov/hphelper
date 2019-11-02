@@ -493,7 +493,7 @@
   (log/info "min-or-maximize" title)
   (swap! pos-atom update-in [title :minimised?] not))
 (defn comp-draggable
-  [title body-comp {:keys [x y] :as ?start-coords} ?style-map]
+  [title body-comp {:keys [x y display-fn] :as ?start-coords} ?style-map]
   (log/info "comp-draggable")
   (swap! pos-atom update-in [title] #(or % ?start-coords {}))
   (let [default-styles {
@@ -521,7 +521,9 @@
          {:class (if (= (:_zindex @pos-atom) (get-in @pos-atom [title :zindex]))
                   "bg-primary text-white" "border-secondary")
           :on-mouse-down (partial mouse-down-handler title)}
-         (str title " ")
+         (if display-fn
+           (display-fn)
+           (str title " "))
          ;; Minimise/maximise button
          [:div.btn.btn-secondary.btn-sm
           {:on-click (partial min-or-maximize title)} ;; TODO
