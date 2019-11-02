@@ -11,6 +11,9 @@
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  [org.clojure/clojure "1.10.1"]
 
+                 ;; Websockets
+                 [com.taoensso/sente "1.14.0"]
+
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  ;; Server Deps
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -22,6 +25,7 @@
                  [ring "1.7.1"]
                  [ring/ring-defaults "0.3.2"]
                  [ring/ring-anti-forgery "1.3.0"]
+                 [ring-logger "1.0.1"]
 
                  ;; For running an uberjar
                  [http-kit "2.3.0"]

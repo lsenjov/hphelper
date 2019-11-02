@@ -1,12 +1,16 @@
 (ns hphelper.server.handler
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
-            [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
+            [ring.middleware.defaults :refer [wrap-defaults api-defaults site-defaults]]
+            [ring.middleware.anti-forgery]
+            [ring.middleware.session]
+            [ring.logger]
             [taoensso.timbre :as log]
             [clojure.data.json :as json]
 
             ;; Standalone server
             [org.httpkit.server]
+            [hphelper.server.homepage]
 
             ;; Character handling
             [hphelper.server.chargen.generator :as cgen]
@@ -43,6 +47,9 @@
 
             ;; For turning on and off asserts
             [clojure.spec.alpha :as s]
+
+            ;; Web sockets
+            [hphelper.server.websockets]
             )
   (:gen-class))
 
@@ -63,6 +70,9 @@
 
 (defroutes
   app-routes
+  (context "/chsk" []
+           hphelper.server.websockets/ws-routes)
+
   ;; CHARACTERS
   ;; Show page to select from list or create new character
   (GET "/char/" {params :params baseURL :context}
@@ -244,7 +254,7 @@
   ;; User login/logout
   (GET "/api/user/login/"
        {{:keys [email password]} :params}
-       ;(json/write-str {:error "Not Implemented"})) ;TODO
+       ;(json/write-str {:error "Not Implemented"}) ;TODO
        (json/write-str {:apiKey "testKey" :user_email "email1@email.com" :user_name "testName"})) ;TODO change away from being mocked
 
   ;; Public endpoints
@@ -352,13 +362,14 @@
        {{gameUuid :gameUuid userUuid :userUuid sgid :sgid newOwner :new-owner} :params}
        (json/write-str (lapi/admin-set-sg-owner gameUuid userUuid sgid newOwner)))
 
+  (GET "/index" [] (hphelper.server.homepage/render-homepage))
   ;; OTHER
   ;; Simple directs to the above
   (GET "/" {baseURL :context}
     (html [:html
            [:body
             [:a {:href (str baseURL "/scen/")} "Scenario Generator"][:br]
-            [:a {:href (str baseURL "/char/")} "Character Generator"][:br]
+            ;[:a {:href (str baseURL "/char/")} "Character Generator"][:br]
             [:a {:href (str baseURL "/sectorgen/")} "Sector Generator"][:br]
             [:br]
             [:a {:href "https://github.com/lsenjov/hphelper"} "Source Code"][:br]
@@ -373,17 +384,17 @@
   (ANY "*" {{host "host" :as headers} :headers uri :uri :as all}
     (do
       (log/error "Invalid path. Host:" host "Uri:" uri)
-      (json/write-str {:status "error" :message "Invalid endpoint"})))
-  )
+      (json/write-str {:status "error" :message "Invalid endpoint"}))))
+
 
 (def app
   (-> app-routes
-      (wrap-defaults api-defaults)
-      ring.middleware.session/wrap-session
-      ;; Allows cross-site requests for development purposes. Eventually will remove
-      ;(wrap-cors #".*")
-      )
-  )
+      (ring.logger/wrap-with-logger
+        {:log-fn (fn [{:keys [level throwable message]}]
+                   (log/log level throwable message))
+         :request-keys [:request-method :uri :server-name :headers :header :params :__anti-forgery-token]
+         })
+      (wrap-defaults site-defaults)))
 
 (defn -main
   "Entry when not using it as an uberwar"
@@ -397,5 +408,4 @@
   ;; Starts the server
   (def debug-server (org.httpkit.server/run-server app {:port 3000}))
   ;; Shuts down the server
-  (debug-server)
-  )
+  (debug-server))

@@ -6,6 +6,7 @@
             [hphelper.frontend.chargen]
             [hphelper.frontend.play]
             [hphelper.frontend.reference]
+            [hphelper.frontend.websockets]
             ))
 
 (enable-console-print!)

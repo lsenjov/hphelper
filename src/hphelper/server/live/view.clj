@@ -192,7 +192,7 @@
   (str (:name player)
        " Game uid: " uid
        " Character uid: " (:password player)
-       " Character link: " (html [:a {:href (str baseURL "/index.html?guid=" uid "&uuid=" (:password player))} (:name player)])
+       " Character link: " (html [:a {:href (str baseURL "/index?guid=" uid "&uuid=" (:password player))} (:name player)])
        )
   )
 
@@ -225,7 +225,7 @@
               (map (fn [x] [:div x]) (player-keys baseURL uid))
               [:br]
               [:div "Admin pass: " (:adminPass (lcon/get-game uid))]
-              [:a {:href (str baseURL "/index.html?guid=" uid "&uuid=" (:adminPass (lcon/get-game uid)))} "Open admin game"]
+              [:a {:href (str baseURL "/index?guid=" uid "&uuid=" (:adminPass (lcon/get-game uid)))} "Open admin game"]
               ]
              ]
             ))))
