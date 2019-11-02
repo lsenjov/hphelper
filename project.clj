@@ -9,19 +9,19 @@
   :dependencies [;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  ;; Shared Deps
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                 [org.clojure/clojure "1.10.0"]
+                 [org.clojure/clojure "1.10.1"]
 
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  ;; Server Deps
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                 [org.clojure/core.async "0.3.443"
+                 [org.clojure/core.async "0.4.500"
                   :exclusions [org.clojure/tools.reader]]
 
                  ;; Web Server
-                 [compojure "1.4.0"]
-                 [ring "1.5.0"]
-                 [ring/ring-defaults "0.2.1"]
-                 [ring/ring-anti-forgery "1.0.1"]
+                 [compojure "1.6.1"]
+                 [ring "1.7.1"]
+                 [ring/ring-defaults "0.3.2"]
+                 [ring/ring-anti-forgery "1.3.0"]
 
                  ;; For running an uberjar
                  [http-kit "2.3.0"]
@@ -33,8 +33,8 @@
                  [org.clojure/data.json "0.2.6"]
 
                  ;; Database deps
-                 [mysql/mysql-connector-java "5.1.38"]
-                 [org.clojure/java.jdbc "0.4.2"]
+                 [mysql/mysql-connector-java "8.0.18"]
+                 [org.clojure/java.jdbc "0.7.10"]
 
                  ;; Displaying HTML
                  [hiccup "1.0.5"]
@@ -46,12 +46,12 @@
                  ;; Frontend Deps
                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
                  [org.clojure/clojurescript "1.10.520"]
-                 [reagent "0.7.0"]
-                 [cljs-ajax "0.6.0"]
+                 [reagent "0.8.1"]
+                 [cljs-ajax "0.8.0"]
                  [com.cemerick/url "0.1.1"]
                  ]
 
-  :plugins [[lein-figwheel "0.5.18"]
+  :plugins [[lein-figwheel "0.5.19"]
             [lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
             [lein-ring "0.12.5"]
             ]
@@ -144,11 +144,7 @@
   ;; https://github.com/bhauman/lein-figwheel/wiki/Using-the-Figwheel-REPL-within-NRepl
 
 
-  :profiles {:dev {:dependencies [[binaryage/devtools "0.8.2"]
-                                  [figwheel-sidecar "0.5.8"]
-                                  ;[com.cemerick/piggieback "0.2.1"]
-                                  [cider/piggieback "0.4.0"]
-                                  [org.clojure/test.check "0.9.0"]
+  :profiles {:dev {:dependencies [[org.clojure/test.check "0.10.0"]
                                   ]
                    ;; need to add dev source path here to get user.clj loaded
                    :source-paths ["src" "dev"]
@@ -156,7 +152,8 @@
                    ;; :plugins [[cider/cider-nrepl "0.12.0"]]
                    :repl-options {; for nREPL dev you really need to limit output
                                   :init (set! *print-length* 50)
-                                  :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
+                                  ;:nrepl-middleware [cider.piggieback/wrap-cljs-repl]
+                                  }
                    }
              ;; Specifically remove asserts on compilation
              :prod {:jvm-opts ["-Dclojure.spec.compile-asserts=false"]}

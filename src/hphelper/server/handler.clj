@@ -101,6 +101,7 @@
                     ;; Save to db, store the id in charid
                     (sl/save-char-to-db)
                     )]
+            (log/trace "finished saving char")
             (-> charid
                 (sl/load-char-from-db)
                 ;; Add the id from the database to the character
@@ -161,9 +162,10 @@
   ;; Show page to create a new scenario, or select a partially completed or fully completed scenario
   ;; If contains a :scen_id, loads completed scenario and allows options for printing parts or all
   (GET "/scen/" {params :params baseURL :context}
-    (if (params :scen_id)
-      (ssel/print-crisis-page (params :scen_id) baseURL)
-      (ssel/print-select-page baseURL)))
+       (log/trace "Visting /scen/")
+       (if (params :scen_id)
+         (ssel/print-crisis-page (params :scen_id) baseURL)
+         (ssel/print-select-page baseURL)))
   ;; Show page to create a new scenario
   (GET "/scen/gen/" {baseURL :context} (sform/html-select-page baseURL))
   ;; Create a brand new scenario without programmers picked

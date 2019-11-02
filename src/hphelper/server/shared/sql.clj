@@ -4,15 +4,22 @@
             [clojure.spec.alpha :as s]
             ))
 
-(def db {:subprotocol "mysql"
-         :subname "//127.0.0.1:3306/hphelper?useSSL=false"
-         :user "fc"})
+(def db
+  (-> "mysql.edn"
+      slurp
+      clojure.edn/read-string 
+      (update-in [:subname] str "hphelper")
+      ))
 
 (defn query
   "Performs the query against the defined database, and logs the query"
   [& quer]
   (log/trace "Performing Query: " quer)
   (jdb/query db quer))
+
+(comment
+  (query "show tables;")
+  )
 
 ;; Items that need to get moved to their own file
 (defn parse-int

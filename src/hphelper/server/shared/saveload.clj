@@ -4,9 +4,12 @@
             [taoensso.timbre :as log]
             ))
 
-(def db {:subprotocol "mysql"
-         :subname "//127.0.0.1:3306/hpsaveload"
-         :user "fc"})
+(def db
+  (-> "mysql.edn"
+      slurp
+      clojure.edn/read-string 
+      (update-in [:subname] str "hpsaveload")
+      ))
 
 ;; Scenarios
 (defn save-scen-to-db
@@ -70,7 +73,15 @@
   Returns the generated key"
   [obj]
   (log/trace "save-char-to-db.")
-  (:generated_key (first (jdb/insert! db :chars {:char_file (prn-str obj) :char_name (:name obj)} :transaction? true))))
+  (let [
+        char_file {:char_file (prn-str obj) :char_name (:name obj)}
+        _ (log/trace "char_file" char_file)
+        transaction (jdb/insert! db :chars char_file {:transaction? true})
+        _ (log/trace "transaction" transaction)
+        id (first transaction)
+        _ (log/trace "id" id)
+        ]
+    (:generated_key id)))
 (defn update-char
   "Replaces the char_file in the db with the new character file"
   ([id char-file]
@@ -123,7 +134,7 @@
       )
     (try
       (let [new-id
-            (-> (jdb/insert! db :user user :transaction? true)
+            (-> (jdb/insert! db :user user {:transaction? true})
                 first
                 :generated_key)]
         (if new-id
