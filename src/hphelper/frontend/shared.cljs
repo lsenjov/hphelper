@@ -11,7 +11,7 @@
   (atom {:context (-> js/window
                       .-location
                       ;; This gets /context/index
-                      .-origin
+                      .-href
                       ;; Remove the ending
                       (clojure.string/replace "/index" "")
                       )
