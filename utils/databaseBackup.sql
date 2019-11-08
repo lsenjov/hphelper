@@ -1,8 +1,8 @@
 -- MySQL dump 10.13  Distrib 5.7.27, for Linux (x86_64)
 --
--- Host: localhost    Database: hphelper
+-- Host: 172.17.0.2    Database: hphelper
 -- ------------------------------------------------------
--- Server version	5.7.27-0ubuntu0.18.04.1
+-- Server version	8.0.18
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -30,7 +30,7 @@ CREATE TABLE `cbay` (
   UNIQUE KEY `cbay_item_UNIQUE` (`cbay_item`),
   KEY `fk_cbay_1_idx` (`c_id`),
   CONSTRAINT `fk_cbay_1` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -39,7 +39,7 @@ CREATE TABLE `cbay` (
 
 LOCK TABLES `cbay` WRITE;
 /*!40000 ALTER TABLE `cbay` DISABLE KEYS */;
-INSERT INTO `cbay` VALUES (NULL,'12 Crates B3, GreenAndGulpy flavour',5),(NULL,'18 cans Sandatholon, sealed',2),(NULL,'20KG fissile grade plutonium',4),(NULL,'3 Ton Nuclear Waste, going fast!',1),(NULL,'4 surplus TacNukes',3),(NULL,'5 Ton Hot Fun! Barely used!',3),(NULL,'80 Tons water recently recycled!',4),(NULL,'Brain Freshening Unit K session',4),(NULL,'ConeRifle Battle Gum, 10k units',2),(NULL,'Education Helmet mkXIV',11),(NULL,'FizzWizz Proof Shower Head',8),(NULL,'Model-U autocar, max speed 400km/h',7),(NULL,'Prototype Mechanical Combat Walker',10),(NULL,'Refurbished AutoLimo',3),(NULL,'Spyder vehicle, UV furnishings',9),(NULL,'Teela-O season 12, good condition',28);
+INSERT INTO `cbay` VALUES (NULL,'*****-U\'s library card',1),(NULL,'12 Crates B3, GreenAndGulpy flavour',5),(NULL,'13,980 assorted greeting cards',4),(NULL,'15 hectares velcro',3),(NULL,'15 tons unmixed two part quick set epoxy',3),(NULL,'18 cans Sandatholon, sealed',2),(NULL,'20KG fissile grade plutonium',4),(NULL,'3 Ton Nuclear Waste, going fast!',1),(NULL,'4 surplus TacNukes',3),(NULL,'5 Ton Hot Fun! Barely used!',3),(NULL,'80 Tons water recently recycled!',4),(NULL,'Assorted architectural diagrams',4),(NULL,'Assorted signs',2),(NULL,'Assorted unpaired woolen socks, 714',3),(NULL,'Beta complex phone directory',8),(NULL,'Brain Freshening Unit K session',4),(NULL,'Candygram, expired',1),(NULL,'ConeRifle Battle Gum, 10k units',2),(NULL,'Declassified Intsec report',4),(NULL,'Education Helmet mkXIV',11),(NULL,'Electric bicycle',6),(NULL,'Enemy spacecraft, partially stripped',2),(NULL,'FC costume w/ voice modulator',12),(NULL,'FizzWizz Proof Shower Head',8),(NULL,'Fusion powered pocket electromagnet',14),(NULL,'Industrial clothes folding machine',3),(NULL,'Instantly Inflatable InfiniFun Bouncy Castle',7),(NULL,'Knob, labelled \'Important\'',18),(NULL,'Lion, caged',4),(NULL,'Major League Baseball Official Rulebook',16),(NULL,'Marty-U\'s hat collection',15),(NULL,'Mathbot Mk1',5),(NULL,'Model-U autocar, max speed 400km/h',7),(NULL,'NoGas Masks v0.4, 200 units',5),(NULL,'Open air manual termination booth',4),(NULL,'PigeonBots x70',8),(NULL,'Portable ham radio (disassembled)',4),(NULL,'Portable staircase',3),(NULL,'Pre-whoopsie Globe',6),(NULL,'Prototype Mechanical Combat Walker',10),(NULL,'Refurbished AutoLimo',3),(NULL,'Rejected raffle ticket books, 500x500',1),(NULL,'Sir SmokeALot, Concert grade',3),(NULL,'SkyHeat Umbrella',3),(NULL,'Spyder vehicle, UV furnishings',9),(NULL,'Steam boiler blueprint',7),(NULL,'Teela-O season 12, good condition',28),(NULL,'Unused override codes, Pages 102-159',2),(NULL,'Wallace-I, Private Eye (contract)',6);
 /*!40000 ALTER TABLE `cbay` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -56,7 +56,7 @@ CREATE TABLE `crisis` (
   `c_desc` text NOT NULL,
   PRIMARY KEY (`c_id`),
   UNIQUE KEY `c_id_UNIQUE` (`c_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=98 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=98 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -81,7 +81,7 @@ CREATE TABLE `crisis_tag` (
   `ct_tag` varchar(3) NOT NULL,
   PRIMARY KEY (`c_id`,`ct_tag`),
   CONSTRAINT `fk_crisis_tag_1` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -108,7 +108,7 @@ CREATE TABLE `crisis_text` (
   PRIMARY KEY (`ct_id`),
   KEY `fk_crisis_text_1_idx` (`c_id`),
   CONSTRAINT `fk_crisis_text_1` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=355 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=355 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -132,7 +132,7 @@ CREATE TABLE `drawbacks` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `text` varchar(200) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -158,7 +158,7 @@ CREATE TABLE `first_name` (
   PRIMARY KEY (`fn_id`),
   UNIQUE KEY `fn_id_UNIQUE` (`fn_id`),
   UNIQUE KEY `fn_name_UNIQUE` (`fn_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2439 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=2439 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -185,7 +185,7 @@ CREATE TABLE `live_ind` (
   `live_ind_last` int(11) NOT NULL DEFAULT '0',
   `live_ind_start` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`live_ind_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -209,7 +209,7 @@ CREATE TABLE `live_news` (
   `live_news_id` int(11) NOT NULL AUTO_INCREMENT,
   `live_news_desc` varchar(200) NOT NULL,
   PRIMARY KEY (`live_news_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -239,7 +239,7 @@ CREATE TABLE `minion` (
   PRIMARY KEY (`minion_id`),
   KEY `fk_minion_1_idx` (`sg_id`),
   CONSTRAINT `fk_minion_1` FOREIGN KEY (`sg_id`) REFERENCES `sg` (`sg_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=449 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=449 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -267,7 +267,7 @@ CREATE TABLE `minion_skill` (
   KEY `fk_minion_skill_2_idx` (`minion_id`),
   CONSTRAINT `fk_minion_skill_1` FOREIGN KEY (`skills_id`) REFERENCES `skills` (`skills_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_minion_skill_2` FOREIGN KEY (`minion_id`) REFERENCES `minion` (`minion_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -310,7 +310,7 @@ CREATE TABLE `mutations` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   UNIQUE KEY `Name_UNIQUE` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -337,7 +337,7 @@ CREATE TABLE `name_old` (
   `name_zone` varchar(3) NOT NULL,
   `name_clone` int(11) NOT NULL,
   PRIMARY KEY (`name_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -364,7 +364,7 @@ CREATE TABLE `news` (
   PRIMARY KEY (`news_id`),
   KEY `fk_news_1_idx` (`c_id`),
   CONSTRAINT `fk_news_1` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=86 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=86 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -390,7 +390,7 @@ CREATE TABLE `resource` (
   `resource_type` varchar(3) NOT NULL,
   PRIMARY KEY (`resource_id`),
   KEY `index2` (`resource_type`)
-) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -418,7 +418,7 @@ CREATE TABLE `sf` (
   PRIMARY KEY (`sf_id`),
   KEY `fk_sf_1_idx` (`sg_id`),
   CONSTRAINT `fk_sf_1` FOREIGN KEY (`sg_id`) REFERENCES `sg` (`sg_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -446,7 +446,7 @@ CREATE TABLE `sg` (
   UNIQUE KEY `sg_name_UNIQUE` (`sg_name`),
   UNIQUE KEY `sg_abbr_UNIQUE` (`sg_abbr`),
   UNIQUE KEY `sg_id_UNIQUE` (`sg_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -473,7 +473,7 @@ CREATE TABLE `sg_skill` (
   KEY `fk_sg_skill_1_idx` (`skills_id`),
   CONSTRAINT `fk_sg_skill_1` FOREIGN KEY (`skills_id`) REFERENCES `skills` (`skills_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_sg_skill_2` FOREIGN KEY (`sg_id`) REFERENCES `sg` (`sg_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -516,7 +516,7 @@ CREATE TABLE `sgm` (
   KEY `index_c` (`c_id`),
   CONSTRAINT `fk_sgm_1` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_sgm_2` FOREIGN KEY (`sg_id`) REFERENCES `sg` (`sg_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=483 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=483 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -543,7 +543,7 @@ CREATE TABLE `skills` (
   `skills_desc` text,
   PRIMARY KEY (`skills_id`),
   UNIQUE KEY `skills_name_UNIQUE` (`skills_name`)
-) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -571,8 +571,8 @@ CREATE TABLE `ss` (
   `ss_parent` int(11) DEFAULT NULL,
   PRIMARY KEY (`ss_id`),
   KEY `fk_ss_1_idx` (`ss_parent`),
-  CONSTRAINT `fk_ss_1` FOREIGN KEY (`ss_parent`) REFERENCES `ss` (`ss_id`) ON DELETE NO ACTION ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4;
+  CONSTRAINT `fk_ss_1` FOREIGN KEY (`ss_parent`) REFERENCES `ss` (`ss_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -600,7 +600,7 @@ CREATE TABLE `ss_skill` (
   KEY `fk_ss_skill_1_idx` (`skill_id`),
   CONSTRAINT `fk_ss_skill_1` FOREIGN KEY (`skill_id`) REFERENCES `skills` (`skills_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_ss_skill_2` FOREIGN KEY (`ss_id`) REFERENCES `ss` (`ss_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -647,7 +647,7 @@ CREATE TABLE `ssm` (
   KEY `fk_ssm_2_idx` (`ss_id`),
   CONSTRAINT `fk_ssm_1` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_ssm_2` FOREIGN KEY (`ss_id`) REFERENCES `ss` (`ss_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=485 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=485 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -697,8 +697,8 @@ CREATE TABLE `tag_crisis` (
   `tag_id` int(11) NOT NULL,
   PRIMARY KEY (`c_id`,`tag_id`),
   KEY `tag_crisis_tag_idx` (`tag_id`),
-  CONSTRAINT `tag_crisis_crisis` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `tag_crisis_tag` FOREIGN KEY (`tag_id`) REFERENCES `tag` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `tag_crisis_crisis` FOREIGN KEY (`c_id`) REFERENCES `crisis` (`c_id`),
+  CONSTRAINT `tag_crisis_tag` FOREIGN KEY (`tag_id`) REFERENCES `tag` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -774,4 +774,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-09-01  0:04:20
+-- Dump completed on 2019-11-09  8:14:19
