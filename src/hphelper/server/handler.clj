@@ -392,7 +392,7 @@
       (ring.logger/wrap-with-logger
         {:log-fn (fn [{:keys [level throwable message]}]
                    (log/log level throwable message))
-         :request-keys [:request-method :uri :server-name :headers :header :params :__anti-forgery-token]
+         ;:request-keys [:request-method :uri :server-name :headers :header :params :__anti-forgery-token]
          })
       (wrap-defaults site-defaults)))
 
