@@ -159,6 +159,7 @@
   If no record is given, creates a completely random character sheet"
   ([] (create-character {}))
   ([charRec]
+   (log/trace "create-character:" charRec)
    (if charRec ;; In case of nils
      (-> charRec
          (check-for-minimum-management)

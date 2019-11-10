@@ -1,0 +1,2 @@
+(ns hphelper.shared.model
+)

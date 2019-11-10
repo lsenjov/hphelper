@@ -2,7 +2,7 @@
   "Contains a component for giving players information"
   (:require [taoensso.timbre :as log]
             [reagent.core :as reagent :refer [atom]]
-            [ajax.core :refer [GET POST] :as ajax]
+            [ajax.core :refer [GET] :as ajax]
             [hphelper.frontend.shared :refer [wrap-context add-button-size] :as shared]
             ))
 

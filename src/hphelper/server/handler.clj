@@ -68,6 +68,57 @@
        )
   )
 
+(defn- route-api-char-new
+  [request]
+  (let [body (ring.util.request/body-string request)]
+    (log/trace "/api/char/new/ body:" body)
+    (let [charid
+          (-> body
+              ;; Change to a map format with the char edn in :newchar
+              json/read-str
+              ;; Get the char edn
+              (get "newchar")
+              ;; Transform to an actual character file
+              clojure.edn/read-string
+              ;; New characters need drawbacks and mutations
+              (cgen/create-character)
+              ;; Save to db, store the id in charid
+              (sl/save-char-to-db)
+              )]
+      (log/trace "finished saving char")
+      (-> charid
+          (sl/load-char-from-db)
+          ;; Add the id from the database to the character
+          ;(assoc :char_id charid) ; Should already be done upon loading
+          pr-str
+          ((fn [s] {:char s}))
+          json/write-str))))
+(defn- route-api-char-update
+  [request]
+  (let [c (-> request
+              ring.util.request/body-string
+              ;; Change to a map format with the char edn in :newchar
+              json/read-str
+              ;; Get the char edn
+              :newchar
+              ;; Transform to an actual character file
+              clojure.edn/read-string
+              )
+        charid (:char_id c)
+        ]
+    (log/trace "/api/char/update/" "charid:" charid "character:")
+    ;; Update it
+    (if charid
+      (do
+        (log/trace "Updating character" charid "in database.")
+        (sl/update-char (int charid) c)
+        (json/write-str {:status "okay"})
+        )
+      (do
+        (log/error "Could not update character" charid "in database.")
+        (json/write-str {:status "error"})
+        ))))
+
 (defroutes
   app-routes
   (context "/chsk" []
@@ -96,62 +147,12 @@
   ;; Upload a new character, return the character as edn under the :char tag
   (POST "/api/char/new/"
         request
-        (let [body (ring.util.request/body-string request)]
-          (log/trace "/api/char/new/ body:" body)
-          (let [charid
-                (-> body
-                    ;; Change to a map format with the char edn in :newchar
-                    clojure.edn/read-string
-                    ;; Get the char edn
-                    :newchar
-                    ;; Transform to an actual character file
-                    clojure.edn/read-string
-                    ;; New characters need drawbacks and mutations
-                    (cgen/create-character)
-                    ;; Save to db, store the id in charid
-                    (sl/save-char-to-db)
-                    )]
-            (log/trace "finished saving char")
-            (-> charid
-                (sl/load-char-from-db)
-                ;; Add the id from the database to the character
-                ;(assoc :char_id charid) ; Should already be done upon loading
-                pr-str
-                ((fn [s] {:char s}))
-                json/write-str
-                )
-            )
-          )
-        )
+        (route-api-char-new request))
   ;; TODO currently just creates a new character slot each time, need to update the old one?
   ;; Returns the character
   (POST "/api/char/update/"
         request
-        (let [c (-> request
-                    ring.util.request/body-string
-                    ;; Change to a map format with the char edn in :newchar
-                    clojure.edn/read-string
-                    ;; Get the char edn
-                    :newchar
-                    ;; Transform to an actual character file
-                    clojure.edn/read-string
-                    )
-              charid (:char_id c)
-              ]
-          (log/trace "/api/char/update/" "charid:" charid "character:")
-          ;; Update it
-          (if charid
-            (do
-              (log/trace "Updating character" charid "in database.")
-              (sl/update-char (int charid) c)
-              (json/write-str {:status "okay"})
-              )
-            (do
-              (log/error "Could not update character" charid "in database.")
-              (json/write-str {:status "error"})
-              )
-            )
-          )
+        (route-api-char-update request)
         )
   ;; Display a character
   (GET "/char/print/" {params :params}

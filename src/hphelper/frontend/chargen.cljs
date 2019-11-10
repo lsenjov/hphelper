@@ -208,14 +208,14 @@
         [:div {:class (add-button-size "btn btn-success")
                :onClick #(ajax/POST (wrap-context "/api/char/new/")
                                    {:response-format (ajax/json-response-format {:keywords? true})
-                                    :format :text
+                                    :format :json
                                     :handler (fn [m]
                                                (log/info "Get char:" m)
                                                ;; Load completed char
                                                (reset! character-atom (cljs.reader/read-string (:char m)))
                                                )
+                                    :headers {:x-csrf-token (shared/get-csrf-token)}
                                     :params {:newchar (pr-str @character-atom)
-                                             :debug "asdf"
                                              } ;; Move :lastUpdated somewhere
                                     }
                                    )
@@ -233,7 +233,7 @@
                                                ;; Load completed char
                                                )
                                     :params {:newchar (pr-str @character-atom)
-                                             :debug "asdf"
+                                             :__anti-forgery-token (shared/get-csrf-token)
                                              } ;; Move :lastUpdated somewhere
                                     }
                                    )
@@ -368,11 +368,9 @@
   [^Atom c]
   [:div
    (shared/tutorial-text
-     "Here you can pick the contacts that members of your program group have concact with. Class A societies are technically illegal but generall accepted. Class C societies are heavily illegal but very good at what they do. Class B is somewhere in the middle. Note that picking multiple sects of the same group will not give you multiple missions from the group, and should generally be avoided. "
-     )
+     "Here you can pick the contacts that members of your program group have concact with. Class A societies are technically illegal but generall accepted. Class C societies are heavily illegal but very good at what they do. Class B is somewhere in the middle. Note that picking multiple sects of the same group will not give you multiple missions from the group, and should generally be avoided. ")
    (if-let [pgs (get-in @c [:secStats "Program Group Size"])]
-     (str "You must pick " pgs " secret society contacts. ")
-     )
+     (str "You must pick " pgs " secret society contacts. "))
    (str "You have picked " (-> @c :programGroup count) " secret society contacts.")
    [:table {:class "table table-striped"}
     [:thead
@@ -381,22 +379,16 @@
       [:th "Name"]
       [:th "Class"]
       [:th "Skills"]
-      [:th "Description"]
-      ]
-     ]
+      [:th "Description"]]]
     [:tbody
      ;; If players have left tutorial on, hide the extra societies
      ;; Show them when they turn the tutorial off
-     (let [ss (if (shared/tutorial?)
-                (remove :ss_parent (shared/get-societies))
+     (let [ss 
+           (if (not (shared/get-debug-status))
+                (filter :ss_show (shared/get-societies))
                 (shared/get-societies))]
        (map (fn [s] ^{:key s} [societies-single-component c s])
-            (sort-by :ss_name ss))
-       )
-     ]
-    ]
-   ]
-  )
+            (sort-by :ss_name ss)))]]])
 
 (defn stats-secondary-component
   "Displays secondary stats"

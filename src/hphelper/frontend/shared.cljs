@@ -1,7 +1,7 @@
 (ns hphelper.frontend.shared
   (:require [taoensso.timbre :as log]
             [reagent.core :as reagent :refer [atom]]
-            [ajax.core :refer [GET POST] :as ajax]
+            [ajax.core :refer [GET] :as ajax]
             [goog.events :as events]
             )
   (:import [goog.events EventType])
@@ -12,8 +12,9 @@
                       .-location
                       ;; This gets /context/index
                       .-href
-                      ;; Remove the ending
-                      (clojure.string/replace "/index" "")
+                      ;; Remove everything after and including /index
+                      (clojure.string/split "/index")
+                      first
                       )
          ;; Adds this to button objects, affects the padding.
          :buttonSize " btn-sm "
@@ -102,6 +103,9 @@
        (range)
        coll)))
 
+(defn get-csrf-token []
+  (.-value (.getElementById js/document "__anti-forgery-token")))
+
 ;; For easier class work
 (defn add-button-size
   "Adds button size to the end of a string"
@@ -151,7 +155,7 @@
 (defn debug-switcher-button
   "Switches the :debug tag in system-info"
   []
-  [:span {:class (if (:debug @system-info) "btn btn-success btn-xs" "btn btn-secondary btn-xs")
+  [:span.btn.btn-sm {:class (if (:debug @system-info) "btn-success" "btn-secondary")
           :onClick #(swap! system-info update-in [:debug] not)
           }
    "Debug"
@@ -160,9 +164,9 @@
 (defn tutorial-switcher-button
   "Switches the :tutorial tag in system-info"
   []
-  [:span {:class (add-button-size (if (:tutorial @system-info) "btn btn-primary" "btn btn-secondary"))
-          :onClick #(swap! system-info update-in [:tutorial] not)
-          }
+  [:span.btn {:class (add-button-size (if (:tutorial @system-info) "btn-primary" "btn-secondary"))
+              :onClick #(swap! system-info update-in [:tutorial] not)
+              }
    "Tutorial"
    ]
   )
